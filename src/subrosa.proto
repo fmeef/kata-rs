@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package subrosaproto;
+enum PostType {
+    TYPE = 0;
+    NEWSGROUP = 1;
+    POST = 2;
+    USER = 3;
+}
+
+message TypePrefix {
+
+    PostType post_type = 1;
+}
+
+message ProtoUuid {
+    uint64 lower = 1;
+    uint64 upper = 2;
+}
+
+message Parent {
+    ProtoUuid parentuuid = 1;
+    bytes parenthash = 2;
+}
+
+message NewsGroup {
+    ProtoUuid uuid = 1;
+    oneof parentOption {
+        Parent parent = 2;
+        bool toplevel = 3;
+    }
+    string name = 4;
+    string description = 5;
+}
+
+message Post {
+    ProtoUuid uuid = 1;
+    oneof author_or {
+        ProtoUuid author = 2;
+    }
+    string header = 3;
+    string body = 4;
+    NewsGroup parent = 5;
+    bytes sig = 6;
+}
+
+message User {
+    ProtoUuid identity = 1;
+    string name = 2;
+    string bio = 3;
+    oneof image {
+        bytes imagebytes = 4;
+    }
+}

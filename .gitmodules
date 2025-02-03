@@ -1,0 +1,3 @@
+[submodule "scatterbrain"]
+	path = scatterbrain
+	url = git@10.4.0.131:scatterbrain-rs

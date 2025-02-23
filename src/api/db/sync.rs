@@ -1,4 +1,4 @@
-use prost::Message as Ser;
+use rusqlite::types::Value;
 use scatterbrain::types::{Message, SbSession};
 
 use crate::{
@@ -7,7 +7,7 @@ use crate::{
 };
 
 use super::{
-    connection::{Crud, SubrosaDb},
+    connection::{Crud, OnConflict, SubrosaDb},
     entities::{CachedIdentity, NewsGroup, Posts, SubrosaDao},
 };
 
@@ -16,7 +16,7 @@ pub fn conn_test(session: SbSession) {
 }
 
 impl SubrosaDb {
-    pub async fn sync(&self, sb_connection: SbSession) -> anyhow::Result<()> {
+    pub async fn sync(&self, sb_connection: &SbSession) -> anyhow::Result<()> {
         let sync_time = self.get_last_sync_date()?;
 
         let messages = sb_connection
@@ -26,37 +26,50 @@ impl SubrosaDb {
         let unsent_posts = self.get_unsent_posts()?;
         let unsent_groups = self.get_unsent_groups()?;
 
+        let sent_groups: Vec<Value> = unsent_groups.iter().map(|v| v.uuid.into()).collect();
+        let sent_posts: Vec<Value> = unsent_posts.iter().map(|v| v.post_id.into()).collect();
+
         for post in unsent_groups {
-            let post = post.to_proto();
-            let message = post.encode_to_vec();
+            log::debug!("sending group {:?}", post.parent);
+            let message = SubrosaMessage::Newsgroup(post.to_proto()).encode_to_vec()?;
             let message = Message::from_vec(message, APP_NAME.to_owned());
             sb_connection.send_messages(vec![message], None).await?;
         }
 
         for post in unsent_posts {
+            log::debug!("sending posts {}", post.post_id);
+
             let post = post.to_proto(self)?;
-            let message = post.encode_to_vec();
+            let author = post.author_or.map(|v| match v {
+                AuthorOr::Author(v) => v.as_uuid(),
+            });
+            let message = SubrosaMessage::Post(post).encode_to_vec()?;
             let message = Message::from_vec(message, APP_NAME.to_owned());
-            sb_connection
-                .send_messages(
-                    vec![message],
-                    post.author_or.map(|v| match v {
-                        AuthorOr::Author(v) => v.as_uuid(),
-                    }),
-                )
-                .await?;
+            sb_connection.send_messages(vec![message], author).await?;
         }
+
+        self.mark_sent_groups(sent_groups)?;
+        self.mark_sent_posts(sent_posts)?;
 
         self.process_scatter_messages(&messages)?;
         Ok(())
     }
 
     pub fn insert_message(&self, message: &Message) -> anyhow::Result<()> {
-        match SubrosaMessage::parse(&message.body)? {
-            SubrosaMessage::Post(post) => Posts::from_proto(post)?.insert(self)?,
-            SubrosaMessage::Newsgroup(news) => NewsGroup::from_proto(news)?.insert(self)?,
-            SubrosaMessage::User(id) => CachedIdentity::from_proto(id)?.insert(self)?,
-            SubrosaMessage::MessageType(_) => (),
+        if let Err(err) = match SubrosaMessage::parse(&message.body) {
+            Ok(SubrosaMessage::Post(post)) => {
+                Posts::from_proto(post)?.insert_on_conflict(self, OnConflict::Ignore)
+            }
+            Ok(SubrosaMessage::Newsgroup(news)) => {
+                NewsGroup::from_proto(news)?.insert_on_conflict(self, OnConflict::Ignore)
+            }
+            Ok(SubrosaMessage::User(id)) => {
+                CachedIdentity::from_proto(id)?.insert_on_conflict(self, OnConflict::Ignore)
+            }
+            Ok(SubrosaMessage::MessageType(_)) => Ok(()),
+            Err(err) => Err(err.into()),
+        } {
+            log::warn!("message parse failed {:?}", err);
         }
         Ok(())
     }

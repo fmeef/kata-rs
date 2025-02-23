@@ -1145,9 +1145,9 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.4.22"
+version = "0.4.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7a70ba024b9dc04c27ea2f0c0548feb474ec5c54bba33a7f72f873a39d07b24"
+checksum = "30bde2b3dc3671ae49d8e2e9f044c7c005836e7a023ee57cffa25ab82764bb9e"
 
 [[package]]
 name = "macros"
@@ -1547,6 +1547,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "uuid",
+ "zeroize",
 ]
 
 [[package]]
@@ -1557,10 +1558,12 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "convert_case",
+ "env_logger 0.11.6",
  "fallible-iterator",
  "flutter_rust_bridge",
  "futures 0.3.31",
  "lazy_static",
+ "log",
  "macros",
  "prost",
  "prost-build",
@@ -1568,6 +1571,8 @@ dependencies = [
  "rusqlite",
  "rusqlite_migration",
  "scatterbrain",
+ "sha1",
+ "sha2",
  "thiserror 2.0.9",
  "tokio",
  "uuid",
@@ -1615,6 +1620,17 @@ dependencies = [
  "memchr",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "sha1"
+version = "0.10.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3bf829a2d51ab4a5ddf1352d8470c140cadc8301b2ae1789db023f01cedd6ba"
+dependencies = [
+ "cfg-if",
+ "cpufeatures",
+ "digest",
 ]
 
 [[package]]

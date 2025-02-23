@@ -1,15 +1,7 @@
-use crate::error::Result;
+use crate::{api::db::entities::FromRow, error::Result};
 use fallible_iterator::{FallibleIterator, IteratorExt};
-
-use rusqlite::{Row, Rows, ToSql};
-
-#[allow(dead_code)] // Needed for derive macro
-pub(crate) trait FromRow: Sized {
-    fn from_row(row: &Row) -> Result<Self>;
-    fn from_rows(rows: Rows) -> impl FallibleIterator<Item = Self> {
-        rows.map(|thing| Ok(Self::from_row(thing)?))
-    }
-}
+use flutter_rust_bridge::frb;
+use rusqlite::Row;
 
 impl FromRow for i64 {
     fn from_row(row: &Row) -> Result<Self> {
@@ -18,13 +10,11 @@ impl FromRow for i64 {
 }
 
 #[allow(dead_code)]
-pub(crate) trait GetParams {
-    fn get_params<'a>(&'a self) -> Vec<(&'a str, &'a dyn ToSql)>;
-}
-
-#[allow(dead_code)]
+#[frb(ignore)]
 pub(crate) trait IntoModel<T> {
+    #[frb(ignore)]
     fn into_model(&self) -> Result<T>;
+    #[frb(ignore)]
     fn model_iter(self) -> impl FallibleIterator<Item = T>;
 }
 

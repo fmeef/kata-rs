@@ -83,6 +83,12 @@ impl SubrosaMessage {
         Ok(r)
     }
 
+    pub(crate) fn encode_to_vec(&self) -> Result<Vec<u8>> {
+        let mut v = Vec::new();
+        self.encode(&mut v)?;
+        Ok(v)
+    }
+
     fn encode<T>(&self, writer: &mut T) -> Result<()>
     where
         T: BufMut,

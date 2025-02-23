@@ -6,16 +6,44 @@ use crate::{
     proto::{self, news_group::ParentOption, post::AuthorOr, user::Image},
 };
 use chrono::{NaiveDateTime, Utc};
+use fallible_iterator::FallibleIterator;
 use flutter_rust_bridge::frb;
 use macros::{dao, query, FromRow};
 pub use rusqlite::types::Value;
 pub use rusqlite::vtab::array::Array;
+use rusqlite::{Row, Rows, ToSql};
+use sha2::Sha256;
 pub use uuid::Uuid;
 
-use crate::db_helpers::FromRow;
+use sha1::{Digest, Sha1};
 
-#[derive(FromRow, Debug)]
+#[allow(dead_code)]
+#[frb]
+pub trait GetParams {
+    fn has_params() -> bool {
+        true
+    }
+    #[frb(ignore)]
+    fn get_params<'a>(&'a self) -> Vec<(&'a str, &'a dyn ToSql)>;
+}
+
+#[allow(dead_code)] // Needed for derive macro
+#[frb]
+pub trait FromRow: Sized {
+    fn is_entity() -> bool {
+        true
+    }
+    #[frb(ignore)]
+    fn from_row(row: &Row) -> Result<Self>;
+    #[frb(ignore)]
+    fn from_rows(rows: Rows) -> impl FallibleIterator<Item = Self> {
+        rows.map(|thing| Ok(Self::from_row(thing)?))
+    }
+}
+
+#[derive(FromRow, Debug, Clone)]
 #[table("newsgroup")]
+#[frb(opaque)]
 pub struct NewsGroup {
     #[primary]
     pub uuid: Uuid,
@@ -73,10 +101,10 @@ pub trait SubrosaDao {
     #[query("SELECT * FROM posts WHERE parent_group = :parent ORDER BY receive_date DESC")]
     fn get_posts(&self, parent: &Uuid) -> Result<Vec<Posts>>;
 
-    #[query("SELECT * FROM posts WHERE sent = 'false'")]
+    #[query("SELECT * FROM posts WHERE sent = '0'")]
     fn get_unsent_posts(&self) -> Result<Vec<Posts>>;
 
-    #[query("SELECT * from newsgroup WHERE sent = 'false'")]
+    #[query("SELECT * from newsgroup WHERE sent = '0'")]
     fn get_unsent_groups(&self) -> Result<Vec<NewsGroup>>;
 
     #[query("SELECT receive_date FROM posts ORDER BY receive_date LIMIT 1")]
@@ -85,10 +113,10 @@ pub trait SubrosaDao {
     #[query("SELECT * FROM posts LEFT JOIN user ON user.identity = posts.identity WHERE parent_group = (:parent) ORDER BY receive_date DESC")]
     fn get_posts_with_identity(&self, parent: &Uuid) -> Result<Vec<PostWithIdentity>>;
 
-    #[query("UPDATE posts SET sent = 'true' WHERE post_id IN (:ids)")]
+    #[query("UPDATE posts SET sent = '1' WHERE post_id IN rarray(:ids)")]
     fn mark_sent_posts(&self, ids: Vec<Value>) -> Result<()>;
 
-    #[query("UPDATE newsgroup SET sent = 'true' WHERE post_id IN (:ids)")]
+    #[query("UPDATE newsgroup SET sent = '1' WHERE uuid IN rarray(:ids)")]
     fn mark_sent_groups(&self, ids: Vec<Value>) -> Result<()>;
 
     #[query("SELECT * FOM identity where uuid = :uuid")]
@@ -170,8 +198,56 @@ pub struct CachedIdentity {
     pub owned: Option<bool>,
     pub image_bytes: Option<Vec<u8>>,
 }
+#[frb(opaque)]
+pub struct Parent {
+    uuid: Uuid,
+    hash: Vec<u8>,
+}
 
 impl NewsGroup {
+    #[frb(sync)]
+    pub fn as_parent(&self) -> Parent {
+        Parent {
+            uuid: self.uuid,
+            hash: self.hash(),
+        }
+    }
+
+    #[frb(sync)]
+    pub fn new(
+        uuid: Uuid,
+        description: String,
+        parent: Option<Parent>,
+        group_name: String,
+        sent: bool,
+    ) -> Self {
+        let (parent_hash, parent) = match parent {
+            None => (None, None),
+            Some(Parent { uuid, hash }) => (Some(hash), Some(uuid)),
+        };
+        NewsGroup {
+            uuid,
+            description,
+            parent_hash,
+            parent,
+            group_name,
+            sent,
+        }
+    }
+
+    pub fn hash(&self) -> Vec<u8> {
+        let mut hasher = Sha256::new();
+
+        hasher.update(self.uuid.into_bytes());
+        if let Some(ref hash) = self.parent_hash {
+            hasher.update(hash);
+        } else {
+            hasher.update(&[]);
+        }
+
+        hasher.finalize().to_vec()
+    }
+
     pub(crate) fn from_proto(proto: proto::NewsGroup) -> Result<NewsGroup> {
         let (parent, parent_hash) = match proto.parent_option {
             Some(ParentOption::Toplevel(_)) => (None, None),
@@ -235,12 +311,31 @@ impl CachedIdentity {
 }
 
 impl Posts {
+    fn compat_post_id(&self) -> Uuid {
+        let mut hash = Sha1::new();
+        if let Some(ref body) = self.body {
+            hash.update(body.as_bytes());
+        }
+
+        if let Some(ref header) = self.header {
+            hash.update(header.as_bytes());
+        }
+
+        if let Some(ref author) = self.identity {
+            hash.update(author.as_bytes());
+        }
+
+        hash.update(self.parent_group.as_bytes());
+
+        Uuid::from_bytes(hash.finalize().as_slice()[0..16].try_into().unwrap())
+    }
+
     pub(crate) fn from_proto(proto: proto::Post) -> Result<Self> {
         let fingerprint = match proto.author_or {
             Some(AuthorOr::Author(v)) => Some(v.as_uuid()),
             None => None,
         };
-        let p = Posts {
+        let mut p = Posts {
             identity: fingerprint,
             header: Some(proto.header),
             body: Some(proto.body),
@@ -251,9 +346,16 @@ impl Posts {
                 .ok_or_else(|| SubrosaErr::ParseError)?,
             sig: Some(proto.sig),
             receive_date: Utc::now().naive_utc(),
-            post_id: Uuid::new_v4(),
+            post_id: proto
+                .uuid
+                .map(|v| v.as_uuid())
+                .unwrap_or_else(|| Uuid::new_v4()),
             sent: true,
         };
+
+        if proto.uuid.is_none() {
+            p.post_id = p.compat_post_id();
+        }
 
         Ok(p)
     }
@@ -321,7 +423,7 @@ mod test {
     use std::time::Duration;
 
     use futures::FutureExt;
-    use rusqlite::{types::Value, vtab::array::Array};
+    use rusqlite::types::Value;
     use uuid::Uuid;
 
     use crate::api::db::{
@@ -366,6 +468,27 @@ mod test {
 
         ng.insert_on_conflict(&db, OnConflict::Ignore).unwrap();
         ng.insert_on_conflict(&db, OnConflict::Update).unwrap();
+    }
+
+    #[test]
+    fn post_id() {
+        let post = Posts::new(
+            "test header".to_owned(),
+            "test_body".to_owned(),
+            &Uuid::new_v4(),
+        );
+
+        let post2 = Posts::new(
+            "test header".to_owned(),
+            "test_body".to_owned(),
+            &Uuid::new_v4(),
+        );
+
+        let u1 = post.compat_post_id();
+
+        let u2 = post2.compat_post_id();
+
+        assert_ne!(u1, u2);
     }
 
     #[test]
@@ -423,6 +546,7 @@ mod test {
     #[test]
     fn mark_sent() {
         let db = rusqlite::Connection::open_in_memory().unwrap();
+        rusqlite::vtab::array::load_module(&db).unwrap();
         let db = SubrosaDb::from_conn(db);
         run_migrations(&db).unwrap();
 
@@ -460,11 +584,14 @@ mod test {
         nge.insert(&db).unwrap();
         ngp.insert(&db).unwrap();
 
-        let u1 = Value::Blob(ng.uuid.as_bytes().into());
-        let u2 = Value::Blob(nge.uuid.as_bytes().into());
-        let u3 = Value::Blob(ngp.uuid.as_bytes().into());
+        let u1 = Value::from(ng.uuid);
+        let u2 = Value::from(nge.uuid);
+        let u3 = Value::from(ngp.uuid);
 
-        db.mark_sent_posts(vec![u1, u2, u3]).unwrap();
+        let sent = db.get_unsent_groups().unwrap();
+        assert_eq!(sent.len(), 3);
+
+        db.mark_sent_groups(vec![u1, u2, u3]).unwrap();
 
         let sent = db.get_unsent_groups().unwrap();
         assert_eq!(sent.len(), 0);
@@ -620,6 +747,45 @@ mod test {
         });
         assert!(rx.recv().await.unwrap());
         //assert!(*t.lock().unwrap());
+    }
+
+    #[test]
+    fn post_proto() {
+        let db = rusqlite::Connection::open_in_memory().unwrap();
+        let db = SubrosaDb::from_conn(db);
+        run_migrations(&db).unwrap();
+        let old = NewsGroup {
+            uuid: Uuid::new_v4(),
+            description: "test".to_owned(),
+            parent_hash: None,
+            parent: None,
+            group_name: "test".to_owned(),
+            sent: false,
+        };
+
+        let id = old.uuid;
+        db.insert_group(&old).unwrap();
+        let old = Posts::new("test".to_owned(), "".to_owned(), &id);
+
+        let p = old.to_proto(&db).unwrap();
+
+        let p = Posts::from_proto(p).unwrap();
+    }
+
+    #[test]
+    fn group_proto() {
+        let old = NewsGroup {
+            uuid: Uuid::new_v4(),
+            description: "test".to_owned(),
+            parent_hash: None,
+            parent: None,
+            group_name: "test".to_owned(),
+            sent: false,
+        };
+
+        let p = old.to_proto();
+
+        let p = NewsGroup::from_proto(p).unwrap();
     }
 
     #[test]

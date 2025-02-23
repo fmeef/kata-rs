@@ -129,8 +129,10 @@ impl SubrosaDb {
 
     #[frb(sync)]
     pub fn new(path: &str) -> anyhow::Result<SubrosaDb> {
+        let conn = Connection::open(path)?;
+        rusqlite::vtab::array::load_module(&conn)?;
         Ok(SubrosaDb(Arc::new(SubrosaDbInner {
-            conn: Mutex::new(Connection::open(path)?),
+            conn: Mutex::new(conn),
             watchers: RwLock::new(BTreeMap::new()),
             watcher_idx: RwLock::new(0),
         })))
@@ -138,14 +140,16 @@ impl SubrosaDb {
 
     #[frb(sync)]
     pub fn new_in_memory() -> anyhow::Result<SubrosaDb> {
+        let conn = Connection::open_in_memory()?;
+        rusqlite::vtab::array::load_module(&conn)?;
         Ok(SubrosaDb(Arc::new(SubrosaDbInner {
-            conn: Mutex::new(Connection::open_in_memory()?),
+            conn: Mutex::new(conn),
             watchers: RwLock::new(BTreeMap::new()),
             watcher_idx: RwLock::new(0),
         })))
     }
 
-    pub fn insert_group(&self, group: NewsGroup) -> anyhow::Result<()> {
+    pub fn insert_group(&self, group: &NewsGroup) -> anyhow::Result<()> {
         group.insert(self)?;
         Ok(())
     }

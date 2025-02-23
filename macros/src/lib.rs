@@ -1,13 +1,12 @@
 use core::panic;
-use std::any::Any;
 
 use convert_case::{Case, Casing};
-use proc_macro::{Span, TokenStream};
+use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     parse_macro_input, AngleBracketedGenericArguments, DeriveInput, FnArg, GenericArgument, Ident,
-    ItemTrait, LitStr, Pat, PatIdent, PatType, Path, PathArguments, PathSegment, Receiver,
-    ReturnType, TraitItem, Type, TypePath, TypeReference,
+    ItemTrait, LitStr, Pat, PatType, PathArguments, PathSegment, Receiver, ReturnType, TraitItem,
+    Type, TypePath, TypeReference,
 };
 
 fn get_table_attr(input: &DeriveInput, name: &str) -> String {
@@ -98,13 +97,13 @@ fn generate_crud_impl(st: &[ColumnField], name: &Ident, table_attr: &str) -> imp
         #[automatically_derived]
         impl crate::api::db::connection::Crud for #name {
             fn insert(&self, conn: &crate::api::db::connection::SubrosaDb) -> anyhow::Result<()> {
-                use crate::db_helpers::GetParams;
+                use crate::api::db::entities::GetParams;
                 conn.0.conn.lock().unwrap().execute(#insert, self.get_params().as_slice())?;
                 Ok(())
             }
 
             fn insert_on_conflict(&self, conn: &crate::api::db::connection::SubrosaDb, on_conflict: crate::api::db::connection::OnConflict) -> anyhow::Result<()> {
-                use crate::db_helpers::GetParams;
+                use crate::api::db::entities::GetParams;
                 match on_conflict {
                     crate::api::db::connection::OnConflict::Abort => conn.0.conn.lock().unwrap().execute(#insert, self.get_params().as_slice())?,
                     crate::api::db::connection::OnConflict::Ignore => conn.0.conn.lock().unwrap().execute(#insert_ignore, self.get_params().as_slice())?,
@@ -114,13 +113,13 @@ fn generate_crud_impl(st: &[ColumnField], name: &Ident, table_attr: &str) -> imp
             }
 
             fn update(&self, conn: &crate::api::db::connection::SubrosaDb) -> anyhow::Result<()> {
-                use crate::db_helpers::GetParams;
+                use crate::api::db::entities::GetParams;
                 conn.0.conn.lock().unwrap().execute(#update, self.get_params().as_slice())?;
                 Ok(())
             }
 
             fn delete(self, conn: &crate::api::db::connection::SubrosaDb) -> anyhow::Result<()> {
-                use crate::db_helpers::GetParams;
+                use crate::api::db::entities::GetParams;
                 conn.0.conn.lock().unwrap().execute(#delete, &[(#primary_str, &self . #primary)])?;
                 Ok(())
             }
@@ -137,7 +136,7 @@ fn generate_from_row(st: &[ColumnField], name: &Ident) -> impl ToTokens {
     quote! {
         #[automatically_derived]
         #[flutter_rust_bridge::frb(ignore)]
-        impl crate::db_helpers::FromRow for #name {
+        impl crate::api::db::entities::FromRow for #name {
             fn from_row(row: &::rusqlite::Row) -> crate::error::Result<Self> {
                 let s = Self { #( #rows ),* };
                 Ok(s)
@@ -152,7 +151,7 @@ fn generate_getparams(st: &[ColumnField], name: &Ident) -> impl ToTokens {
     quote! {
         #[automatically_derived]
         #[flutter_rust_bridge::frb(ignore)]
-        impl crate::db_helpers::GetParams for #name {
+        impl crate::api::db::entities::GetParams for #name {
              fn get_params<'a>(&'a self) -> Vec<(&'a str, &'a dyn ::rusqlite::ToSql)> {
                  vec![ #( (#names, &self. #params ) ),* ]
             }
@@ -487,7 +486,7 @@ pub fn dao(_attr: TokenStream, item: TokenStream) -> TokenStream {
                 let q = match r {
                     RetVal::Many(r) => syn::parse_quote! {
                         {
-                            use crate::db_helpers::FromRow;
+                            use crate::api::db::entities::FromRow;
                             let mut conn = self . get_connection().connection();
                             #( #ptransforms )*
                             let mut st = conn.prepare(#query)?;
@@ -502,7 +501,7 @@ pub fn dao(_attr: TokenStream, item: TokenStream) -> TokenStream {
                     RetVal::Nullable(r) => syn::parse_quote! {
                         {
                             use rusqlite::OptionalExtension;
-                            use crate::db_helpers::FromRow;
+                            use crate::api::db::entities::FromRow;
                             let mut conn = self . get_connection().connection();
                             #( #ptransforms )*
 
@@ -513,7 +512,7 @@ pub fn dao(_attr: TokenStream, item: TokenStream) -> TokenStream {
                     },
                     RetVal::One(r) => syn::parse_quote! {
                         {
-                            use crate::db_helpers::FromRow;
+                            use crate::api::db::entities::FromRow;
                             let mut conn = self . get_connection().connection();
                             #( #ptransforms )*
 
@@ -524,7 +523,7 @@ pub fn dao(_attr: TokenStream, item: TokenStream) -> TokenStream {
                     },
                     RetVal::Unit => syn::parse_quote! {
                         {
-                            use crate::db_helpers::FromRow;
+                            use crate::api::db::entities::FromRow;
                             let mut conn = self . get_connection().connection();
                             #( #ptransforms )*
 

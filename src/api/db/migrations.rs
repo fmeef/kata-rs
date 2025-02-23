@@ -14,9 +14,7 @@ lazy_static! {
             `parent` TEXT, `group_name`
             TEXT NOT NULL,
             `sent` BOOLEAN NOT NULL DEFAULT 'false',
-            PRIMARY KEY(`uuid`),
-            FOREIGN KEY(`parent`) REFERENCES `newsgroup`(`uuid`)
-            ON UPDATE NO ACTION ON DELETE CASCADE
+            PRIMARY KEY(`uuid`)
             );
             CREATE INDEX IF NOT EXISTS `index_newsgroup_parent` ON `newsgroup` (`parent`);
             CREATE TABLE IF NOT EXISTS `posts` (

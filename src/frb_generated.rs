@@ -54,11 +54,11 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.7.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 2116967851;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -734845568;
 
 // Section: executor
 
-flutter_rust_bridge::frb_generated_default_handler!();
+pub use scatterbrain::api::frb::FLUTTER_RUST_BRIDGE_HANDLER;
 
 // Section: wire_funcs
 
@@ -2858,13 +2858,36 @@ fn wire__scatterbrain__api__mdns__ServiceScanner_new_impl(
         },
     )
 }
+fn wire__scatterbrain__api__mdns__ServiceScanner_scan_nonblock_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "ServiceScanner_scan_nonblock", port: None, mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync }, move || { 
+            let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
+            let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ServiceScanner>>>::sse_decode(&mut deserializer);
+let api_cb = decode_DartFn_Inputs_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerHostRecord_Output_unit_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));deserializer.end();
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>((move || {
+                    let mut api_that_guard = None;
+let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(&api_that, 0, true)]);
+        for i in decode_indices_ {
+            match i {
+                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
+                _ => unreachable!(),
+            }
+        }
+        let mut api_that_guard = api_that_guard.unwrap();
+ let output_ok = scatterbrain::api::mdns::ServiceScanner::scan_nonblock(&mut *api_that_guard, api_cb)?;   Ok(output_ok)
+                })()) })
+}
 fn wire__scatterbrain__api__mdns__ServiceScanner_stop_scan_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
 ) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
             debug_name: "ServiceScanner_stop_scan",
             port: Some(port_),
@@ -2884,27 +2907,34 @@ fn wire__scatterbrain__api__mdns__ServiceScanner_stop_scan_impl(
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ServiceScanner>,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
-            move |context| {
-                transform_result_sse::<_, ()>((move || {
-                    let mut api_that_guard = None;
-                    let decode_indices_ =
-                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                &api_that, 0, true,
-                            ),
-                        ]);
-                    for i in decode_indices_ {
-                        match i {
-                            0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
-                            _ => unreachable!(),
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, true,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => {
+                                    api_that_guard =
+                                        Some(api_that.lockable_decode_async_ref_mut().await)
+                                }
+                                _ => unreachable!(),
+                            }
                         }
-                    }
-                    let mut api_that_guard = api_that_guard.unwrap();
-                    let output_ok = Result::<_, ()>::Ok({
-                        scatterbrain::api::mdns::ServiceScanner::stop_scan(&mut *api_that_guard);
-                    })?;
-                    Ok(output_ok)
-                })())
+                        let mut api_that_guard = api_that_guard.unwrap();
+                        let output_ok = scatterbrain::api::mdns::ServiceScanner::stop_scan(
+                            &mut *api_that_guard,
+                        )
+                        .await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
             }
         },
     )
@@ -7487,290 +7517,290 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        56 => wire__scatterbrain__api__mdns__ServiceScanner_stop_scan_impl(
+        57 => wire__scatterbrain__api__mdns__ServiceScanner_stop_scan_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        57 => wire__crate__api__db__connection__SubrosaDb_delete_group_impl(
+        58 => wire__crate__api__db__connection__SubrosaDb_delete_group_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        58 => wire__crate__api__db__connection__SubrosaDb_delete_post_impl(
+        59 => wire__crate__api__db__connection__SubrosaDb_delete_post_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        59 => wire__crate__api__db__connection__SubrosaDb_get_all_users_impl(
+        60 => wire__crate__api__db__connection__SubrosaDb_get_all_users_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        60 => wire__crate__api__db__connection__SubrosaDb_get_all_users_by_ownership_impl(
+        61 => wire__crate__api__db__connection__SubrosaDb_get_all_users_by_ownership_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        61 => wire__crate__api__db__connection__SubrosaDb_get_connection_impl(
+        62 => wire__crate__api__db__connection__SubrosaDb_get_connection_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        62 => wire__crate__api__db__connection__SubrosaDb_get_group_impl(
+        63 => wire__crate__api__db__connection__SubrosaDb_get_group_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        63 => wire__crate__api__db__connection__SubrosaDb_get_groups_for_parent_impl(
+        64 => wire__crate__api__db__connection__SubrosaDb_get_groups_for_parent_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        64 => wire__crate__api__db__connection__SubrosaDb_get_identity_impl(
+        65 => wire__crate__api__db__connection__SubrosaDb_get_identity_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        65 => wire__crate__api__db__connection__SubrosaDb_get_last_sync_date_impl(
+        66 => wire__crate__api__db__connection__SubrosaDb_get_last_sync_date_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        66 => wire__crate__api__db__connection__SubrosaDb_get_parents_impl(
+        67 => wire__crate__api__db__connection__SubrosaDb_get_parents_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        67 => wire__crate__api__db__connection__SubrosaDb_get_posts_impl(
+        68 => wire__crate__api__db__connection__SubrosaDb_get_posts_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        68 => wire__crate__api__db__connection__SubrosaDb_get_posts_with_identity_impl(
+        69 => wire__crate__api__db__connection__SubrosaDb_get_posts_with_identity_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        69 => wire__crate__api__db__connection__SubrosaDb_get_root_groups_impl(
+        70 => wire__crate__api__db__connection__SubrosaDb_get_root_groups_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        70 => wire__crate__api__db__connection__SubrosaDb_get_total_posts_impl(
+        71 => wire__crate__api__db__connection__SubrosaDb_get_total_posts_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        71 => wire__crate__api__db__connection__SubrosaDb_get_unsent_groups_impl(
+        72 => wire__crate__api__db__connection__SubrosaDb_get_unsent_groups_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        72 => wire__crate__api__db__connection__SubrosaDb_get_unsent_posts_impl(
+        73 => wire__crate__api__db__connection__SubrosaDb_get_unsent_posts_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        73 => wire__crate__api__db__connection__SubrosaDb_get_user_impl(
+        74 => wire__crate__api__db__connection__SubrosaDb_get_user_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        75 => wire__crate__api__db__connection__SubrosaDb_insert_group_impl(
+        76 => wire__crate__api__db__connection__SubrosaDb_insert_group_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        76 => wire__crate__api__db__connection__SubrosaDb_insert_message_impl(
+        77 => wire__crate__api__db__connection__SubrosaDb_insert_message_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        77 => wire__crate__api__db__connection__SubrosaDb_mark_sent_groups_impl(
+        78 => wire__crate__api__db__connection__SubrosaDb_mark_sent_groups_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        78 => wire__crate__api__db__connection__SubrosaDb_mark_sent_posts_impl(
+        79 => wire__crate__api__db__connection__SubrosaDb_mark_sent_posts_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        81 => wire__crate__api__db__connection__SubrosaDb_process_scatter_messages_impl(
+        82 => wire__crate__api__db__connection__SubrosaDb_process_scatter_messages_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        82 => {
+        83 => {
             wire__crate__api__db__connection__SubrosaDb_sync_impl(port, ptr, rust_vec_len, data_len)
         }
-        83 => {
+        84 => {
             wire__crate__api__db__connection__SubrosaDb_test_impl(port, ptr, rust_vec_len, data_len)
         }
-        84 => wire__crate__api__db__connection__SubrosaDb_test_nullable_impl(
+        85 => wire__crate__api__db__connection__SubrosaDb_test_nullable_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        85 => wire__crate__api__db__connection__SubrosaDb_test_one_impl(
+        86 => wire__crate__api__db__connection__SubrosaDb_test_one_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        86 => wire__crate__api__proto__ser__SubrosaMessage_get_message_impl(
+        87 => wire__crate__api__proto__ser__SubrosaMessage_get_message_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        127 => {
+        129 => {
             wire__crate__api__db__connection__Watcher_watch_impl(port, ptr, rust_vec_len, data_len)
         }
-        128 => wire__crate__api__db__entities__cached_identity_delete_impl(
+        130 => wire__crate__api__db__entities__cached_identity_delete_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        129 => wire__crate__api__db__entities__cached_identity_has_params_impl(
+        131 => wire__crate__api__db__entities__cached_identity_has_params_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        130 => wire__crate__api__db__entities__cached_identity_insert_impl(
+        132 => wire__crate__api__db__entities__cached_identity_insert_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        131 => wire__crate__api__db__entities__cached_identity_insert_on_conflict_impl(
+        133 => wire__crate__api__db__entities__cached_identity_insert_on_conflict_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        132 => wire__crate__api__db__entities__cached_identity_is_entity_impl(
+        134 => wire__crate__api__db__entities__cached_identity_is_entity_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        133 => wire__crate__api__db__entities__cached_identity_update_impl(
+        135 => wire__crate__api__db__entities__cached_identity_update_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        134 => wire__crate__api__db__sync__conn_test_impl(port, ptr, rust_vec_len, data_len),
-        135 => wire__scatterbrain__api__types__crypto_config_generate_impl(
+        136 => wire__crate__api__db__sync__conn_test_impl(port, ptr, rust_vec_len, data_len),
+        137 => wire__scatterbrain__api__types__crypto_config_generate_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        136 => wire__crate__api__init_logging_impl(port, ptr, rust_vec_len, data_len),
-        137 => wire__scatterbrain__api__response__message_from_vec_impl(
+        138 => wire__crate__api__init_logging_impl(port, ptr, rust_vec_len, data_len),
+        139 => wire__scatterbrain__api__response__message_from_vec_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        138 => wire__crate__api__db__entities__post_with_identity_delete_impl(
+        140 => wire__crate__api__db__entities__post_with_identity_delete_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        139 => wire__crate__api__db__entities__post_with_identity_has_params_impl(
+        141 => wire__crate__api__db__entities__post_with_identity_has_params_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        140 => wire__crate__api__db__entities__post_with_identity_insert_impl(
+        142 => wire__crate__api__db__entities__post_with_identity_insert_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        141 => wire__crate__api__db__entities__post_with_identity_insert_on_conflict_impl(
+        143 => wire__crate__api__db__entities__post_with_identity_insert_on_conflict_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        142 => wire__crate__api__db__entities__post_with_identity_is_entity_impl(
+        144 => wire__crate__api__db__entities__post_with_identity_is_entity_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        143 => wire__crate__api__db__entities__post_with_identity_update_impl(
+        145 => wire__crate__api__db__entities__post_with_identity_update_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        144 => wire__crate__api__db__entities__posts_delete_impl(port, ptr, rust_vec_len, data_len),
-        145 => {
+        146 => wire__crate__api__db__entities__posts_delete_impl(port, ptr, rust_vec_len, data_len),
+        147 => {
             wire__crate__api__db__entities__posts_has_params_impl(port, ptr, rust_vec_len, data_len)
         }
-        146 => wire__crate__api__db__entities__posts_insert_impl(port, ptr, rust_vec_len, data_len),
-        147 => wire__crate__api__db__entities__posts_insert_on_conflict_impl(
+        148 => wire__crate__api__db__entities__posts_insert_impl(port, ptr, rust_vec_len, data_len),
+        149 => wire__crate__api__db__entities__posts_insert_on_conflict_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        148 => {
+        150 => {
             wire__crate__api__db__entities__posts_is_entity_impl(port, ptr, rust_vec_len, data_len)
         }
-        151 => wire__crate__api__db__entities__posts_update_impl(port, ptr, rust_vec_len, data_len),
-        152 => {
+        153 => wire__crate__api__db__entities__posts_update_impl(port, ptr, rust_vec_len, data_len),
+        154 => {
             wire__crate__api__db__migrations__run_migrations_impl(port, ptr, rust_vec_len, data_len)
         }
-        153 => wire__crate__api__db__entities__user_delete_impl(port, ptr, rust_vec_len, data_len),
-        154 => {
+        155 => wire__crate__api__db__entities__user_delete_impl(port, ptr, rust_vec_len, data_len),
+        156 => {
             wire__crate__api__db__entities__user_has_params_impl(port, ptr, rust_vec_len, data_len)
         }
-        155 => wire__crate__api__db__entities__user_insert_impl(port, ptr, rust_vec_len, data_len),
-        156 => wire__crate__api__db__entities__user_insert_on_conflict_impl(
+        157 => wire__crate__api__db__entities__user_insert_impl(port, ptr, rust_vec_len, data_len),
+        158 => wire__crate__api__db__entities__user_insert_on_conflict_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        157 => {
+        159 => {
             wire__crate__api__db__entities__user_is_entity_impl(port, ptr, rust_vec_len, data_len)
         }
-        158 => wire__crate__api__db__entities__user_update_impl(port, ptr, rust_vec_len, data_len),
+        160 => wire__crate__api__db__entities__user_update_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -7871,24 +7901,29 @@ fn pde_ffi_dispatcher_sync_impl(
             data_len,
         ),
         55 => wire__scatterbrain__api__mdns__ServiceScanner_new_impl(ptr, rust_vec_len, data_len),
-        74 => wire__crate__api__db__connection__SubrosaDb_get_watcher_impl(
+        56 => wire__scatterbrain__api__mdns__ServiceScanner_scan_nonblock_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        79 => wire__crate__api__db__connection__SubrosaDb_new_impl(ptr, rust_vec_len, data_len),
-        80 => wire__crate__api__db__connection__SubrosaDb_new_in_memory_impl(
+        75 => wire__crate__api__db__connection__SubrosaDb_get_watcher_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        87 => wire__crate__api__proto__ser__SubrosaMessage_handle_subrosa_message_impl(
+        80 => wire__crate__api__db__connection__SubrosaDb_new_impl(ptr, rust_vec_len, data_len),
+        81 => wire__crate__api__db__connection__SubrosaDb_new_in_memory_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        149 => wire__crate__api__db__entities__posts_new_impl(ptr, rust_vec_len, data_len),
-        150 => wire__crate__api__db__entities__posts_new_identity_impl(ptr, rust_vec_len, data_len),
+        88 => wire__crate__api__proto__ser__SubrosaMessage_handle_subrosa_message_impl(
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        151 => wire__crate__api__db__entities__posts_new_impl(ptr, rust_vec_len, data_len),
+        152 => wire__crate__api__db__entities__posts_new_identity_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }

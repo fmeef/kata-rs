@@ -1,3 +1,0 @@
-[submodule "scatterbrain"]
-	path = scatterbrain
-	url = https://github.com/Scatterbrain-DTN/scatterbrain-rs.git

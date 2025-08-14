@@ -34,6 +34,7 @@ pub trait FromRow: Sized {
     }
 }
 
+/// Example entity
 #[derive(FromRow, Debug, Clone)]
 #[table("newsgroup")]
 #[frb(opaque)]
@@ -47,6 +48,7 @@ pub struct NewsGroup {
     pub sent: bool,
 }
 
+/// Example dao
 #[dao]
 pub trait TestDao {
     #[query("select * from newsgroup where uuid = :uuid")]

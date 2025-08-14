@@ -96,13 +96,13 @@ fn generate_crud_impl(st: &[ColumnField], name: &Ident, table_attr: &str) -> imp
     quote! {
         #[automatically_derived]
         impl crate::api::db::connection::Crud for #name {
-            fn insert(&self, conn: &crate::api::db::connection::SubrosaDb) -> anyhow::Result<()> {
+            fn insert(&self, conn: &crate::api::db::connection::SqliteDb) -> anyhow::Result<()> {
                 use crate::api::db::entities::GetParams;
                 conn.0.conn.lock().unwrap().execute(#insert, self.get_params().as_slice())?;
                 Ok(())
             }
 
-            fn insert_on_conflict(&self, conn: &crate::api::db::connection::SubrosaDb, on_conflict: crate::api::db::connection::OnConflict) -> anyhow::Result<()> {
+            fn insert_on_conflict(&self, conn: &crate::api::db::connection::SqliteDb, on_conflict: crate::api::db::connection::OnConflict) -> anyhow::Result<()> {
                 use crate::api::db::entities::GetParams;
                 match on_conflict {
                     crate::api::db::connection::OnConflict::Abort => conn.0.conn.lock().unwrap().execute(#insert, self.get_params().as_slice())?,
@@ -112,13 +112,13 @@ fn generate_crud_impl(st: &[ColumnField], name: &Ident, table_attr: &str) -> imp
                 Ok(())
             }
 
-            fn update(&self, conn: &crate::api::db::connection::SubrosaDb) -> anyhow::Result<()> {
+            fn update(&self, conn: &crate::api::db::connection::SqliteDb) -> anyhow::Result<()> {
                 use crate::api::db::entities::GetParams;
                 conn.0.conn.lock().unwrap().execute(#update, self.get_params().as_slice())?;
                 Ok(())
             }
 
-            fn delete(self, conn: &crate::api::db::connection::SubrosaDb) -> anyhow::Result<()> {
+            fn delete(self, conn: &crate::api::db::connection::SqliteDb) -> anyhow::Result<()> {
                 use crate::api::db::entities::GetParams;
                 conn.0.conn.lock().unwrap().execute(#delete, &[(#primary_str, &self . #primary)])?;
                 Ok(())
@@ -343,7 +343,7 @@ fn get_fn_arg_type(arg: &FnArg, require: Option<&str>) -> VecOr {
             Type::Path(TypePath { path, .. }) => {
                 if let Some(require) = require {
                     if !path.is_ident(require) {
-                        panic!("dao functions must have a SubrosaDb parameter")
+                        panic!("dao functions must have a SqliteDb parameter")
                     }
                 }
                 VecOr::Ident(self_token.clone().into())
@@ -352,7 +352,7 @@ fn get_fn_arg_type(arg: &FnArg, require: Option<&str>) -> VecOr {
                 Type::Path(TypePath { path, .. }) => {
                     if let Some(require) = require {
                         if !path.is_ident(require) {
-                            panic!("dao functions must have a SubrosaDb parameter")
+                            panic!("dao functions must have a SqliteDb parameter")
                         }
                     }
 
@@ -366,7 +366,7 @@ fn get_fn_arg_type(arg: &FnArg, require: Option<&str>) -> VecOr {
             Type::Path(TypePath { path, .. }) => {
                 if let Some(require) = require {
                     if !path.is_ident(require) {
-                        panic!("dao functions must have a SubrosaDb parameter")
+                        panic!("dao functions must have a SqliteDb parameter")
                     }
                 }
 
@@ -379,7 +379,7 @@ fn get_fn_arg_type(arg: &FnArg, require: Option<&str>) -> VecOr {
                 Type::Path(TypePath { path, .. }) => {
                     if let Some(require) = require {
                         if !path.is_ident(require) {
-                            panic!("dao functions must have a SubrosaDb parameter")
+                            panic!("dao functions must have a SqliteDb parameter")
                         }
                     }
 

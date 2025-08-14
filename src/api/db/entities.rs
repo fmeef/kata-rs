@@ -1,4 +1,4 @@
-use super::connection::SubrosaDb;
+use super::connection::SqliteDb;
 use crate::error::Result;
 use chrono::NaiveDateTime;
 use fallible_iterator::FallibleIterator;
@@ -67,7 +67,7 @@ impl FromRow for NaiveDateTime {
     }
 }
 
-impl TestDao for SubrosaDb {}
+impl TestDao for SqliteDb {}
 
 #[cfg(test)]
 mod test {}

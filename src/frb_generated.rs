@@ -44,7 +44,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.10.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 132289406;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1195844764;
 
 // Section: executor
 
@@ -658,7 +658,7 @@ fn wire__crate__api__db__entities__NewsGroup_delete_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_that = <NewsGroup>::sse_decode(&mut deserializer);
             let api_conn = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>,
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
@@ -748,7 +748,7 @@ fn wire__crate__api__db__entities__NewsGroup_insert_impl(
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<NewsGroup>,
             >>::sse_decode(&mut deserializer);
             let api_conn = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>,
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
@@ -813,7 +813,7 @@ fn wire__crate__api__db__entities__NewsGroup_insert_on_conflict_impl(
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<NewsGroup>,
             >>::sse_decode(&mut deserializer);
             let api_conn = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>,
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
             >>::sse_decode(&mut deserializer);
             let api_on_conflict =
                 <crate::api::db::connection::OnConflict>::sse_decode(&mut deserializer);
@@ -914,7 +914,7 @@ fn wire__crate__api__db__entities__NewsGroup_update_impl(
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<NewsGroup>,
             >>::sse_decode(&mut deserializer);
             let api_conn = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>,
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
@@ -953,7 +953,7 @@ fn wire__crate__api__db__entities__NewsGroup_update_impl(
         },
     )
 }
-fn wire__crate__api__db__connection__SubrosaDb_get_connection_impl(
+fn wire__crate__api__db__connection__SqliteDb_get_connection_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -961,7 +961,7 @@ fn wire__crate__api__db__connection__SubrosaDb_get_connection_impl(
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "SubrosaDb_get_connection",
+            debug_name: "SqliteDb_get_connection",
             port: Some(port_),
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
@@ -976,7 +976,7 @@ fn wire__crate__api__db__connection__SubrosaDb_get_connection_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>,
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
@@ -996,7 +996,7 @@ fn wire__crate__api__db__connection__SubrosaDb_get_connection_impl(
                     }
                     let api_that_guard = api_that_guard.unwrap();
                     let output_ok = Result::<_, ()>::Ok({
-                        crate::api::db::connection::SubrosaDb::get_connection(&*api_that_guard);
+                        crate::api::db::connection::SqliteDb::get_connection(&*api_that_guard);
                     })?;
                     Ok(output_ok)
                 })())
@@ -1004,14 +1004,14 @@ fn wire__crate__api__db__connection__SubrosaDb_get_connection_impl(
         },
     )
 }
-fn wire__crate__api__db__connection__SubrosaDb_get_watcher_impl(
+fn wire__crate__api__db__connection__SqliteDb_get_watcher_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "SubrosaDb_get_watcher",
+            debug_name: "SqliteDb_get_watcher",
             port: None,
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
         },
@@ -1026,7 +1026,7 @@ fn wire__crate__api__db__connection__SubrosaDb_get_watcher_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>,
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse::<_, ()>((move || {
@@ -1045,14 +1045,14 @@ fn wire__crate__api__db__connection__SubrosaDb_get_watcher_impl(
                 }
                 let api_that_guard = api_that_guard.unwrap();
                 let output_ok = Result::<_, ()>::Ok(
-                    crate::api::db::connection::SubrosaDb::get_watcher(&*api_that_guard),
+                    crate::api::db::connection::SqliteDb::get_watcher(&*api_that_guard),
                 )?;
                 Ok(output_ok)
             })())
         },
     )
 }
-fn wire__crate__api__db__connection__SubrosaDb_insert_group_impl(
+fn wire__crate__api__db__connection__SqliteDb_insert_group_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -1060,7 +1060,7 @@ fn wire__crate__api__db__connection__SubrosaDb_insert_group_impl(
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "SubrosaDb_insert_group",
+            debug_name: "SqliteDb_insert_group",
             port: Some(port_),
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
@@ -1075,7 +1075,7 @@ fn wire__crate__api__db__connection__SubrosaDb_insert_group_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>,
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
             >>::sse_decode(&mut deserializer);
             let api_group = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<NewsGroup>,
@@ -1106,7 +1106,7 @@ fn wire__crate__api__db__connection__SubrosaDb_insert_group_impl(
                         }
                         let api_that_guard = api_that_guard.unwrap();
                         let api_group_guard = api_group_guard.unwrap();
-                        let output_ok = crate::api::db::connection::SubrosaDb::insert_group(
+                        let output_ok = crate::api::db::connection::SqliteDb::insert_group(
                             &*api_that_guard,
                             &*api_group_guard,
                         )?;
@@ -1117,14 +1117,14 @@ fn wire__crate__api__db__connection__SubrosaDb_insert_group_impl(
         },
     )
 }
-fn wire__crate__api__db__connection__SubrosaDb_new_impl(
+fn wire__crate__api__db__connection__SqliteDb_new_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "SubrosaDb_new",
+            debug_name: "SqliteDb_new",
             port: None,
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
         },
@@ -1142,21 +1142,21 @@ fn wire__crate__api__db__connection__SubrosaDb_new_impl(
             deserializer.end();
             transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                 (move || {
-                    let output_ok = crate::api::db::connection::SubrosaDb::new(&api_path)?;
+                    let output_ok = crate::api::db::connection::SqliteDb::new(&api_path)?;
                     Ok(output_ok)
                 })(),
             )
         },
     )
 }
-fn wire__crate__api__db__connection__SubrosaDb_new_in_memory_impl(
+fn wire__crate__api__db__connection__SqliteDb_new_in_memory_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "SubrosaDb_new_in_memory",
+            debug_name: "SqliteDb_new_in_memory",
             port: None,
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
         },
@@ -1173,14 +1173,14 @@ fn wire__crate__api__db__connection__SubrosaDb_new_in_memory_impl(
             deserializer.end();
             transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                 (move || {
-                    let output_ok = crate::api::db::connection::SubrosaDb::new_in_memory()?;
+                    let output_ok = crate::api::db::connection::SqliteDb::new_in_memory()?;
                     Ok(output_ok)
                 })(),
             )
         },
     )
 }
-fn wire__crate__api__db__connection__SubrosaDb_test_impl(
+fn wire__crate__api__db__connection__SqliteDb_test_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -1188,7 +1188,7 @@ fn wire__crate__api__db__connection__SubrosaDb_test_impl(
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "SubrosaDb_test",
+            debug_name: "SqliteDb_test",
             port: Some(port_),
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
@@ -1203,7 +1203,7 @@ fn wire__crate__api__db__connection__SubrosaDb_test_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>,
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
             >>::sse_decode(&mut deserializer);
             let api_uuid = <uuid::Uuid>::sse_decode(&mut deserializer);
             deserializer.end();
@@ -1224,7 +1224,7 @@ fn wire__crate__api__db__connection__SubrosaDb_test_impl(
                             }
                         }
                         let api_that_guard = api_that_guard.unwrap();
-                        let output_ok = crate::api::db::connection::SubrosaDb::test(
+                        let output_ok = crate::api::db::connection::SqliteDb::test(
                             &*api_that_guard,
                             &api_uuid,
                         )?;
@@ -1235,7 +1235,7 @@ fn wire__crate__api__db__connection__SubrosaDb_test_impl(
         },
     )
 }
-fn wire__crate__api__db__connection__SubrosaDb_test_nullable_impl(
+fn wire__crate__api__db__connection__SqliteDb_test_nullable_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -1243,7 +1243,7 @@ fn wire__crate__api__db__connection__SubrosaDb_test_nullable_impl(
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "SubrosaDb_test_nullable",
+            debug_name: "SqliteDb_test_nullable",
             port: Some(port_),
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
@@ -1258,7 +1258,7 @@ fn wire__crate__api__db__connection__SubrosaDb_test_nullable_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>,
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
@@ -1279,7 +1279,7 @@ fn wire__crate__api__db__connection__SubrosaDb_test_nullable_impl(
                         }
                         let api_that_guard = api_that_guard.unwrap();
                         let output_ok =
-                            crate::api::db::connection::SubrosaDb::test_nullable(&*api_that_guard)?;
+                            crate::api::db::connection::SqliteDb::test_nullable(&*api_that_guard)?;
                         Ok(output_ok)
                     })(),
                 )
@@ -1287,7 +1287,7 @@ fn wire__crate__api__db__connection__SubrosaDb_test_nullable_impl(
         },
     )
 }
-fn wire__crate__api__db__connection__SubrosaDb_test_one_impl(
+fn wire__crate__api__db__connection__SqliteDb_test_one_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -1295,7 +1295,7 @@ fn wire__crate__api__db__connection__SubrosaDb_test_one_impl(
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "SubrosaDb_test_one",
+            debug_name: "SqliteDb_test_one",
             port: Some(port_),
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
@@ -1310,7 +1310,7 @@ fn wire__crate__api__db__connection__SubrosaDb_test_one_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>,
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
@@ -1331,7 +1331,7 @@ fn wire__crate__api__db__connection__SubrosaDb_test_one_impl(
                         }
                         let api_that_guard = api_that_guard.unwrap();
                         let output_ok =
-                            crate::api::db::connection::SubrosaDb::test_one(&*api_that_guard)?;
+                            crate::api::db::connection::SqliteDb::test_one(&*api_that_guard)?;
                         Ok(output_ok)
                     })(),
                 )
@@ -1350,7 +1350,7 @@ fn wire__crate__api__db__connection__Watcher_watch_impl(
             let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_that = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Watcher>>>::sse_decode(&mut deserializer);
 let api_table = <String>::sse_decode(&mut deserializer);
-let api_cb = decode_DartFn_Inputs_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSubrosaDb_Output_unit_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));deserializer.end(); move |context|  {
+let api_cb = decode_DartFn_Inputs_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSqliteDb_Output_unit_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));deserializer.end(); move |context|  {
                     transform_result_sse::<_, ()>((move ||  {
                         let mut api_that_guard = None;
 let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(&api_that, 0, false)]);
@@ -1422,7 +1422,7 @@ fn wire__crate__api__db__migrations__run_migrations_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_conn = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>,
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
@@ -1454,12 +1454,12 @@ fn wire__crate__api__db__migrations__run_migrations_impl(
 
 // Section: related_funcs
 
-fn decode_DartFn_Inputs_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSubrosaDb_Output_unit_AnyhowException(
+fn decode_DartFn_Inputs_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSqliteDb_Output_unit_AnyhowException(
     dart_opaque: flutter_rust_bridge::DartOpaque,
-) -> impl Fn(SubrosaDb) -> flutter_rust_bridge::DartFnFuture<()> {
+) -> impl Fn(SqliteDb) -> flutter_rust_bridge::DartFnFuture<()> {
     use flutter_rust_bridge::IntoDart;
 
-    async fn body(dart_opaque: flutter_rust_bridge::DartOpaque, arg0: SubrosaDb) -> () {
+    async fn body(dart_opaque: flutter_rust_bridge::DartOpaque, arg0: SqliteDb) -> () {
         let args = vec![arg0.into_into_dart().into_dart()];
         let message = FLUTTER_RUST_BRIDGE_HANDLER
             .dart_fn_invoke(dart_opaque, args)
@@ -1479,7 +1479,7 @@ fn decode_DartFn_Inputs_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRu
         ans
     }
 
-    move |arg0: SubrosaDb| {
+    move |arg0: SqliteDb| {
         flutter_rust_bridge::for_generated::convert_into_dart_fn_future(body(
             dart_opaque.clone(),
             arg0,
@@ -1490,7 +1490,7 @@ flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<NewsGroup>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
-    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>
+    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Watcher>
@@ -1516,11 +1516,11 @@ impl SseDecode for NewsGroup {
     }
 }
 
-impl SseDecode for SubrosaDb {
+impl SseDecode for SqliteDb {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <RustOpaqueMoi<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>,
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
         >>::sse_decode(deserializer);
         return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
     }
@@ -1555,7 +1555,7 @@ impl SseDecode
 }
 
 impl SseDecode
-    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>>
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>>
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1734,28 +1734,28 @@ fn pde_ffi_dispatcher_primary_impl(
         18 => {
             wire__crate__api__db__entities__NewsGroup_update_impl(port, ptr, rust_vec_len, data_len)
         }
-        19 => wire__crate__api__db__connection__SubrosaDb_get_connection_impl(
+        19 => wire__crate__api__db__connection__SqliteDb_get_connection_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        21 => wire__crate__api__db__connection__SubrosaDb_insert_group_impl(
+        21 => wire__crate__api__db__connection__SqliteDb_insert_group_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
         24 => {
-            wire__crate__api__db__connection__SubrosaDb_test_impl(port, ptr, rust_vec_len, data_len)
+            wire__crate__api__db__connection__SqliteDb_test_impl(port, ptr, rust_vec_len, data_len)
         }
-        25 => wire__crate__api__db__connection__SubrosaDb_test_nullable_impl(
+        25 => wire__crate__api__db__connection__SqliteDb_test_nullable_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        26 => wire__crate__api__db__connection__SubrosaDb_test_one_impl(
+        26 => wire__crate__api__db__connection__SqliteDb_test_one_impl(
             port,
             ptr,
             rust_vec_len,
@@ -1840,13 +1840,11 @@ fn pde_ffi_dispatcher_sync_impl(
             rust_vec_len,
             data_len,
         ),
-        20 => wire__crate__api__db__connection__SubrosaDb_get_watcher_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        22 => wire__crate__api__db__connection__SubrosaDb_new_impl(ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__db__connection__SubrosaDb_new_in_memory_impl(
+        20 => {
+            wire__crate__api__db__connection__SqliteDb_get_watcher_impl(ptr, rust_vec_len, data_len)
+        }
+        22 => wire__crate__api__db__connection__SqliteDb_new_impl(ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__db__connection__SqliteDb_new_in_memory_impl(
             ptr,
             rust_vec_len,
             data_len,
@@ -1873,16 +1871,16 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<NewsGroup>> for NewsGroup {
 }
 
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<SubrosaDb> {
+impl flutter_rust_bridge::IntoDart for FrbWrapper<SqliteDb> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
             .into_dart()
     }
 }
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<SubrosaDb> {}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<SqliteDb> {}
 
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<SubrosaDb>> for SubrosaDb {
-    fn into_into_dart(self) -> FrbWrapper<SubrosaDb> {
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<SqliteDb>> for SqliteDb {
+    fn into_into_dart(self) -> FrbWrapper<SqliteDb> {
         self.into()
     }
 }
@@ -1939,10 +1937,10 @@ impl SseEncode for NewsGroup {
     }
 }
 
-impl SseEncode for SubrosaDb {
+impl SseEncode for SqliteDb {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
+        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
     }
 }
 
@@ -1972,7 +1970,7 @@ impl SseEncode
 }
 
 impl SseEncode
-    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>>
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>>
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2158,17 +2156,17 @@ mod io {
     }
 
     #[unsafe(no_mangle)]
-    pub extern "C" fn frbgen_angzarr_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSubrosaDb(
+    pub extern "C" fn frbgen_angzarr_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSqliteDb(
         ptr: *const std::ffi::c_void,
     ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>>::increment_strong_count(ptr as _);
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>>::increment_strong_count(ptr as _);
     }
 
     #[unsafe(no_mangle)]
-    pub extern "C" fn frbgen_angzarr_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSubrosaDb(
+    pub extern "C" fn frbgen_angzarr_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSqliteDb(
         ptr: *const std::ffi::c_void,
     ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>>::decrement_strong_count(ptr as _);
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>>::decrement_strong_count(ptr as _);
     }
 
     #[unsafe(no_mangle)]
@@ -2231,17 +2229,17 @@ mod web {
     }
 
     #[wasm_bindgen]
-    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSubrosaDb(
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSqliteDb(
         ptr: *const std::ffi::c_void,
     ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>>::increment_strong_count(ptr as _);
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>>::increment_strong_count(ptr as _);
     }
 
     #[wasm_bindgen]
-    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSubrosaDb(
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSqliteDb(
         ptr: *const std::ffi::c_void,
     ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SubrosaDb>>::decrement_strong_count(ptr as _);
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>>::decrement_strong_count(ptr as _);
     }
 
     #[wasm_bindgen]

@@ -18,17 +18,17 @@ pub enum OnConflict {
 }
 
 pub trait Crud {
-    fn insert(&self, conn: &SubrosaDb) -> anyhow::Result<()>;
-    fn update(&self, conn: &SubrosaDb) -> anyhow::Result<()>;
-    fn delete(self, conn: &SubrosaDb) -> anyhow::Result<()>;
-    fn insert_on_conflict(&self, conn: &SubrosaDb, on_conflict: OnConflict) -> anyhow::Result<()>;
+    fn insert(&self, conn: &SqliteDb) -> anyhow::Result<()>;
+    fn update(&self, conn: &SqliteDb) -> anyhow::Result<()>;
+    fn delete(self, conn: &SqliteDb) -> anyhow::Result<()>;
+    fn insert_on_conflict(&self, conn: &SqliteDb, on_conflict: OnConflict) -> anyhow::Result<()>;
 }
 
 type WatcherCbs =
-    Arc<RwLock<HashMap<String, Box<dyn Fn(SubrosaDb) -> DartFnFuture<()> + Send + Sync>>>>;
+    Arc<RwLock<HashMap<String, Box<dyn Fn(SqliteDb) -> DartFnFuture<()> + Send + Sync>>>>;
 
 struct WatcherInner {
-    parent: SubrosaDb,
+    parent: SqliteDb,
     idx: u32,
     cbs: WatcherCbs,
 }
@@ -42,7 +42,7 @@ impl Clone for Watcher {
 }
 
 impl Watcher {
-    fn new(parent: SubrosaDb, idx: u32) -> Self {
+    fn new(parent: SqliteDb, idx: u32) -> Self {
         Self(Arc::new(WatcherInner {
             parent,
             cbs: Arc::new(RwLock::new(HashMap::new())),
@@ -52,7 +52,7 @@ impl Watcher {
     pub fn watch(
         &self,
         table: String,
-        cb: impl Fn(SubrosaDb) -> DartFnFuture<()> + Send + Sync + 'static,
+        cb: impl Fn(SqliteDb) -> DartFnFuture<()> + Send + Sync + 'static,
     ) {
         FLUTTER_RUST_BRIDGE_HANDLER
             .async_runtime()
@@ -67,35 +67,35 @@ impl Drop for WatcherInner {
     }
 }
 
-pub(crate) struct SubrosaDbInner {
+pub(crate) struct SqliteDbInner {
     pub(crate) conn: Mutex<Connection>,
     pub(crate) watchers: RwLock<BTreeMap<u32, WatcherCbs>>,
     watcher_idx: RwLock<u32>,
 }
 
-pub struct SubrosaDb(pub(crate) Arc<SubrosaDbInner>);
+pub struct SqliteDb(pub(crate) Arc<SqliteDbInner>);
 
-impl Clone for SubrosaDb {
+impl Clone for SqliteDb {
     fn clone(&self) -> Self {
         Self(Arc::clone(&self.0))
     }
 }
 
 pub trait Dao {
-    fn get_connection(&self) -> &'_ SubrosaDb;
+    fn get_connection(&self) -> &'_ SqliteDb;
 }
 
-impl Dao for SubrosaDb {
-    fn get_connection(&self) -> &'_ SubrosaDb {
+impl Dao for SqliteDb {
+    fn get_connection(&self) -> &'_ SqliteDb {
         self
     }
 }
 pub(crate) type DbConnection<'a> = MutexGuard<'a, Connection>;
 
-impl SubrosaDb {
+impl SqliteDb {
     #[cfg(test)]
-    pub(crate) fn from_conn(conn: Connection) -> SubrosaDb {
-        SubrosaDb(Arc::new(SubrosaDbInner {
+    pub(crate) fn from_conn(conn: Connection) -> SqliteDb {
+        SqliteDb(Arc::new(SqliteDbInner {
             conn: Mutex::new(conn),
             watchers: RwLock::new(BTreeMap::new()),
             watcher_idx: RwLock::new(0),
@@ -128,10 +128,10 @@ impl SubrosaDb {
     }
 
     #[frb(sync)]
-    pub fn new(path: &str) -> anyhow::Result<SubrosaDb> {
+    pub fn new(path: &str) -> anyhow::Result<SqliteDb> {
         let conn = Connection::open(path)?;
         rusqlite::vtab::array::load_module(&conn)?;
-        Ok(SubrosaDb(Arc::new(SubrosaDbInner {
+        Ok(SqliteDb(Arc::new(SqliteDbInner {
             conn: Mutex::new(conn),
             watchers: RwLock::new(BTreeMap::new()),
             watcher_idx: RwLock::new(0),
@@ -139,10 +139,10 @@ impl SubrosaDb {
     }
 
     #[frb(sync)]
-    pub fn new_in_memory() -> anyhow::Result<SubrosaDb> {
+    pub fn new_in_memory() -> anyhow::Result<SqliteDb> {
         let conn = Connection::open_in_memory()?;
         rusqlite::vtab::array::load_module(&conn)?;
-        Ok(SubrosaDb(Arc::new(SubrosaDbInner {
+        Ok(SqliteDb(Arc::new(SqliteDbInner {
             conn: Mutex::new(conn),
             watchers: RwLock::new(BTreeMap::new()),
             watcher_idx: RwLock::new(0),

@@ -28,6 +28,21 @@ futures = "0.3.31"
 tokio = { version = "1.46.1", features = ["test-util"] }
 env_logger = "0.11.8"
 log = "0.4.27"
+qrcode = "0.14.1"
+photon-rs = "0.3.3"
+image_hasher = "3.0.0"
+sequoia-net = "0.30.0"
+#sequoia-openpgp = { version = "2.0.0", features = ["crypto-rust"] }
+rqrr = "0.10.0"
+serde = { version = "1.0.219", features = ["derive"] }
+openssl = { version = "0.10.73", features = ["vendored"] }
+sequoia-openpgp = { version = "2.0.0", default-features = false, features = ["crypto-botan"] }
+botan = { version = "*", features = [ "botan3"]}
+botan-sys = { path ="./botan-rs/botan-sys", features = []}
+#botan-src = { path ="./botan-rs/botan-src", features = []}
+#nettle = { version = "*", features = ["vendored"]}
+sequoia-wot = "0.15.0"
+sequoia-cert-store = "0.7.0"
 
 [build-dependencies]
 prost-build = "0.13.5"

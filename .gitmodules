@@ -1,0 +1,3 @@
+[submodule "botan-rs"]
+	path = botan-rs
+	url = https://github.com/randombit/botan-rs.git

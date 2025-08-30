@@ -4,3 +4,4 @@ pub mod api;
 pub(crate) mod db_helpers;
 pub(crate) mod error;
 mod frb_generated;
+pub(crate) mod pgp;

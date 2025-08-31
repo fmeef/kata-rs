@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
+use flutter_rust_bridge::frb;
 use sequoia_cert_store::{store::Certs, LazyCert, Store};
-use sequoia_openpgp::policy::StandardPolicy;
-pub use sequoia_wot::{store::CertStore, Network, Roots};
+use sequoia_openpgp::{policy::StandardPolicy, Cert};
+use sequoia_wot::{store::CertStore, Network, Roots};
 
 pub struct CertNetworkBuilder {
     certs: Vec<Arc<LazyCert<'static>>>,
@@ -14,6 +15,7 @@ pub struct CertNetwork<'a>(Network<CertStore<'a, 'a, Certs<'a>>>);
 impl<'a> CertNetwork<'a> {}
 
 impl CertNetworkBuilder {
+    #[frb(ignore)]
     pub(crate) fn new(
         store: &CertStore<'static, 'static, sequoia_cert_store::CertStore<'static>>,
     ) -> anyhow::Result<Self> {

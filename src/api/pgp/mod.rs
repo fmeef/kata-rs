@@ -1,5 +1,5 @@
 use sequoia_openpgp::policy::StandardPolicy;
-pub use sequoia_wot::store::CertStore;
+use sequoia_wot::store::CertStore;
 use std::{path::PathBuf, str::FromStr, sync::Arc};
 use tokio::sync::RwLock;
 

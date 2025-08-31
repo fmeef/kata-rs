@@ -9,7 +9,7 @@ crate-type = ["cdylib", "staticlib", "lib"]
 [dependencies]
 anyhow = { version = "1.0.98", features = ["backtrace"] }
 fallible-iterator = "0.3.0"
-flutter_rust_bridge = { version = "=2.10.0", features = ["uuid", "chrono"] }
+flutter_rust_bridge = { version = "=2.11.1", features = ["uuid", "chrono"] }
 rusqlite = { version = "0.32.1", features = [
     "wasm32-wasi-vfs",
     "uuid",
@@ -37,7 +37,6 @@ rqrr = "0.10.0"
 serde = { version = "1.0.219", features = ["derive"] }
 openssl = { version = "0.10.73", features = ["vendored"] }
 sequoia-openpgp = { version = "2.0.0", default-features = false, features = ["crypto-botan"] }
-#botan = { version = "*", features = [ "botan3"]}
 #botan-sys = { path ="./botan-rs/botan-sys", features = []}
 #botan-src = { path ="./botan-rs/botan-src", features = []}
 #nettle = { version = "*", features = ["vendored"]}

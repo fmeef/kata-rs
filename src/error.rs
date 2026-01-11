@@ -10,6 +10,10 @@ pub enum InternalErr {
     MigrationError(#[from] rusqlite_migration::Error),
     #[error("{0}")]
     Anyhow(#[from] anyhow::Error),
+    #[error("{0}")]
+    Generic(&'static str),
+    #[error("{0}")]
+    NotFound(&'static str),
 }
 
 impl From<InternalErr> for rusqlite::Error {

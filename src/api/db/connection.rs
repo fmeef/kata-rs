@@ -25,7 +25,7 @@ pub trait Crud {
 }
 
 type WatcherCbs =
-    Arc<RwLock<HashMap<String, Box<dyn Fn(SqliteDb) -> DartFnFuture<()> + Send + Sync>>>>;
+    Arc<RwLock<HashMap<String, Arc<dyn Fn(SqliteDb) -> DartFnFuture<()> + Send + Sync>>>>;
 
 struct WatcherInner {
     parent: SqliteDb,
@@ -49,15 +49,20 @@ impl Watcher {
             idx,
         }))
     }
+
+    #[frb(sync)]
     pub fn watch(
         &self,
         table: String,
         cb: impl Fn(SqliteDb) -> DartFnFuture<()> + Send + Sync + 'static,
     ) {
+        let cb = Arc::new(cb);
+        let c = cb.clone();
+        let p = self.0.parent.clone();
         FLUTTER_RUST_BRIDGE_HANDLER
             .async_runtime()
-            .spawn(cb(self.0.parent.clone()));
-        self.0.cbs.write().unwrap().insert(table, Box::new(cb));
+            .spawn(async move { c(p).await });
+        self.0.cbs.write().unwrap().insert(table, cb);
     }
 }
 
@@ -109,11 +114,13 @@ impl SqliteDb {
         *idx = idx.wrapping_add(1);
         let w = Watcher::new(self.clone(), *idx);
         wl.insert(*idx, Arc::clone(&w.0.cbs));
+        drop(wl);
+        drop(idx);
 
         let s = self.clone();
         let c = self.0.conn.lock().unwrap();
         c.update_hook(Some(move |_, _: &str, tablename: &str, _| {
-            for watcher in s.0.watchers.read().unwrap().values() {
+            for watcher in s.0.watchers.read().unwrap().values().cloned() {
                 for (tb, cb) in watcher.read().unwrap().iter() {
                     if tb != tablename {
                         continue;
@@ -125,6 +132,17 @@ impl SqliteDb {
             }
         }));
         w
+    }
+
+    pub(crate) fn fire_watchers(&self) -> anyhow::Result<()> {
+        for watcher in self.0.watchers.read().unwrap().values().cloned() {
+            for watcher in watcher.read().unwrap().values().cloned() {
+                FLUTTER_RUST_BRIDGE_HANDLER
+                    .async_runtime()
+                    .spawn(watcher(self.clone()));
+            }
+        }
+        Ok(())
     }
 
     #[frb(sync)]

@@ -6,14 +6,14 @@ use crate::error::Result;
 use super::connection::SqliteDb;
 
 lazy_static! {
-    static ref MIGRATIONS: Migrations<'static> = Migrations::new(vec![M::up(
-        r#"
+    static ref MIGRATIONS: Migrations<'static> = Migrations::new(vec![
+        M::up(
+            r#"
         -- A table for all the certificates.
         CREATE TABLE certs (
             keyid TEXT NOT NULL,
             fingerprint TEXT PRIMARY KEY NOT NULL,
-            data BLOB NOT NULL,
-            has_private BOOLEAN NOT NULL DEFAULT FALSE
+            data BLOB NOT NULL
         );
 
         CREATE INDEX IF NOT EXISTS certs_keyid
@@ -50,9 +50,9 @@ lazy_static! {
         CREATE INDEX IF NOT EXISTS userids_domain
             ON userids (domain);
         "#
-    )
-    .down(
-        r#"
+        )
+        .down(
+            r#"
         DROP TABLE IF EXISTS userids;
         DROP TABLE IF EXISTS keys;
         DROP TABLE IF EXISTS certs;
@@ -63,7 +63,31 @@ lazy_static! {
         DROP INDEX keys_keyid;
         DROP INDEX keys_fingerprint;
         "#
-    )]);
+        ),
+        M::up(
+            r#"
+        ALTER TABLE certs ADD COLUMN role TEXT;
+        CREATE INDEX IF NOT EXISTS role_idx
+            ON certs (role);
+        "#
+        )
+        .down(
+            r#"
+            ALTER TABLE certs DROP COLUMN role;
+            DROP INDEX role_idx;
+            "#
+        ),
+        M::up(
+            r#"
+        ALTER TABLE certs ADD COLUMN online BOOLEAN NOT NULL DEFAULT '0';
+        "#
+        )
+        .down(
+            r#"
+            ALTER TABLE certs DROP COLUMN online;
+            "#
+        )
+    ]);
 }
 
 pub fn run_migrations(conn: &SqliteDb) -> Result<()> {

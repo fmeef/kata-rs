@@ -185,7 +185,11 @@ mod test {
     use sequoia_cert_store::Store;
     use sequoia_openpgp::KeyHandle;
 
-    use crate::api::{db::store::CertDao, pgp::test_config, PgpApp, PgpAppTrait};
+    use crate::api::{
+        db::store::CertDao,
+        pgp::{test_config, UserHandle},
+        PgpApp, PgpAppTrait,
+    };
     #[test]
     fn sig_available_after_sign() {
         let app = PgpApp::create(test_config("app")).unwrap();
@@ -202,7 +206,7 @@ mod test {
 
         let key2test = app
             .pgp
-            .get_key_from_fingerprint(&key2.cert.fingerprint)
+            .get_key_from_fingerprint(&UserHandle::from_hex(&key2.cert.fingerprint).unwrap())
             .unwrap();
 
         assert_eq!(key2test.sigs.len(), 0);
@@ -227,7 +231,7 @@ mod test {
 
         let key2test = app
             .pgp
-            .get_key_from_fingerprint(&key2.cert.fingerprint)
+            .get_key_from_fingerprint(&UserHandle::from_hex(&key2.cert.fingerprint).unwrap())
             .unwrap();
 
         let owned = app

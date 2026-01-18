@@ -7,7 +7,7 @@ pub use sequoia_openpgp::{
     serialize::Marshal,
     Cert,
 };
-use sequoia_wot::Depth;
+use sequoia_wot::{store::StoreError, Depth};
 use std::{
     str::FromStr,
     sync::{Arc, RwLock},
@@ -20,7 +20,7 @@ use crate::{
         db::{connection::Crud, store::PgpDataCert},
         pgp::{
             cert::{PgpCert, PgpCertWithIds},
-            PgpServiceStore,
+            PgpServiceStore, UserHandle,
         },
         PgpAppTrait,
     },
@@ -199,13 +199,18 @@ where
         Ok(())
     }
 
-    pub fn get_key_from_fingerprint(&self, fingerprint: &str) -> anyhow::Result<PgpCertWithIds> {
-        let cert = self
-            .store
-            .read()
-            .lookup_by_cert_fpr(&Fingerprint::from_hex(fingerprint)?)?;
+    pub fn get_key_from_fingerprint(
+        &self,
+        fingerprint: &UserHandle,
+    ) -> anyhow::Result<PgpCertWithIds> {
+        let kh = fingerprint.try_keyhandle()?;
+        let cert = self.store.read().lookup_by_cert_or_subkey(kh)?;
 
-        Ok(self.get_api_cert(cert.to_cert()?)?)
+        match cert.len() {
+            1 => Ok(self.get_api_cert(cert[0].to_cert()?)?),
+            0 => Err(anyhow!(StoreError::NotFound(kh.clone()))),
+            _ => Err(anyhow!(StoreError::NotFound(kh.clone()))), //TODO: custom err
+        }
     }
 
     pub fn iter_fingerprints(&self, sink: StreamSink<String>) -> anyhow::Result<()> {

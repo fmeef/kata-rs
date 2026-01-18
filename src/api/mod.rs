@@ -3,6 +3,7 @@ pub mod image;
 pub mod pgp;
 pub mod ser;
 
+use crate::api::pgp::UserHandle;
 use flutter_rust_bridge::frb;
 use lazy_static::lazy_static;
 pub use sequoia_cert_store::{LazyCert, Store, StoreUpdate};
@@ -133,14 +134,12 @@ impl PgpAppTrait for PgpApp {
             .db
             .all_owned_certs()?
             .into_iter()
-            .flat_map(|v| {
-                self.pgp
-                    .get_key_from_fingerprint(&v.fingerprint)
-                    .ok()
-                    .map(|mut v| {
-                        v.cert.has_private = true;
-                        v
-                    })
+            .flat_map(|v| match UserHandle::from_hex(&v.fingerprint) {
+                Ok(fp) => self.pgp.get_key_from_fingerprint(&fp).ok().map(|mut v| {
+                    v.cert.has_private = true;
+                    v
+                }),
+                Err(_) => None,
             })
             .map(|mut v| {
                 v.cert.online = self.pgp.db.check_online(&v.cert.fingerprint);
@@ -161,7 +160,7 @@ impl PgpAppTrait for PgpApp {
     fn get_cert_by_role(&self, role: &str) -> anyhow::Result<Option<PgpCertWithIds>> {
         match self.pgp.db.get_fingerprint_for_role(role)? {
             Some(OnlyFingerprint { fingerprint }) => self
-                .get_key_from_fingerprint(&fingerprint)
+                .get_key_from_fingerprint(&UserHandle::from_hex(&fingerprint)?)
                 .map(|mut v| {
                     v.cert.has_private = true;
                     v
@@ -197,12 +196,13 @@ impl PgpAppTrait for PgpAppTest {
     }
 
     fn all_owned_certs(&self) -> anyhow::Result<Vec<PgpCertWithIds>> {
-        let out = self
-            .pgp
-            .db
-            .all_owned_certs()?
-            .into_iter()
-            .flat_map(|v| self.pgp.get_key_from_fingerprint(&v.fingerprint).ok());
+        let out =
+            self.pgp.db.all_owned_certs()?.into_iter().flat_map(|v| {
+                match UserHandle::from_hex(&v.fingerprint) {
+                    Ok(fp) => self.pgp.get_key_from_fingerprint(&fp).ok(),
+                    Err(_) => None,
+                }
+            });
 
         Ok(out.collect())
     }
@@ -217,9 +217,9 @@ impl PgpAppTrait for PgpAppTest {
 
     fn get_cert_by_role(&self, role: &str) -> anyhow::Result<Option<PgpCertWithIds>> {
         match self.pgp.db.get_fingerprint_for_role(role)? {
-            Some(OnlyFingerprint { fingerprint }) => {
-                self.get_key_from_fingerprint(&fingerprint).map(Some)
-            }
+            Some(OnlyFingerprint { fingerprint }) => self
+                .get_key_from_fingerprint(&UserHandle::from_hex(&fingerprint)?)
+                .map(Some),
             None => Ok(None),
         }
     }
@@ -248,7 +248,7 @@ impl PgpServiceTrait for PgpAppTest {
 
     fn get_key_from_fingerprint(
         &self,
-        fingerprint: &str,
+        fingerprint: &UserHandle,
     ) -> anyhow::Result<pgp::cert::PgpCertWithIds> {
         self.pgp.get_key_from_fingerprint(fingerprint)
     }
@@ -299,7 +299,7 @@ impl PgpServiceTrait for PgpApp {
 
     fn get_key_from_fingerprint(
         &self,
-        fingerprint: &str,
+        fingerprint: &UserHandle,
     ) -> anyhow::Result<pgp::cert::PgpCertWithIds> {
         self.pgp.get_key_from_fingerprint(fingerprint)
     }

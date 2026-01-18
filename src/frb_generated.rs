@@ -42,6 +42,7 @@ use crate::api::pgp::keys::*;
 use crate::api::pgp::wot::network::CertNetworkTrait;
 use crate::api::pgp::wot::network::*;
 use crate::api::pgp::PgpServiceTrait;
+use crate::api::pgp::*;
 use crate::api::PgpAppTrait;
 use crate::api::*;
 use flutter_rust_bridge::for_generated::byteorder::{NativeEndian, ReadBytesExt, WriteBytesExt};
@@ -56,7 +57,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1261766897;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 632273180;
 
 // Section: executor
 
@@ -1841,28 +1842,43 @@ fn wire__crate__api__PgpApp_get_key_from_fingerprint_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
             >>::sse_decode(&mut deserializer);
-            let api_fingerprint = <String>::sse_decode(&mut deserializer);
+            let api_fingerprint = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || {
                         let mut api_that_guard = None;
+                        let mut api_fingerprint_guard = None;
                         let decode_indices_ =
                             flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, false,
-                                )],
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_fingerprint,
+                                        1,
+                                        false,
+                                    ),
+                                ],
                             );
                         for i in decode_indices_ {
                             match i {
                                 0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => {
+                                    api_fingerprint_guard =
+                                        Some(api_fingerprint.lockable_decode_sync_ref())
+                                }
                                 _ => unreachable!(),
                             }
                         }
                         let api_that_guard = api_that_guard.unwrap();
+                        let api_fingerprint_guard = api_fingerprint_guard.unwrap();
                         let output_ok = crate::api::PgpApp::get_key_from_fingerprint(
                             &*api_that_guard,
-                            &api_fingerprint,
+                            &*api_fingerprint_guard,
                         )?;
                         Ok(output_ok)
                     })(),
@@ -5291,6 +5307,88 @@ fn wire__crate__api__pgp__wot__network__StoreNetwork_dump_all_impl(
         },
     )
 }
+fn wire__crate__api__pgp__UserHandle_from_hex_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "UserHandle_from_hex",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_hex = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
+                    let output_ok = crate::api::pgp::UserHandle::from_hex(&api_hex)?;
+                    Ok(output_ok)
+                })(),
+            )
+        },
+    )
+}
+fn wire__crate__api__pgp__UserHandle_name_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "UserHandle_name",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let mut api_that_guard = None;
+                    let decode_indices_ =
+                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_that, 0, false,
+                            ),
+                        ]);
+                    for i in decode_indices_ {
+                        match i {
+                            0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                            _ => unreachable!(),
+                        }
+                    }
+                    let api_that_guard = api_that_guard.unwrap();
+                    let output_ok =
+                        Result::<_, ()>::Ok(crate::api::pgp::UserHandle::name(&*api_that_guard))?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__db__connection__Watcher_watch_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -6144,6 +6242,9 @@ flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<StoreNetwork>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
+    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>
+);
+flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserID>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
@@ -6440,6 +6541,16 @@ impl SseDecode for StoreNetwork {
     }
 }
 
+impl SseDecode for UserHandle {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <RustOpaqueMoi<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+        >>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
+    }
+}
+
 impl SseDecode for UserID {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -6591,6 +6702,16 @@ impl SseDecode
 
 impl SseDecode
     for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<StoreNetwork>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <usize>::sse_decode(deserializer);
+        return decode_rust_opaque_moi(inner);
+    }
+}
+
+impl SseDecode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>>
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -7598,71 +7719,72 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        167 => wire__crate__api__init_logging_impl(port, ptr, rust_vec_len, data_len),
-        168 => wire__crate__api__db__store__only_fingerprint_delete_impl(
+        165 => wire__crate__api__pgp__UserHandle_name_impl(port, ptr, rust_vec_len, data_len),
+        169 => wire__crate__api__init_logging_impl(port, ptr, rust_vec_len, data_len),
+        170 => wire__crate__api__db__store__only_fingerprint_delete_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        169 => wire__crate__api__db__store__only_fingerprint_has_params_impl(
+        171 => wire__crate__api__db__store__only_fingerprint_has_params_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        170 => wire__crate__api__db__store__only_fingerprint_insert_impl(
+        172 => wire__crate__api__db__store__only_fingerprint_insert_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        171 => wire__crate__api__db__store__only_fingerprint_insert_on_conflict_impl(
+        173 => wire__crate__api__db__store__only_fingerprint_insert_on_conflict_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        172 => wire__crate__api__db__store__only_fingerprint_is_entity_impl(
+        174 => wire__crate__api__db__store__only_fingerprint_is_entity_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        173 => wire__crate__api__db__store__only_fingerprint_update_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        174 => {
-            wire__crate__api__db__store__only_online_delete_impl(port, ptr, rust_vec_len, data_len)
-        }
-        175 => wire__crate__api__db__store__only_online_has_params_impl(
+        175 => wire__crate__api__db__store__only_fingerprint_update_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
         176 => {
+            wire__crate__api__db__store__only_online_delete_impl(port, ptr, rust_vec_len, data_len)
+        }
+        177 => wire__crate__api__db__store__only_online_has_params_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        178 => {
             wire__crate__api__db__store__only_online_insert_impl(port, ptr, rust_vec_len, data_len)
         }
-        177 => wire__crate__api__db__store__only_online_insert_on_conflict_impl(
+        179 => wire__crate__api__db__store__only_online_insert_on_conflict_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        178 => wire__crate__api__db__store__only_online_is_entity_impl(
+        180 => wire__crate__api__db__store__only_online_is_entity_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        179 => {
+        181 => {
             wire__crate__api__db__store__only_online_update_impl(port, ptr, rust_vec_len, data_len)
         }
-        182 => {
+        184 => {
             wire__crate__api__db__migrations__run_migrations_impl(port, ptr, rust_vec_len, data_len)
         }
         _ => unreachable!(),
@@ -7756,14 +7878,15 @@ fn pde_ffi_dispatcher_sync_impl(
             rust_vec_len,
             data_len,
         ),
-        164 => wire__crate__api__db__connection__Watcher_watch_impl(ptr, rust_vec_len, data_len),
-        165 => wire__crate__api__config_new_impl(ptr, rust_vec_len, data_len),
-        180 => wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_impl(
+        164 => wire__crate__api__pgp__UserHandle_from_hex_impl(ptr, rust_vec_len, data_len),
+        166 => wire__crate__api__db__connection__Watcher_watch_impl(ptr, rust_vec_len, data_len),
+        167 => wire__crate__api__config_new_impl(ptr, rust_vec_len, data_len),
+        182 => wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        181 => wire__crate__api__pgp__cert__pgp_cert_with_ids_has_private_impl(
+        183 => wire__crate__api__pgp__cert__pgp_cert_with_ids_has_private_impl(
             ptr,
             rust_vec_len,
             data_len,
@@ -7940,6 +8063,21 @@ impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<
 
 impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<StoreNetwork>> for StoreNetwork {
     fn into_into_dart(self) -> FrbWrapper<StoreNetwork> {
+        self.into()
+    }
+}
+
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<UserHandle> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
+            .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<UserHandle> {}
+
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<UserHandle>> for UserHandle {
+    fn into_into_dart(self) -> FrbWrapper<UserHandle> {
         self.into()
     }
 }
@@ -8473,6 +8611,13 @@ impl SseEncode for StoreNetwork {
     }
 }
 
+impl SseEncode for UserHandle {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
+    }
+}
+
 impl SseEncode for UserID {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -8629,6 +8774,17 @@ impl SseEncode
 
 impl SseEncode
     for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<StoreNetwork>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        let (ptr, size) = self.sse_encode_raw();
+        <usize>::sse_encode(ptr, serializer);
+        <i32>::sse_encode(size, serializer);
+    }
+}
+
+impl SseEncode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>>
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -9234,6 +9390,7 @@ mod io {
     use crate::api::pgp::wot::network::CertNetworkTrait;
     use crate::api::pgp::wot::network::*;
     use crate::api::pgp::PgpServiceTrait;
+    use crate::api::pgp::*;
     use crate::api::PgpAppTrait;
     use crate::api::*;
     use flutter_rust_bridge::for_generated::byteorder::{
@@ -9423,6 +9580,20 @@ mod io {
     }
 
     #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_kata_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUserHandle(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>>::increment_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_kata_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUserHandle(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>>::decrement_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
     pub extern "C" fn frbgen_kata_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUserID(
         ptr: *const std::ffi::c_void,
     ) {
@@ -9479,6 +9650,7 @@ mod web {
     use crate::api::pgp::wot::network::CertNetworkTrait;
     use crate::api::pgp::wot::network::*;
     use crate::api::pgp::PgpServiceTrait;
+    use crate::api::pgp::*;
     use crate::api::PgpAppTrait;
     use crate::api::*;
     use flutter_rust_bridge::for_generated::byteorder::{
@@ -9667,6 +9839,20 @@ mod web {
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<StoreNetwork>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUserHandle(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUserHandle(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>>::decrement_strong_count(ptr as _);
     }
 
     #[wasm_bindgen]

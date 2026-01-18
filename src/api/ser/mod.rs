@@ -22,7 +22,7 @@ use std::io::Write;
 use std::sync::Arc;
 
 use crate::api::pgp::cert::PgpCertWithIds;
-use crate::api::pgp::PgpServiceTrait;
+use crate::api::pgp::{PgpServiceTrait, UserHandle};
 use crate::{
     api::{
         pgp::{sign::PgpAppVerifier, POLICY},
@@ -161,7 +161,7 @@ impl PgpApp {
 
             Some(
                 self.pgp
-                    .get_key_from_fingerprint(&cert.fingerprint().to_hex())?,
+                    .get_key_from_fingerprint(&UserHandle::KeyHandle(cert.key_handle()))?,
             )
         } else {
             None

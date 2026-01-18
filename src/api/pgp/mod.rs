@@ -3,8 +3,8 @@ use flutter_rust_bridge::frb;
 use std::path::PathBuf;
 
 use sequoia_cert_store::{store::Pep, LazyCert, Store, StoreUpdate};
-use sequoia_openpgp::policy::{NullPolicy, StandardPolicy};
-use std::sync::Arc;
+use sequoia_openpgp::{policy::StandardPolicy, KeyHandle};
+use std::{str::FromStr, sync::Arc};
 
 #[cfg(test)]
 use crate::api::Config;
@@ -21,6 +21,7 @@ use crate::api::pgp::mut_store::ReadStore;
 
 pub mod cert;
 pub mod export;
+pub mod fingerprint;
 pub mod import;
 pub mod keys;
 pub mod keyserver;
@@ -35,12 +36,42 @@ pub trait Verifier {
     fn verify(&self, data: Vec<u8>) -> bool;
 }
 
+#[frb(opaque)]
+pub enum UserHandle {
+    KeyHandle(KeyHandle),
+}
+
+impl UserHandle {
+    #[frb(sync)]
+    pub fn from_hex(hex: &str) -> anyhow::Result<Self> {
+        Ok(Self::KeyHandle(KeyHandle::from_str(hex)?))
+    }
+
+    pub fn name(&self) -> String {
+        match self {
+            Self::KeyHandle(kh) => kh.to_hex(),
+        }
+    }
+
+    pub(crate) fn keyhandle(&self) -> Option<&'_ KeyHandle> {
+        match self {
+            Self::KeyHandle(kh) => Some(kh),
+        }
+    }
+
+    pub(crate) fn try_keyhandle(&self) -> anyhow::Result<&'_ KeyHandle> {
+        match self {
+            Self::KeyHandle(kh) => Ok(kh),
+        }
+    }
+}
+
 pub trait PgpServiceTrait {
     fn import_certs(&self, import: &dyn PgpImport) -> anyhow::Result<()>;
     fn export_file(&self, file: &str) -> anyhow::Result<()>;
     fn export_armor(&self) -> anyhow::Result<String>;
     fn iter_certs(&self, sink: StreamSink<PgpCertWithIds>) -> anyhow::Result<()>;
-    fn get_key_from_fingerprint(&self, fingerprint: &str) -> anyhow::Result<PgpCertWithIds>;
+    fn get_key_from_fingerprint(&self, fingerprint: &UserHandle) -> anyhow::Result<PgpCertWithIds>;
     fn iter_fingerprints(&self, sink: StreamSink<String>) -> anyhow::Result<()>;
     fn iter_certs_search(
         &self,
@@ -137,7 +168,7 @@ impl PgpServiceTrait for PgpServiceTest {
         self.export_file(file)
     }
 
-    fn get_key_from_fingerprint(&self, fingerprint: &str) -> anyhow::Result<PgpCertWithIds> {
+    fn get_key_from_fingerprint(&self, fingerprint: &UserHandle) -> anyhow::Result<PgpCertWithIds> {
         self.get_key_from_fingerprint(fingerprint)
     }
 

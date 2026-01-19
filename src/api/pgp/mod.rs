@@ -1,9 +1,10 @@
+use anyhow::anyhow;
 use flutter_rust_bridge::frb;
 #[cfg(test)]
 use std::path::PathBuf;
 
 use sequoia_cert_store::{store::Pep, LazyCert, Store, StoreUpdate};
-use sequoia_openpgp::{policy::StandardPolicy, KeyHandle};
+use sequoia_openpgp::{policy::StandardPolicy, Fingerprint, KeyHandle};
 use std::{str::FromStr, sync::Arc};
 
 #[cfg(test)]
@@ -13,6 +14,7 @@ use crate::{
         pgp::{cert::PgpCertWithIds, import::PgpImport, mut_store::MutStore},
         SqliteDb,
     },
+    error::InternalErr,
     frb_generated::StreamSink,
 };
 
@@ -62,6 +64,24 @@ impl UserHandle {
     pub(crate) fn try_keyhandle(&self) -> anyhow::Result<&'_ KeyHandle> {
         match self {
             Self::KeyHandle(kh) => Ok(kh),
+        }
+    }
+
+    pub(crate) fn try_fingerprint(&self) -> anyhow::Result<&'_ Fingerprint> {
+        match self {
+            Self::KeyHandle(kh) => match kh {
+                KeyHandle::Fingerprint(fp) => Ok(fp),
+                KeyHandle::KeyID(_) => Err(anyhow!(InternalErr::FingerprintRequired)),
+            },
+        }
+    }
+
+    pub(crate) fn try_fingerprint_owned(self) -> anyhow::Result<Fingerprint> {
+        match self {
+            Self::KeyHandle(kh) => match kh {
+                KeyHandle::Fingerprint(fp) => Ok(fp),
+                KeyHandle::KeyID(_) => Err(anyhow!(InternalErr::FingerprintRequired)),
+            },
         }
     }
 }

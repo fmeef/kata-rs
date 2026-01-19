@@ -88,7 +88,7 @@ impl PgpApp {
         resource: String,
         handle: Option<String>,
         description: Option<String>,
-        key: &str,
+        key: &UserHandle,
         full_key: bool,
     ) -> anyhow::Result<Vec<u8>> {
         let mut v = Vec::new();
@@ -236,7 +236,11 @@ mod test {
     use sequoia_cert_store::{LazyCert, Store, StoreUpdate};
     use sequoia_openpgp::Fingerprint;
 
-    use crate::api::{pgp::test_config, ser::strip_cert, PgpApp, PgpAppTrait};
+    use crate::api::{
+        pgp::{test_config, UserHandle},
+        ser::strip_cert,
+        PgpApp, PgpAppTrait,
+    };
 
     #[test]
     fn qr_code_signing() {
@@ -252,7 +256,7 @@ mod test {
                 "test@example.com".to_owned(),
                 None,
                 None,
-                &key.cert.fingerprint,
+                &UserHandle::from_hex(&key.cert.fingerprint).unwrap(),
                 full,
             )
             .unwrap();
@@ -274,7 +278,7 @@ mod test {
                     "test@example.com".to_owned(),
                     None,
                     None,
-                    &key.cert.fingerprint,
+                    &UserHandle::from_hex(&key.cert.fingerprint).unwrap(),
                     full,
                 )
                 .unwrap();
@@ -302,7 +306,7 @@ mod test {
                     "test@example.com".to_owned(),
                     None,
                     None,
-                    &key.cert.fingerprint,
+                    &UserHandle::from_hex(&key.cert.fingerprint).unwrap(),
                     full,
                 )
                 .unwrap();
@@ -344,7 +348,7 @@ mod test {
                     "test@example.com".to_owned(),
                     None,
                     None,
-                    &key.cert.fingerprint,
+                    &UserHandle::from_hex(&key.cert.fingerprint).unwrap(),
                     full,
                 )
                 .unwrap();
@@ -402,7 +406,7 @@ mod test {
                 "test@example.com".to_owned(),
                 None,
                 None,
-                &key.cert.fingerprint,
+                &UserHandle::from_hex(&key.cert.fingerprint).unwrap(),
                 true,
             )
             .unwrap();
@@ -420,7 +424,7 @@ mod test {
                 "test@example.com".to_owned(),
                 None,
                 None,
-                &key.cert.fingerprint,
+                &UserHandle::from_hex(&key.cert.fingerprint).unwrap(),
                 true,
             )
             .unwrap();

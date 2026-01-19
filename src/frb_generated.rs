@@ -1373,7 +1373,7 @@ fn wire__crate__api__PgpApp_delete_cert_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
             >>::sse_decode(&mut deserializer);
-            let api_fingerprint = <String>::sse_decode(&mut deserializer);
+            let api_fingerprint = <UserHandle>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -1393,7 +1393,7 @@ fn wire__crate__api__PgpApp_delete_cert_impl(
                         }
                         let api_that_guard = api_that_guard.unwrap();
                         let output_ok =
-                            crate::api::PgpApp::delete_cert(&*api_that_guard, &api_fingerprint)?;
+                            crate::api::PgpApp::delete_cert(&*api_that_guard, api_fingerprint)?;
                         Ok(output_ok)
                     })(),
                 )
@@ -1426,28 +1426,43 @@ fn wire__crate__api__PgpApp_delete_private_key_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
             >>::sse_decode(&mut deserializer);
-            let api_fingerprint = <String>::sse_decode(&mut deserializer);
+            let api_fingerprint = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || {
                         let mut api_that_guard = None;
+                        let mut api_fingerprint_guard = None;
                         let decode_indices_ =
                             flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, false,
-                                )],
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_fingerprint,
+                                        1,
+                                        false,
+                                    ),
+                                ],
                             );
                         for i in decode_indices_ {
                             match i {
                                 0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => {
+                                    api_fingerprint_guard =
+                                        Some(api_fingerprint.lockable_decode_sync_ref())
+                                }
                                 _ => unreachable!(),
                             }
                         }
                         let api_that_guard = api_that_guard.unwrap();
+                        let api_fingerprint_guard = api_fingerprint_guard.unwrap();
                         let output_ok = crate::api::PgpApp::delete_private_key(
                             &*api_that_guard,
-                            &api_fingerprint,
+                            &*api_fingerprint_guard,
                         )?;
                         Ok(output_ok)
                     })(),
@@ -1585,29 +1600,44 @@ fn wire__crate__api__PgpApp_fill_from_keyserver_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
             >>::sse_decode(&mut deserializer);
-            let api_fingerprint = <String>::sse_decode(&mut deserializer);
+            let api_fingerprint = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
             let api_server = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || {
                         let mut api_that_guard = None;
+                        let mut api_fingerprint_guard = None;
                         let decode_indices_ =
                             flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, false,
-                                )],
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_fingerprint,
+                                        1,
+                                        false,
+                                    ),
+                                ],
                             );
                         for i in decode_indices_ {
                             match i {
                                 0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => {
+                                    api_fingerprint_guard =
+                                        Some(api_fingerprint.lockable_decode_sync_ref())
+                                }
                                 _ => unreachable!(),
                             }
                         }
                         let api_that_guard = api_that_guard.unwrap();
+                        let api_fingerprint_guard = api_fingerprint_guard.unwrap();
                         let output_ok = crate::api::PgpApp::fill_from_keyserver(
                             &*api_that_guard,
-                            &api_fingerprint,
+                            &*api_fingerprint_guard,
                             &api_server,
                         )?;
                         Ok(output_ok)
@@ -1915,32 +1945,42 @@ fn wire__crate__api__PgpApp_get_qr_impl(
             let api_resource = <String>::sse_decode(&mut deserializer);
             let api_handle = <Option<String>>::sse_decode(&mut deserializer);
             let api_description = <Option<String>>::sse_decode(&mut deserializer);
-            let api_key = <String>::sse_decode(&mut deserializer);
+            let api_key = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
             let api_full_key = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || {
                         let mut api_that_guard = None;
+                        let mut api_key_guard = None;
                         let decode_indices_ =
                             flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, false,
-                                )],
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_key, 1, false,
+                                    ),
+                                ],
                             );
                         for i in decode_indices_ {
                             match i {
                                 0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => api_key_guard = Some(api_key.lockable_decode_sync_ref()),
                                 _ => unreachable!(),
                             }
                         }
                         let api_that_guard = api_that_guard.unwrap();
+                        let api_key_guard = api_key_guard.unwrap();
                         let output_ok = crate::api::PgpApp::get_qr(
                             &*api_that_guard,
                             api_resource,
                             api_handle,
                             api_description,
-                            &api_key,
+                            &*api_key_guard,
                             api_full_key,
                         )?;
                         Ok(output_ok)
@@ -2527,28 +2567,43 @@ fn wire__crate__api__PgpApp_lookup_synopsis_by_fpr_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
             >>::sse_decode(&mut deserializer);
-            let api_fingerprint = <String>::sse_decode(&mut deserializer);
+            let api_fingerprint = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || {
                         let mut api_that_guard = None;
+                        let mut api_fingerprint_guard = None;
                         let decode_indices_ =
                             flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, false,
-                                )],
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_fingerprint,
+                                        1,
+                                        false,
+                                    ),
+                                ],
                             );
                         for i in decode_indices_ {
                             match i {
                                 0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => {
+                                    api_fingerprint_guard =
+                                        Some(api_fingerprint.lockable_decode_sync_ref())
+                                }
                                 _ => unreachable!(),
                             }
                         }
                         let api_that_guard = api_that_guard.unwrap();
+                        let api_fingerprint_guard = api_fingerprint_guard.unwrap();
                         let output_ok = crate::api::PgpApp::lookup_synopsis_by_fpr(
                             &*api_that_guard,
-                            &api_fingerprint,
+                            &*api_fingerprint_guard,
                         )?;
                         Ok(output_ok)
                     })(),
@@ -2952,29 +3007,44 @@ fn wire__crate__api__PgpApp_update_role_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
             >>::sse_decode(&mut deserializer);
-            let api_fingerprint = <String>::sse_decode(&mut deserializer);
+            let api_fingerprint = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
             let api_role = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || {
                         let mut api_that_guard = None;
+                        let mut api_fingerprint_guard = None;
                         let decode_indices_ =
                             flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, false,
-                                )],
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_fingerprint,
+                                        1,
+                                        false,
+                                    ),
+                                ],
                             );
                         for i in decode_indices_ {
                             match i {
                                 0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => {
+                                    api_fingerprint_guard =
+                                        Some(api_fingerprint.lockable_decode_sync_ref())
+                                }
                                 _ => unreachable!(),
                             }
                         }
                         let api_that_guard = api_that_guard.unwrap();
+                        let api_fingerprint_guard = api_fingerprint_guard.unwrap();
                         let output_ok = crate::api::PgpApp::update_role(
                             &*api_that_guard,
-                            &api_fingerprint,
+                            &*api_fingerprint_guard,
                             &api_role,
                         )?;
                         Ok(output_ok)
@@ -3009,18 +3079,28 @@ fn wire__crate__api__PgpApp_upload_to_keyserver_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
             >>::sse_decode(&mut deserializer);
-            let api_fingerprint = <String>::sse_decode(&mut deserializer);
+            let api_fingerprint = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
             let api_server = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let mut api_that_guard = None;
+                        let mut api_fingerprint_guard = None;
                         let decode_indices_ =
                             flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, false,
-                                )],
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_fingerprint,
+                                        1,
+                                        false,
+                                    ),
+                                ],
                             );
                         for i in decode_indices_ {
                             match i {
@@ -3028,13 +3108,18 @@ fn wire__crate__api__PgpApp_upload_to_keyserver_impl(
                                     api_that_guard =
                                         Some(api_that.lockable_decode_async_ref().await)
                                 }
+                                1 => {
+                                    api_fingerprint_guard =
+                                        Some(api_fingerprint.lockable_decode_async_ref().await)
+                                }
                                 _ => unreachable!(),
                             }
                         }
                         let api_that_guard = api_that_guard.unwrap();
+                        let api_fingerprint_guard = api_fingerprint_guard.unwrap();
                         let output_ok = crate::api::PgpApp::upload_to_keyserver(
                             &*api_that_guard,
-                            &api_fingerprint,
+                            &*api_fingerprint_guard,
                             &api_server,
                         )
                         .await?;

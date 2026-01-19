@@ -2,13 +2,15 @@ use sequoia_cert_store::{store::KeyServer, Store, StoreUpdate};
 use sequoia_net::KeyServer as Upload;
 use sequoia_openpgp::{Cert, Fingerprint, Packet};
 
-use crate::{api::PgpApp, error::Result};
+use crate::{
+    api::{pgp::UserHandle, PgpApp},
+    error::Result,
+};
 
 impl PgpApp {
-    pub fn fill_from_keyserver(&self, fingerprint: &str, server: &str) -> Result<()> {
+    pub fn fill_from_keyserver(&self, fingerprint: &UserHandle, server: &str) -> Result<()> {
         let ks = KeyServer::new(server)?;
-
-        if let Ok(key) = ks.lookup_by_cert_fpr(&Fingerprint::from_hex(fingerprint)?) {
+        if let Ok(key) = ks.lookup_by_cert_fpr(fingerprint.try_fingerprint()?) {
             self.pgp.store.update(key)?;
         }
 
@@ -28,12 +30,12 @@ impl PgpApp {
         Ok(cert)
     }
 
-    pub async fn upload_to_keyserver(&self, fingerprint: &str, server: &str) -> Result<()> {
+    pub async fn upload_to_keyserver(&self, fingerprint: &UserHandle, server: &str) -> Result<()> {
         let ks = Upload::new(server)?;
         if let Ok(key) = self
             .pgp
             .store
-            .lookup_by_cert_fpr(&Fingerprint::from_hex(fingerprint)?)
+            .lookup_by_cert_fpr(fingerprint.try_fingerprint()?)
         {
             let cert = key.to_cert()?;
             if self.pgp.db.check_online(&cert.fingerprint().to_hex()) {

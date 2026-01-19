@@ -14,6 +14,8 @@ pub enum InternalErr {
     Generic(&'static str),
     #[error("{0}")]
     NotFound(&'static str),
+    #[error("KeyID is not supported for this action")]
+    FingerprintRequired,
 }
 
 impl From<InternalErr> for rusqlite::Error {

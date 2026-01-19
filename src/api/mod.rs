@@ -82,13 +82,13 @@ pub trait PgpAppTrait: PgpServiceTrait + CertStoreTrait {
     #[frb(sync)]
     fn generate_key(&self, email: String) -> GenerateCert;
 
-    fn delete_private_key(&self, fingerprint: &str) -> anyhow::Result<()>;
+    fn delete_private_key(&self, fingerprint: &UserHandle) -> anyhow::Result<()>;
 
-    fn delete_cert(&self, fingerprint: &str) -> anyhow::Result<()>;
+    fn delete_cert(&self, fingerprint: UserHandle) -> anyhow::Result<()>;
 
     fn get_cert_by_role(&self, role: &str) -> anyhow::Result<Option<PgpCertWithIds>>;
 
-    fn update_role(&self, fingerprint: &str, role: &str) -> anyhow::Result<()>;
+    fn update_role(&self, fingerprint: &UserHandle, role: &str) -> anyhow::Result<()>;
 }
 
 impl PgpAppTrait for PgpApp {
@@ -112,11 +112,11 @@ impl PgpAppTrait for PgpApp {
         Ok(())
     }
 
-    fn delete_cert(&self, fingerprint: &str) -> anyhow::Result<()> {
+    fn delete_cert(&self, fingerprint: UserHandle) -> anyhow::Result<()> {
         self.pgp
             .store
             .write()
-            .delete_fingerprint(Fingerprint::from_hex(fingerprint)?)?;
+            .delete_fingerprint(fingerprint.try_fingerprint_owned()?)?;
 
         self.pgp.db.fire_watchers()?;
 
@@ -149,9 +149,11 @@ impl PgpAppTrait for PgpApp {
         Ok(out.collect())
     }
 
-    fn delete_private_key(&self, fingerprint: &str) -> anyhow::Result<()> {
+    fn delete_private_key(&self, fingerprint: &UserHandle) -> anyhow::Result<()> {
         let mut write = self.pgp.store.write();
-        self.pgp.db.delete_by_fingerprint(fingerprint)?;
+        self.pgp
+            .db
+            .delete_by_fingerprint(&fingerprint.try_fingerprint()?.to_hex())?;
 
         write.flush()?;
         Ok(())
@@ -170,9 +172,11 @@ impl PgpAppTrait for PgpApp {
         }
     }
 
-    fn update_role(&self, fingerprint: &str, role: &str) -> anyhow::Result<()> {
+    fn update_role(&self, fingerprint: &UserHandle, role: &str) -> anyhow::Result<()> {
         self.pgp.db.clear_role(role)?;
-        self.pgp.db.update_role(fingerprint, role)?;
+        self.pgp
+            .db
+            .update_role(&fingerprint.try_fingerprint()?.to_hex(), role)?;
         Ok(())
     }
 }
@@ -191,7 +195,7 @@ impl PgpAppTrait for PgpAppTest {
         Ok(())
     }
 
-    fn delete_cert(&self, _: &str) -> anyhow::Result<()> {
+    fn delete_cert(&self, _: UserHandle) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -207,7 +211,7 @@ impl PgpAppTrait for PgpAppTest {
         Ok(out.collect())
     }
 
-    fn delete_private_key(&self, _: &str) -> anyhow::Result<()> {
+    fn delete_private_key(&self, _: &UserHandle) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -224,9 +228,11 @@ impl PgpAppTrait for PgpAppTest {
         }
     }
 
-    fn update_role(&self, fingerprint: &str, role: &str) -> anyhow::Result<()> {
+    fn update_role(&self, fingerprint: &UserHandle, role: &str) -> anyhow::Result<()> {
         self.pgp.db.clear_role(role)?;
-        self.pgp.db.update_role(fingerprint, role)?;
+        self.pgp
+            .db
+            .update_role(&fingerprint.try_fingerprint()?.to_hex(), role)?;
         Ok(())
     }
 
@@ -373,7 +379,7 @@ impl CertStoreTrait for PgpAppTest {
         self.pgp.read().lookup_synopses_by_userid(userid)
     }
 
-    fn lookup_synopsis_by_fpr(&self, fingerprint: &str) -> anyhow::Result<db::CertSynopsis> {
+    fn lookup_synopsis_by_fpr(&self, fingerprint: &UserHandle) -> anyhow::Result<db::CertSynopsis> {
         self.pgp.read().lookup_synopsis_by_fpr(fingerprint)
     }
 
@@ -419,7 +425,7 @@ impl CertStoreTrait for PgpApp {
         self.pgp.store.lookup_synopses_by_userid(userid)
     }
 
-    fn lookup_synopsis_by_fpr(&self, fingerprint: &str) -> anyhow::Result<db::CertSynopsis> {
+    fn lookup_synopsis_by_fpr(&self, fingerprint: &UserHandle) -> anyhow::Result<db::CertSynopsis> {
         self.pgp.store.lookup_synopsis_by_fpr(fingerprint)
     }
 
@@ -460,14 +466,17 @@ impl PgpApp {
         CertNetwork::from_store(self.pgp.store.clone(), roots)
     }
 
-    pub(crate) fn private_cert(&self, fingerprint: &str) -> anyhow::Result<Cert> {
-        let mut cert = self
+    pub(crate) fn private_cert(&self, fingerprint: &UserHandle) -> anyhow::Result<Cert> {
+        let cert = self
             .pgp
             .store
             .read()
-            .lookup_by_cert_fpr(&Fingerprint::from_hex(fingerprint)?)?;
+            .lookup_by_cert_fpr(fingerprint.try_fingerprint()?)?;
 
-        let private = self.pgp.db.get_by_fingerprint(fingerprint)?;
+        let private = self
+            .pgp
+            .db
+            .get_by_fingerprint(&fingerprint.try_fingerprint()?.to_hex())?;
         Ok(private.merge(cert.to_cert()?.clone())?)
     }
 

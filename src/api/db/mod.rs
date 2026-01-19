@@ -3,6 +3,8 @@ pub use sequoia_openpgp::packet::UserID;
 use sequoia_openpgp::Fingerprint;
 use sequoia_wot::store::Store;
 use sequoia_wot::{Depth, RevocationStatus};
+
+use crate::api::pgp::UserHandle;
 pub mod connection;
 pub mod entities;
 pub mod migrations;
@@ -107,7 +109,7 @@ pub trait CertStoreTrait {
 
     // Provided methods
     fn synopses(&self) -> Vec<CertSynopsis>;
-    fn lookup_synopsis_by_fpr(&self, fingerprint: &str) -> Result<CertSynopsis>;
+    fn lookup_synopsis_by_fpr(&self, fingerprint: &UserHandle) -> Result<CertSynopsis>;
     fn third_party_certifications_of(&self, fpr: &str) -> Result<Vec<Certification>>;
     fn certified_userids_of(&self, fpr: &str) -> Result<Vec<UserID>>;
     fn certified_userids(&self) -> Vec<(String, UserID)>;
@@ -176,8 +178,8 @@ where
             .collect()
     }
 
-    fn lookup_synopsis_by_fpr(&self, fingerprint: &str) -> Result<CertSynopsis> {
-        Ok(Store::lookup_synopsis_by_fpr(self, &Fingerprint::from_hex(fingerprint)?)?.into())
+    fn lookup_synopsis_by_fpr(&self, fingerprint: &UserHandle) -> Result<CertSynopsis> {
+        Ok(Store::lookup_synopsis_by_fpr(self, fingerprint.try_fingerprint()?)?.into())
     }
 
     // fn reference_time(&self) -> SystemTime {

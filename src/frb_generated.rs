@@ -57,7 +57,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 632273180;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 501852343;
 
 // Section: executor
 
@@ -5392,6 +5392,102 @@ fn wire__crate__api__pgp__wot__network__StoreNetwork_dump_all_impl(
         },
     )
 }
+fn wire__crate__api__pgp__UserHandle_composite_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "UserHandle_composite",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
+                    let mut api_that_guard = None;
+                    let decode_indices_ =
+                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_that, 0, false,
+                            ),
+                        ]);
+                    for i in decode_indices_ {
+                        match i {
+                            0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                            _ => unreachable!(),
+                        }
+                    }
+                    let api_that_guard = api_that_guard.unwrap();
+                    let output_ok = crate::api::pgp::UserHandle::composite(&*api_that_guard)?;
+                    Ok(output_ok)
+                })(),
+            )
+        },
+    )
+}
+fn wire__crate__api__pgp__UserHandle_composite_lujvo_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "UserHandle_composite_lujvo",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
+                    let mut api_that_guard = None;
+                    let decode_indices_ =
+                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_that, 0, false,
+                            ),
+                        ]);
+                    for i in decode_indices_ {
+                        match i {
+                            0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                            _ => unreachable!(),
+                        }
+                    }
+                    let api_that_guard = api_that_guard.unwrap();
+                    let output_ok = crate::api::pgp::UserHandle::composite_lujvo(&*api_that_guard)?;
+                    Ok(output_ok)
+                })(),
+            )
+        },
+    )
+}
 fn wire__crate__api__pgp__UserHandle_from_hex_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -5425,16 +5521,15 @@ fn wire__crate__api__pgp__UserHandle_from_hex_impl(
     )
 }
 fn wire__crate__api__pgp__UserHandle_name_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
             debug_name: "UserHandle_name",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
         },
         move || {
             let message = unsafe {
@@ -5450,8 +5545,55 @@ fn wire__crate__api__pgp__UserHandle_name_impl(
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
-            move |context| {
-                transform_result_sse::<_, ()>((move || {
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, false,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                        _ => unreachable!(),
+                    }
+                }
+                let api_that_guard = api_that_guard.unwrap();
+                let output_ok =
+                    Result::<_, ()>::Ok(crate::api::pgp::UserHandle::name(&*api_that_guard))?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__pgp__UserHandle_separate_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "UserHandle_separate",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
                     let mut api_that_guard = None;
                     let decode_indices_ =
                         flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
@@ -5466,11 +5608,58 @@ fn wire__crate__api__pgp__UserHandle_name_impl(
                         }
                     }
                     let api_that_guard = api_that_guard.unwrap();
-                    let output_ok =
-                        Result::<_, ()>::Ok(crate::api::pgp::UserHandle::name(&*api_that_guard))?;
+                    let output_ok = crate::api::pgp::UserHandle::separate(&*api_that_guard)?;
                     Ok(output_ok)
-                })())
-            }
+                })(),
+            )
+        },
+    )
+}
+fn wire__crate__api__pgp__UserHandle_separate_lujvo_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "UserHandle_separate_lujvo",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
+                    let mut api_that_guard = None;
+                    let decode_indices_ =
+                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_that, 0, false,
+                            ),
+                        ]);
+                    for i in decode_indices_ {
+                        match i {
+                            0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                            _ => unreachable!(),
+                        }
+                    }
+                    let api_that_guard = api_that_guard.unwrap();
+                    let output_ok = crate::api::pgp::UserHandle::separate_lujvo(&*api_that_guard)?;
+                    Ok(output_ok)
+                })(),
+            )
         },
     )
 }
@@ -7307,7 +7496,7 @@ impl SseDecode for crate::api::pgp::cert::PgpCert {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_keyid = <String>::sse_decode(deserializer);
-        let mut var_fingerprint = <String>::sse_decode(deserializer);
+        let mut var_fingerprint = <UserHandle>::sse_decode(deserializer);
         let mut var_hasPrivate = <bool>::sse_decode(deserializer);
         let mut var_online = <bool>::sse_decode(deserializer);
         return crate::api::pgp::cert::PgpCert {
@@ -7464,6 +7653,20 @@ impl SseDecode for crate::api::ser::VerifyResult {
             content: var_content,
             key: var_key,
             is_stub: var_isStub,
+        };
+    }
+}
+
+impl SseDecode for crate::api::pgp::fingerprint::VisualKey {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_gismu = <Vec<String>>::sse_decode(deserializer);
+        let mut var_emoji = <Vec<String>>::sse_decode(deserializer);
+        let mut var_phone = <String>::sse_decode(deserializer);
+        return crate::api::pgp::fingerprint::VisualKey {
+            gismu: var_gismu,
+            emoji: var_emoji,
+            phone: var_phone,
         };
     }
 }
@@ -7804,72 +8007,71 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        165 => wire__crate__api__pgp__UserHandle_name_impl(port, ptr, rust_vec_len, data_len),
-        169 => wire__crate__api__init_logging_impl(port, ptr, rust_vec_len, data_len),
-        170 => wire__crate__api__db__store__only_fingerprint_delete_impl(
+        173 => wire__crate__api__init_logging_impl(port, ptr, rust_vec_len, data_len),
+        174 => wire__crate__api__db__store__only_fingerprint_delete_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        171 => wire__crate__api__db__store__only_fingerprint_has_params_impl(
+        175 => wire__crate__api__db__store__only_fingerprint_has_params_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        172 => wire__crate__api__db__store__only_fingerprint_insert_impl(
+        176 => wire__crate__api__db__store__only_fingerprint_insert_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        173 => wire__crate__api__db__store__only_fingerprint_insert_on_conflict_impl(
+        177 => wire__crate__api__db__store__only_fingerprint_insert_on_conflict_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        174 => wire__crate__api__db__store__only_fingerprint_is_entity_impl(
+        178 => wire__crate__api__db__store__only_fingerprint_is_entity_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        175 => wire__crate__api__db__store__only_fingerprint_update_impl(
+        179 => wire__crate__api__db__store__only_fingerprint_update_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        176 => {
+        180 => {
             wire__crate__api__db__store__only_online_delete_impl(port, ptr, rust_vec_len, data_len)
         }
-        177 => wire__crate__api__db__store__only_online_has_params_impl(
+        181 => wire__crate__api__db__store__only_online_has_params_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        178 => {
+        182 => {
             wire__crate__api__db__store__only_online_insert_impl(port, ptr, rust_vec_len, data_len)
         }
-        179 => wire__crate__api__db__store__only_online_insert_on_conflict_impl(
+        183 => wire__crate__api__db__store__only_online_insert_on_conflict_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        180 => wire__crate__api__db__store__only_online_is_entity_impl(
+        184 => wire__crate__api__db__store__only_online_is_entity_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        181 => {
+        185 => {
             wire__crate__api__db__store__only_online_update_impl(port, ptr, rust_vec_len, data_len)
         }
-        184 => {
+        188 => {
             wire__crate__api__db__migrations__run_migrations_impl(port, ptr, rust_vec_len, data_len)
         }
         _ => unreachable!(),
@@ -7963,15 +8165,20 @@ fn pde_ffi_dispatcher_sync_impl(
             rust_vec_len,
             data_len,
         ),
-        164 => wire__crate__api__pgp__UserHandle_from_hex_impl(ptr, rust_vec_len, data_len),
-        166 => wire__crate__api__db__connection__Watcher_watch_impl(ptr, rust_vec_len, data_len),
-        167 => wire__crate__api__config_new_impl(ptr, rust_vec_len, data_len),
-        182 => wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_impl(
+        164 => wire__crate__api__pgp__UserHandle_composite_impl(ptr, rust_vec_len, data_len),
+        165 => wire__crate__api__pgp__UserHandle_composite_lujvo_impl(ptr, rust_vec_len, data_len),
+        166 => wire__crate__api__pgp__UserHandle_from_hex_impl(ptr, rust_vec_len, data_len),
+        167 => wire__crate__api__pgp__UserHandle_name_impl(ptr, rust_vec_len, data_len),
+        168 => wire__crate__api__pgp__UserHandle_separate_impl(ptr, rust_vec_len, data_len),
+        169 => wire__crate__api__pgp__UserHandle_separate_lujvo_impl(ptr, rust_vec_len, data_len),
+        170 => wire__crate__api__db__connection__Watcher_watch_impl(ptr, rust_vec_len, data_len),
+        171 => wire__crate__api__config_new_impl(ptr, rust_vec_len, data_len),
+        186 => wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        183 => wire__crate__api__pgp__cert__pgp_cert_with_ids_has_private_impl(
+        187 => wire__crate__api__pgp__cert__pgp_cert_with_ids_has_private_impl(
             ptr,
             rust_vec_len,
             data_len,
@@ -8553,6 +8760,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::ser::VerifyResult>
     for crate::api::ser::VerifyResult
 {
     fn into_into_dart(self) -> crate::api::ser::VerifyResult {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::pgp::fingerprint::VisualKey {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.gismu.into_into_dart().into_dart(),
+            self.emoji.into_into_dart().into_dart(),
+            self.phone.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::pgp::fingerprint::VisualKey
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::pgp::fingerprint::VisualKey>
+    for crate::api::pgp::fingerprint::VisualKey
+{
+    fn into_into_dart(self) -> crate::api::pgp::fingerprint::VisualKey {
         self
     }
 }
@@ -9304,7 +9533,7 @@ impl SseEncode for crate::api::pgp::cert::PgpCert {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.keyid, serializer);
-        <String>::sse_encode(self.fingerprint, serializer);
+        <UserHandle>::sse_encode(self.fingerprint, serializer);
         <bool>::sse_encode(self.has_private, serializer);
         <bool>::sse_encode(self.online, serializer);
     }
@@ -9433,6 +9662,15 @@ impl SseEncode for crate::api::ser::VerifyResult {
         <Option<crate::api::ser::QrCodeContent>>::sse_encode(self.content, serializer);
         <Option<crate::api::pgp::cert::PgpCertWithIds>>::sse_encode(self.key, serializer);
         <bool>::sse_encode(self.is_stub, serializer);
+    }
+}
+
+impl SseEncode for crate::api::pgp::fingerprint::VisualKey {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<String>>::sse_encode(self.gismu, serializer);
+        <Vec<String>>::sse_encode(self.emoji, serializer);
+        <String>::sse_encode(self.phone, serializer);
     }
 }
 

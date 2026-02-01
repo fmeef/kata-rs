@@ -4,13 +4,13 @@ use sequoia_cert_store::{LazyCert, StoreUpdate};
 use sequoia_openpgp::{parse::Parse, Cert};
 use sequoia_wot::{store::Store, Depth};
 
-use crate::api::{pgp::PgpServiceStore, PgpApp, PgpAppTrait};
+use crate::api::{pgp::UserHandle, PgpApp, PgpAppTrait};
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 #[frb(non_opaque)]
 pub struct PgpCert {
     pub keyid: String,
-    pub fingerprint: String,
+    pub fingerprint: UserHandle,
     pub has_private: bool,
     pub online: bool,
 }
@@ -29,7 +29,7 @@ impl PgpCertWithIds {
         let cert = Cert::from_bytes(&bytes)?;
         let newcert = PgpCert {
             keyid: cert.keyid().to_hex(),
-            fingerprint: cert.fingerprint().to_hex(),
+            fingerprint: UserHandle::from_fingerprint(cert.fingerprint()),
             has_private: cert.is_tsk(),
             online: false,
         };
@@ -54,7 +54,7 @@ impl PgpCertWithIds {
 
         let newcert = PgpCert {
             keyid: cert.keyid().to_hex(),
-            fingerprint: cert.fingerprint().to_hex(),
+            fingerprint: UserHandle::from_fingerprint(cert.fingerprint()),
             has_private: cert.is_tsk(),
             online: false,
         };
@@ -105,7 +105,7 @@ impl PgpCert {
         let lazy = LazyCert::from_cert(cert);
         Ok(Self {
             keyid: lazy.keyid().to_hex(),
-            fingerprint: lazy.fingerprint().to_hex(),
+            fingerprint: UserHandle::from_fingerprint(lazy.fingerprint()),
             has_private: lazy.is_tsk(),
             online: false,
         })

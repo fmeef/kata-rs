@@ -206,7 +206,7 @@ mod test {
 
         let key2test = app
             .pgp
-            .get_key_from_fingerprint(&UserHandle::from_hex(&key2.cert.fingerprint).unwrap())
+            .get_key_from_fingerprint(&key2.cert.fingerprint)
             .unwrap();
 
         assert_eq!(key2test.sigs.len(), 0);
@@ -222,8 +222,8 @@ mod test {
         assert_eq!(owned.sigs.len(), 0);
 
         app.sign_with_trust_level(
-            &key1.cert.fingerprint,
-            &key2.cert.fingerprint,
+            &key1.cert.fingerprint.name(),
+            &key2.cert.fingerprint.name(),
             1,
             super::TrustLevel::Full,
         )
@@ -231,7 +231,7 @@ mod test {
 
         let key2test = app
             .pgp
-            .get_key_from_fingerprint(&UserHandle::from_hex(&key2.cert.fingerprint).unwrap())
+            .get_key_from_fingerprint(&key2.cert.fingerprint)
             .unwrap();
 
         let owned = app
@@ -262,8 +262,8 @@ mod test {
             .unwrap();
 
         app.sign_with_trust_level(
-            &key1.cert.fingerprint,
-            &key2.cert.fingerprint,
+            &key1.cert.fingerprint.name(),
+            &key2.cert.fingerprint.name(),
             1,
             super::TrustLevel::Full,
         )
@@ -272,7 +272,7 @@ mod test {
         for key in app
             .pgp
             .read()
-            .lookup_by_cert_or_subkey(&KeyHandle::from_str(&key2.cert.fingerprint).unwrap())
+            .lookup_by_cert_or_subkey(&key2.cert.fingerprint.try_keyhandle().unwrap())
             .unwrap()
         {
             let key = app.pgp.get_api_cert(key.to_cert().unwrap()).unwrap();
@@ -298,8 +298,8 @@ mod test {
         assert!(key2.has_private());
 
         app.sign_with_trust_level(
-            &key1.cert.fingerprint,
-            &key2.cert.fingerprint,
+            &key1.cert.fingerprint.name(),
+            &key2.cert.fingerprint.name(),
             1,
             super::TrustLevel::Full,
         )
@@ -321,13 +321,13 @@ mod test {
         let db_cert = app
             .pgp
             .db
-            .get_by_fingerprint(&key2.cert.fingerprint)
+            .get_by_fingerprint(&key2.cert.fingerprint.name())
             .unwrap();
 
         for key in app
             .pgp
             .read()
-            .lookup_by_cert_or_subkey(&KeyHandle::from_str(&key2.cert.fingerprint).unwrap())
+            .lookup_by_cert_or_subkey(&key2.cert.fingerprint.try_keyhandle().unwrap())
             .unwrap()
         {
             let key = db_cert.merge(key.to_cert().unwrap().clone()).unwrap();

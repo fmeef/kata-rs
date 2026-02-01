@@ -142,7 +142,7 @@ impl PgpAppTrait for PgpApp {
                 Err(_) => None,
             })
             .map(|mut v| {
-                v.cert.online = self.pgp.db.check_online(&v.cert.fingerprint);
+                v.cert.online = self.pgp.db.check_online(&v.cert.fingerprint.name());
                 v
             });
 

@@ -107,7 +107,7 @@ impl GenerateCert {
 
         let newcert = PgpCert {
             keyid: cert.keyid().to_hex(),
-            fingerprint: cert.fingerprint().to_hex(),
+            fingerprint: UserHandle::from_fingerprint(cert.fingerprint()),
             has_private: cert.is_tsk(),
             online: inner.online,
         };
@@ -159,7 +159,7 @@ where
         let online = self.db.check_online(&fingerprint);
         let newcert = PgpCert {
             keyid: cert.keyid().to_hex(),
-            fingerprint,
+            fingerprint: UserHandle::from_fingerprint(cert.fingerprint()),
             has_private: cert.is_tsk(),
             online,
         };
@@ -285,14 +285,18 @@ mod test {
             .pgp
             .store
             .read()
-            .lookup_by_cert_fpr(&Fingerprint::from_hex(&k.cert.fingerprint).unwrap())
+            .lookup_by_cert_fpr(&k.cert.fingerprint.try_fingerprint().unwrap())
             .unwrap();
 
-        let private = test.pgp.db.get_by_fingerprint(&k.cert.fingerprint).unwrap();
+        let private = test
+            .pgp
+            .db
+            .get_by_fingerprint(&k.cert.fingerprint.name())
+            .unwrap();
 
         let new = private.merge(new.to_cert().unwrap().clone()).unwrap();
 
-        assert_eq!(new.fingerprint().to_hex(), k.cert.fingerprint);
+        assert_eq!(new.fingerprint().to_hex(), k.cert.fingerprint.name());
         assert!(new.is_tsk());
     }
 }

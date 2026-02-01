@@ -204,18 +204,23 @@ mod test {
         assert!(key2.has_private());
 
         app.sign_with_trust_level(
-            &key1.cert.fingerprint,
-            &key2.cert.fingerprint,
+            &key1.cert.fingerprint.name(),
+            &key2.cert.fingerprint.name(),
             1,
             TrustLevel::Partial,
         )
         .unwrap();
 
         let network = app
-            .network_from_fingerprints(vec![key1.cert.fingerprint, key2.cert.fingerprint.clone()])
+            .network_from_fingerprints(vec![
+                key1.cert.fingerprint.name(),
+                key2.cert.fingerprint.name(),
+            ])
             .unwrap();
 
-        let path = network.authenticate(&key2.cert.fingerprint, 120).unwrap();
+        let path = network
+            .authenticate(&key2.cert.fingerprint.name(), 120)
+            .unwrap();
 
         assert_ne!(path.trust, 0);
     }
@@ -237,18 +242,20 @@ mod test {
         assert!(key2.has_private());
 
         app.sign_with_trust_level(
-            &key1.cert.fingerprint,
-            &key2.cert.fingerprint,
+            &key1.cert.fingerprint.name(),
+            &key2.cert.fingerprint.name(),
             120,
             TrustLevel::Partial,
         )
         .unwrap();
 
         let network = app
-            .network_from_fingerprints(vec![key1.cert.fingerprint])
+            .network_from_fingerprints(vec![key1.cert.fingerprint.name()])
             .unwrap();
 
-        let path = network.authenticate(&key2.cert.fingerprint, 120).unwrap();
+        let path = network
+            .authenticate(&key2.cert.fingerprint.name(), 120)
+            .unwrap();
 
         assert_ne!(path.trust, 0);
     }

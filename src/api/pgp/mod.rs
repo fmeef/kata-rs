@@ -39,6 +39,7 @@ pub trait Verifier {
 }
 
 #[frb(opaque)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum UserHandle {
     KeyHandle(KeyHandle),
 }
@@ -49,9 +50,20 @@ impl UserHandle {
         Ok(Self::KeyHandle(KeyHandle::from_str(hex)?))
     }
 
+    pub(crate) fn from_fingerprint(fingerprint: Fingerprint) -> Self {
+        Self::KeyHandle(KeyHandle::Fingerprint(fingerprint))
+    }
+
+    #[frb(sync)]
     pub fn name(&self) -> String {
         match self {
             Self::KeyHandle(kh) => kh.to_hex(),
+        }
+    }
+
+    pub(crate) fn as_bytes(&self) -> &'_ [u8] {
+        match self {
+            Self::KeyHandle(kh) => kh.as_bytes(),
         }
     }
 

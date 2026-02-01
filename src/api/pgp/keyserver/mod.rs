@@ -95,16 +95,16 @@ mod test {
             .unwrap();
 
         test.sign_with_trust_level(
-            &online.cert.fingerprint,
-            &offline.cert.fingerprint,
+            &online.cert.fingerprint.name(),
+            &offline.cert.fingerprint.name(),
             1,
             TrustLevel::Full,
         )
         .unwrap();
 
         test.sign_with_trust_level(
-            &offline.cert.fingerprint,
-            &online.cert.fingerprint,
+            &offline.cert.fingerprint.name(),
+            &online.cert.fingerprint.name(),
             1,
             TrustLevel::Full,
         )
@@ -113,7 +113,7 @@ mod test {
         let online = test
             .pgp
             .store
-            .lookup_by_cert_fpr(&Fingerprint::from_hex(&online.cert.fingerprint).unwrap())
+            .lookup_by_cert_fpr(&online.cert.fingerprint.try_fingerprint().unwrap())
             .unwrap()
             .to_cert()
             .unwrap()
@@ -122,7 +122,7 @@ mod test {
         let offline = test
             .pgp
             .store
-            .lookup_by_cert_fpr(&Fingerprint::from_hex(&offline.cert.fingerprint).unwrap())
+            .lookup_by_cert_fpr(&offline.cert.fingerprint.try_fingerprint().unwrap())
             .unwrap()
             .to_cert()
             .unwrap()

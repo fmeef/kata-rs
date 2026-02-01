@@ -154,7 +154,7 @@ impl PgpDataCert {
         let data = tsk.export_to_vec()?;
         let out = Self {
             keyid: cert.keyid,
-            fingerprint: cert.fingerprint,
+            fingerprint: cert.fingerprint.name(),
             online: cert.online,
             role: None,
             data,

@@ -1,3 +1,5 @@
+use latkerlo_jvotci::Jvonunfli;
+
 pub(crate) type Result<T> = std::result::Result<T, InternalErr>;
 
 #[derive(thiserror::Error, Debug)]
@@ -16,6 +18,8 @@ pub enum InternalErr {
     NotFound(&'static str),
     #[error("KeyID is not supported for this action")]
     FingerprintRequired,
+    #[error("Lojban error {0}")]
+    Lojban(Jvonunfli),
 }
 
 impl From<InternalErr> for rusqlite::Error {

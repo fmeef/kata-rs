@@ -198,7 +198,7 @@ impl PgpApp {
         verifier.read_to_end(&mut out)?;
 
         let is_stub = if let Some(ref key) = key {
-            self.is_stub(&key.cert.fingerprint)?
+            self.is_stub(&key.cert.fingerprint.name())?
         } else {
             true
         };
@@ -256,7 +256,7 @@ mod test {
                 "test@example.com".to_owned(),
                 None,
                 None,
-                &UserHandle::from_hex(&key.cert.fingerprint).unwrap(),
+                &key.cert.fingerprint,
                 full,
             )
             .unwrap();
@@ -278,7 +278,7 @@ mod test {
                     "test@example.com".to_owned(),
                     None,
                     None,
-                    &UserHandle::from_hex(&key.cert.fingerprint).unwrap(),
+                    &key.cert.fingerprint,
                     full,
                 )
                 .unwrap();
@@ -306,7 +306,7 @@ mod test {
                     "test@example.com".to_owned(),
                     None,
                     None,
-                    &UserHandle::from_hex(&key.cert.fingerprint).unwrap(),
+                    &key.cert.fingerprint,
                     full,
                 )
                 .unwrap();
@@ -320,15 +320,15 @@ mod test {
                 let nk = app
                     .pgp
                     .store
-                    .lookup_by_cert_fpr(&Fingerprint::from_hex(&nk.cert.fingerprint).unwrap())
+                    .lookup_by_cert_fpr(&nk.cert.fingerprint.try_fingerprint().unwrap())
                     .unwrap();
-                assert_eq!(nk.fingerprint().to_hex(), key.cert.fingerprint);
+                assert_eq!(nk.fingerprint().to_hex(), key.cert.fingerprint.name());
                 let userids = nk.userids().next().unwrap();
                 let userid = userids.name().unwrap().unwrap();
                 assert_eq!(userid, "test");
             }
 
-            assert_eq!(res.fingerprints[0], key.cert.fingerprint);
+            assert_eq!(res.fingerprints[0], key.cert.fingerprint.name());
         }
     }
 
@@ -348,7 +348,7 @@ mod test {
                     "test@example.com".to_owned(),
                     None,
                     None,
-                    &UserHandle::from_hex(&key.cert.fingerprint).unwrap(),
+                    &key.cert.fingerprint,
                     full,
                 )
                 .unwrap();
@@ -357,7 +357,7 @@ mod test {
 
             println!("{:?}", res.fingerprints);
 
-            assert_eq!(res.fingerprints[0], key.cert.fingerprint);
+            assert_eq!(res.fingerprints[0], key.cert.fingerprint.name());
         }
     }
 
@@ -374,7 +374,7 @@ mod test {
         let cert = app
             .pgp
             .store
-            .lookup_by_cert_fpr(&Fingerprint::from_hex(&key.cert.fingerprint).unwrap())
+            .lookup_by_cert_fpr(&key.cert.fingerprint.try_fingerprint().unwrap())
             .unwrap();
 
         let strip = strip_cert(cert.to_cert().unwrap().clone()).unwrap();
@@ -385,9 +385,9 @@ mod test {
             .unwrap();
         let cert = cert.to_cert().unwrap();
         assert_ne!(strip, *cert);
-        let is_stub = app.is_stub(&key.cert.fingerprint).unwrap();
+        let is_stub = app.is_stub(&key.cert.fingerprint.name()).unwrap();
         assert!(!is_stub);
-        let is_stub = app2.is_stub(&key.cert.fingerprint).unwrap();
+        let is_stub = app2.is_stub(&key.cert.fingerprint.name()).unwrap();
         assert!(is_stub);
     }
 
@@ -406,7 +406,7 @@ mod test {
                 "test@example.com".to_owned(),
                 None,
                 None,
-                &UserHandle::from_hex(&key.cert.fingerprint).unwrap(),
+                &key.cert.fingerprint,
                 true,
             )
             .unwrap();
@@ -424,7 +424,7 @@ mod test {
                 "test@example.com".to_owned(),
                 None,
                 None,
-                &UserHandle::from_hex(&key.cert.fingerprint).unwrap(),
+                &key.cert.fingerprint,
                 true,
             )
             .unwrap();
@@ -435,7 +435,7 @@ mod test {
         let cert = app
             .pgp
             .store
-            .lookup_by_cert_fpr(&Fingerprint::from_hex(&key.cert.fingerprint).unwrap())
+            .lookup_by_cert_fpr(&key.cert.fingerprint.try_fingerprint().unwrap())
             .unwrap();
 
         app2.pgp.store.update(cert).unwrap();

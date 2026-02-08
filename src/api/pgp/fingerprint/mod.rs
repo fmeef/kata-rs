@@ -497,7 +497,7 @@ impl UserHandle {
     }
 
     #[frb(sync)]
-    pub fn composite_lujvo(&self) -> anyhow::Result<String> {
+    pub fn composite_lujvo(&self, short: bool) -> anyhow::Result<String> {
         let fp = self.as_bytes();
 
         if fp.len() < 20 {
@@ -508,13 +508,16 @@ impl UserHandle {
 
         let lujvo = lujvo_combined(&fp[0..16])?.join(" ");
         let phone = data_to_phone(&fp[16..20])?;
-
-        Ok(format!("{lujvo} ({phone})"))
+        if short {
+            Ok(lujvo)
+        } else {
+            Ok(format!("{lujvo} ({phone})"))
+        }
     }
 
     #[frb(sync)]
-    pub fn composite_lujvo_or_else(&self) -> String {
-        self.composite_lujvo().unwrap_or_else(|_| self.name())
+    pub fn composite_lujvo_or_else(&self, short: bool) -> String {
+        self.composite_lujvo(short).unwrap_or_else(|_| self.name())
     }
 
     #[frb(sync)]

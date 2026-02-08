@@ -5632,6 +5632,7 @@ fn wire__crate__api__pgp__UserHandle_composite_lujvo_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
             >>::sse_decode(&mut deserializer);
+            let api_short = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                 (move || {
@@ -5649,7 +5650,8 @@ fn wire__crate__api__pgp__UserHandle_composite_lujvo_impl(
                         }
                     }
                     let api_that_guard = api_that_guard.unwrap();
-                    let output_ok = crate::api::pgp::UserHandle::composite_lujvo(&*api_that_guard)?;
+                    let output_ok =
+                        crate::api::pgp::UserHandle::composite_lujvo(&*api_that_guard, api_short)?;
                     Ok(output_ok)
                 })(),
             )
@@ -5680,6 +5682,7 @@ fn wire__crate__api__pgp__UserHandle_composite_lujvo_or_else_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
             >>::sse_decode(&mut deserializer);
+            let api_short = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse::<_, ()>((move || {
                 let mut api_that_guard = None;
@@ -5696,9 +5699,11 @@ fn wire__crate__api__pgp__UserHandle_composite_lujvo_or_else_impl(
                     }
                 }
                 let api_that_guard = api_that_guard.unwrap();
-                let output_ok = Result::<_, ()>::Ok(
-                    crate::api::pgp::UserHandle::composite_lujvo_or_else(&*api_that_guard),
-                )?;
+                let output_ok =
+                    Result::<_, ()>::Ok(crate::api::pgp::UserHandle::composite_lujvo_or_else(
+                        &*api_that_guard,
+                        api_short,
+                    ))?;
                 Ok(output_ok)
             })())
         },

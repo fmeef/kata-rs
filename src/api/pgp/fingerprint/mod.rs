@@ -513,6 +513,11 @@ impl UserHandle {
     }
 
     #[frb(sync)]
+    pub fn composite_lujvo_or_else(&self) -> String {
+        self.composite_lujvo().unwrap_or_else(|_| self.name())
+    }
+
+    #[frb(sync)]
     pub fn composite(&self) -> anyhow::Result<String> {
         let fp = self.as_bytes();
 

@@ -263,6 +263,13 @@ impl PgpServiceTrait for PgpAppTest {
         self.pgp.import_certs(import)
     }
 
+    fn get_stub_from_fingerprint(
+        &self,
+        fingerprint: &UserHandle,
+    ) -> anyhow::Result<PgpCertWithIds> {
+        self.pgp.get_stub_from_fingerprint(fingerprint)
+    }
+
     fn iter_certs(
         &self,
         sink: crate::frb_generated::StreamSink<pgp::cert::PgpCertWithIds>,
@@ -308,6 +315,13 @@ impl PgpServiceTrait for PgpApp {
         fingerprint: &UserHandle,
     ) -> anyhow::Result<pgp::cert::PgpCertWithIds> {
         self.pgp.get_key_from_fingerprint(fingerprint)
+    }
+
+    fn get_stub_from_fingerprint(
+        &self,
+        fingerprint: &UserHandle,
+    ) -> anyhow::Result<PgpCertWithIds> {
+        self.pgp.get_stub_from_fingerprint(fingerprint)
     }
 
     fn import_certs(&self, import: &dyn pgp::import::PgpImport) -> anyhow::Result<()> {

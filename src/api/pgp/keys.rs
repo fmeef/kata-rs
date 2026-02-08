@@ -13,13 +13,13 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use sequoia_openpgp::{packet::UserID, Fingerprint, KeyHandle};
+use sequoia_openpgp::{packet::UserID, KeyHandle};
 
 use crate::{
     api::{
         db::{connection::Crud, store::PgpDataCert},
         pgp::{
-            cert::{PgpCert, PgpCertWithIds},
+            cert::{MaybeCert, PgpCert, PgpCertWithIds},
             PgpServiceStore, UserHandle,
         },
         PgpAppTrait,
@@ -117,23 +117,8 @@ impl GenerateCert {
         let out = PgpCertWithIds {
             cert: newcert,
             ids: cert.userids().map(|v| v.userid().to_string()).collect(),
-            sigs: self
-                .app
-                .certifications_of(&cert.fingerprint().to_hex(), None)
-                .unwrap_or_default()
-                .into_iter()
-                .flat_map(|v| {
-                    v.certifications
-                        .into_iter()
-                        .flat_map(|(_, v)| v.into_iter().map(|v| v.issuer))
-                })
-                .collect(),
-            certifications: cert
-                .user_attributes()
-                .flat_map(|v| v.certifications())
-                .flat_map(|v| v.issuers())
-                .map(|v| v.to_hex())
-                .collect(),
+            sigs: vec![],
+            certifications: vec![],
         };
 
         let tsk = cert.as_tsk();
@@ -177,13 +162,45 @@ where
                 v.certifications()
                     .flat_map(|(_, v)| v.iter().map(|v| v.issuer().fingerprint().to_hex()))
             })
+            .map(|v| {
+                UserHandle::from_hex(&v)
+                    .map(|v| self.get_stub_from_fingerprint(&v))
+                    .flatten()
+                    .map(|v| MaybeCert::Full { cert: v })
+                    .unwrap_or_else(|_| MaybeCert::Fingerprint { fpr: v })
+            })
             .collect(),
             certifications: cert
                 .user_attributes()
                 .flat_map(|v| v.certifications())
                 .flat_map(|v| v.issuers())
                 .map(|v| v.to_hex())
+                .map(|v| {
+                    UserHandle::from_hex(&v)
+                        .map(|v| self.get_stub_from_fingerprint(&v))
+                        .flatten()
+                        .map(|v| MaybeCert::Full { cert: v })
+                        .unwrap_or_else(|_| MaybeCert::Fingerprint { fpr: v })
+                })
                 .collect(),
+        })
+    }
+
+    pub(crate) fn get_api_stub_cert(&self, cert: &Cert) -> anyhow::Result<PgpCertWithIds> {
+        let fingerprint = cert.fingerprint().to_hex();
+        let online = self.db.check_online(&fingerprint);
+        let newcert = PgpCert {
+            keyid: cert.keyid().to_hex(),
+            fingerprint: UserHandle::from_fingerprint(cert.fingerprint()),
+            has_private: cert.is_tsk(),
+            online,
+        };
+
+        Ok(PgpCertWithIds {
+            cert: newcert,
+            ids: cert.userids().map(|v| v.userid().to_string()).collect(),
+            sigs: vec![],
+            certifications: vec![],
         })
     }
 
@@ -208,6 +225,20 @@ where
 
         match cert.len() {
             1 => Ok(self.get_api_cert(cert[0].to_cert()?)?),
+            0 => Err(anyhow!(StoreError::NotFound(kh.clone()))),
+            _ => Err(anyhow!(StoreError::NotFound(kh.clone()))), //TODO: custom err
+        }
+    }
+
+    pub fn get_stub_from_fingerprint(
+        &self,
+        fingerprint: &UserHandle,
+    ) -> anyhow::Result<PgpCertWithIds> {
+        let kh = fingerprint.try_keyhandle()?;
+        let cert = self.store.read().lookup_by_cert_or_subkey(kh)?;
+
+        match cert.len() {
+            1 => Ok(self.get_api_stub_cert(cert[0].to_cert()?)?),
             0 => Err(anyhow!(StoreError::NotFound(kh.clone()))),
             _ => Err(anyhow!(StoreError::NotFound(kh.clone()))), //TODO: custom err
         }

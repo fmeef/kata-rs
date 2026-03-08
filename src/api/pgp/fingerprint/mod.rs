@@ -453,6 +453,23 @@ pub struct VisualKey {
     pub phone: String,
 }
 
+impl VisualKey {
+    #[frb(sync)]
+    pub fn join_gismu(&self) -> String {
+        self.gismu.join(" ")
+    }
+
+    #[frb(sync)]
+    pub fn join_emoji(&self) -> String {
+        self.emoji.join(" ")
+    }
+}
+
+pub enum VisualKeyOr {
+    Gismu(VisualKey),
+    Name(String),
+}
+
 impl UserHandle {
     #[frb(sync)]
     pub fn separate(&self) -> anyhow::Result<VisualKey> {
@@ -521,6 +538,13 @@ impl UserHandle {
     }
 
     #[frb(sync)]
+    pub fn separate_lujvo_or_else(&self) -> VisualKeyOr {
+        self.separate_lujvo()
+            .map(|v| VisualKeyOr::Gismu(v))
+            .unwrap_or_else(|_| VisualKeyOr::Name(self.name()))
+    }
+
+    #[frb(sync)]
     pub fn composite(&self) -> anyhow::Result<String> {
         let fp = self.as_bytes();
 
@@ -552,7 +576,7 @@ mod test {
     #[test]
     fn lujvo_emoji_phone_fingerprint() {
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
-        let c = v.composite_lujvo().unwrap();
+        let c = v.composite_lujvo(false).unwrap();
         assert_eq!(c, "cajyjeftu kixpei nansne kitladru (+2 823-346-9494)");
     }
 }

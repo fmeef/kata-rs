@@ -58,7 +58,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -177277035;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1009596359;
 
 // Section: executor
 
@@ -5884,6 +5884,54 @@ fn wire__crate__api__pgp__UserHandle_separate_lujvo_impl(
         },
     )
 }
+fn wire__crate__api__pgp__UserHandle_separate_lujvo_or_else_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "UserHandle_separate_lujvo_or_else",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, false,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                        _ => unreachable!(),
+                    }
+                }
+                let api_that_guard = api_that_guard.unwrap();
+                let output_ok = Result::<_, ()>::Ok(
+                    crate::api::pgp::UserHandle::separate_lujvo_or_else(&*api_that_guard),
+                )?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__db__connection__Watcher_watch_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -6692,6 +6740,70 @@ fn wire__crate__api__db__migrations__run_migrations_impl(
                     })(),
                 )
             }
+        },
+    )
+}
+fn wire__crate__api__pgp__fingerprint__visual_key_join_emoji_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "visual_key_join_emoji",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <crate::api::pgp::fingerprint::VisualKey>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(
+                    crate::api::pgp::fingerprint::VisualKey::join_emoji(&api_that),
+                )?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__pgp__fingerprint__visual_key_join_gismu_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "visual_key_join_gismu",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <crate::api::pgp::fingerprint::VisualKey>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(
+                    crate::api::pgp::fingerprint::VisualKey::join_gismu(&api_that),
+                )?;
+                Ok(output_ok)
+            })())
         },
     )
 }
@@ -7986,6 +8098,27 @@ impl SseDecode for crate::api::pgp::fingerprint::VisualKey {
     }
 }
 
+impl SseDecode for crate::api::pgp::fingerprint::VisualKeyOr {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut tag_ = <i32>::sse_decode(deserializer);
+        match tag_ {
+            0 => {
+                let mut var_field0 =
+                    <crate::api::pgp::fingerprint::VisualKey>::sse_decode(deserializer);
+                return crate::api::pgp::fingerprint::VisualKeyOr::Gismu(var_field0);
+            }
+            1 => {
+                let mut var_field0 = <String>::sse_decode(deserializer);
+                return crate::api::pgp::fingerprint::VisualKeyOr::Name(var_field0);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+
 impl SseDecode for crate::api::pgp::wot::path::WotGraph {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -8328,71 +8461,71 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        178 => wire__crate__api__init_logging_impl(port, ptr, rust_vec_len, data_len),
-        179 => wire__crate__api__db__store__only_fingerprint_delete_impl(
+        179 => wire__crate__api__init_logging_impl(port, ptr, rust_vec_len, data_len),
+        180 => wire__crate__api__db__store__only_fingerprint_delete_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        180 => wire__crate__api__db__store__only_fingerprint_has_params_impl(
+        181 => wire__crate__api__db__store__only_fingerprint_has_params_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        181 => wire__crate__api__db__store__only_fingerprint_insert_impl(
+        182 => wire__crate__api__db__store__only_fingerprint_insert_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        182 => wire__crate__api__db__store__only_fingerprint_insert_on_conflict_impl(
+        183 => wire__crate__api__db__store__only_fingerprint_insert_on_conflict_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        183 => wire__crate__api__db__store__only_fingerprint_is_entity_impl(
+        184 => wire__crate__api__db__store__only_fingerprint_is_entity_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        184 => wire__crate__api__db__store__only_fingerprint_update_impl(
+        185 => wire__crate__api__db__store__only_fingerprint_update_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        185 => {
+        186 => {
             wire__crate__api__db__store__only_online_delete_impl(port, ptr, rust_vec_len, data_len)
         }
-        186 => wire__crate__api__db__store__only_online_has_params_impl(
+        187 => wire__crate__api__db__store__only_online_has_params_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        187 => {
+        188 => {
             wire__crate__api__db__store__only_online_insert_impl(port, ptr, rust_vec_len, data_len)
         }
-        188 => wire__crate__api__db__store__only_online_insert_on_conflict_impl(
+        189 => wire__crate__api__db__store__only_online_insert_on_conflict_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        189 => wire__crate__api__db__store__only_online_is_entity_impl(
+        190 => wire__crate__api__db__store__only_online_is_entity_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        190 => {
+        191 => {
             wire__crate__api__db__store__only_online_update_impl(port, ptr, rust_vec_len, data_len)
         }
-        194 => {
+        195 => {
             wire__crate__api__db__migrations__run_migrations_impl(port, ptr, rust_vec_len, data_len)
         }
         _ => unreachable!(),
@@ -8499,19 +8632,34 @@ fn pde_ffi_dispatcher_sync_impl(
         172 => wire__crate__api__pgp__UserHandle_name_impl(ptr, rust_vec_len, data_len),
         173 => wire__crate__api__pgp__UserHandle_separate_impl(ptr, rust_vec_len, data_len),
         174 => wire__crate__api__pgp__UserHandle_separate_lujvo_impl(ptr, rust_vec_len, data_len),
-        175 => wire__crate__api__db__connection__Watcher_watch_impl(ptr, rust_vec_len, data_len),
-        176 => wire__crate__api__config_new_impl(ptr, rust_vec_len, data_len),
-        191 => wire__crate__api__pgp__cert__pgp_cert_stub_sigs_from_bytes_impl(
+        175 => wire__crate__api__pgp__UserHandle_separate_lujvo_or_else_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        192 => wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_impl(
+        176 => wire__crate__api__db__connection__Watcher_watch_impl(ptr, rust_vec_len, data_len),
+        177 => wire__crate__api__config_new_impl(ptr, rust_vec_len, data_len),
+        192 => wire__crate__api__pgp__cert__pgp_cert_stub_sigs_from_bytes_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        193 => wire__crate__api__pgp__cert__pgp_cert_with_ids_has_private_impl(
+        193 => wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_impl(
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        194 => wire__crate__api__pgp__cert__pgp_cert_with_ids_has_private_impl(
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        196 => wire__crate__api__pgp__fingerprint__visual_key_join_emoji_impl(
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        197 => wire__crate__api__pgp__fingerprint__visual_key_join_gismu_impl(
             ptr,
             rust_vec_len,
             data_len,
@@ -9153,6 +9301,33 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::pgp::fingerprint::VisualKey>
     for crate::api::pgp::fingerprint::VisualKey
 {
     fn into_into_dart(self) -> crate::api::pgp::fingerprint::VisualKey {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::pgp::fingerprint::VisualKeyOr {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            crate::api::pgp::fingerprint::VisualKeyOr::Gismu(field0) => {
+                [0.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::pgp::fingerprint::VisualKeyOr::Name(field0) => {
+                [1.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::pgp::fingerprint::VisualKeyOr
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::pgp::fingerprint::VisualKeyOr>
+    for crate::api::pgp::fingerprint::VisualKeyOr
+{
+    fn into_into_dart(self) -> crate::api::pgp::fingerprint::VisualKeyOr {
         self
     }
 }
@@ -10090,6 +10265,25 @@ impl SseEncode for crate::api::pgp::fingerprint::VisualKey {
         <Vec<String>>::sse_encode(self.gismu, serializer);
         <Vec<String>>::sse_encode(self.emoji, serializer);
         <String>::sse_encode(self.phone, serializer);
+    }
+}
+
+impl SseEncode for crate::api::pgp::fingerprint::VisualKeyOr {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        match self {
+            crate::api::pgp::fingerprint::VisualKeyOr::Gismu(field0) => {
+                <i32>::sse_encode(0, serializer);
+                <crate::api::pgp::fingerprint::VisualKey>::sse_encode(field0, serializer);
+            }
+            crate::api::pgp::fingerprint::VisualKeyOr::Name(field0) => {
+                <i32>::sse_encode(1, serializer);
+                <String>::sse_encode(field0, serializer);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
     }
 }
 

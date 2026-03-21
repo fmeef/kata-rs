@@ -502,7 +502,7 @@ impl UserHandle {
             )));
         }
 
-        let gismu = data_to_gismu(&fp[0..16])?;
+        let gismu = lujvo_combined(&fp[0..16])?;
         let emoji = Vec::new();
         let phone = data_to_phone(&fp[16..20])?;
 

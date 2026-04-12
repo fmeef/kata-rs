@@ -5767,6 +5767,7 @@ fn wire__crate__api__pgp__UserHandle_identicon_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
             >>::sse_decode(&mut deserializer);
+            let api_count = <u32>::sse_decode(&mut deserializer);
             let api_scale = <u32>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
@@ -5786,8 +5787,11 @@ fn wire__crate__api__pgp__UserHandle_identicon_impl(
                             }
                         }
                         let api_that_guard = api_that_guard.unwrap();
-                        let output_ok =
-                            crate::api::pgp::UserHandle::identicon(&*api_that_guard, api_scale)?;
+                        let output_ok = crate::api::pgp::UserHandle::identicon(
+                            &*api_that_guard,
+                            api_count,
+                            api_scale,
+                        )?;
                         Ok(output_ok)
                     })(),
                 )

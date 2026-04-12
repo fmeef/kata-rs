@@ -531,15 +531,16 @@ impl UserHandle {
         let len = (fp.len() as u32 * step) / 4;
 
         let mut v = CellularAutomata::allocate(len, len);
-
+        let mut second = false;
         for x in 0..4 {
             for y in 0..4 {
                 let offset = (x * 4) + y;
                 let rule = fp[offset];
                 v.rule_interlace(&[rule], &[fp[offset]])?
                     .offset(step * x as u32, step * y as u32)
-                    .second(false)
+                    .second(second)
                     .run()?;
+                second = !second;
             }
         }
 

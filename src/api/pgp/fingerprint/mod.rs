@@ -524,18 +524,19 @@ impl UserHandle {
     }
 
     pub fn identicon(&self, scale: u32) -> anyhow::Result<SizedImage> {
-        let fp = self.as_bytes();
+        let fp = &self.as_bytes()[0..16];
 
         let step = 8 as u32;
 
-        let len = ((fp.len() as u32 / 4) - 1) * step;
+        let len = (fp.len() as u32 * step) / 4;
 
         let mut v = CellularAutomata::allocate(len, len);
 
         for x in 0..4 {
             for y in 0..4 {
-                let rule = fp[x + 1 * y];
-                v.rule_interlace(&[rule], &[fp[x + y]])?
+                let offset = (x * 4) + y;
+                let rule = fp[offset];
+                v.rule_interlace(&[rule], &[fp[offset]])?
                     .offset(step * x as u32, step * y as u32)
                     .second(false)
                     .run()?;

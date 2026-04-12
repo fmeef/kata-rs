@@ -526,8 +526,9 @@ impl UserHandle {
     pub fn identicon(&self, scale: u32) -> anyhow::Result<SizedImage> {
         let fp = self.as_bytes();
 
-        let len = ((fp.len() - 1) * 2) as u32;
         let step = 8 as u32;
+
+        let len = ((fp.len() as u32 / 4) - 1) * step;
 
         let mut v = CellularAutomata::allocate(len, len);
 

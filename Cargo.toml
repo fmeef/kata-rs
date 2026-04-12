@@ -10,7 +10,7 @@ crate-type = ["cdylib", "staticlib", "lib"]
 [dependencies]
 anyhow = { version = "1.0.98", features = ["backtrace"] }
 fallible-iterator = "0.3.0"
-flutter_rust_bridge = { version = "=2.11.1", features = ["uuid", "chrono"] }
+flutter_rust_bridge = { version = "=2.12.0", features = ["uuid", "chrono"] }
 rusqlite = { version = "0.32.1", features = [
     "wasm32-wasi-vfs",
     "uuid",
@@ -60,6 +60,8 @@ rmp-serde = "1.3.0"
 sequoia-net = "0.30.0"
 confusables = "0.1.0"
 latkerlo-jvotci = "2.6.2601"
+automicon = { path = "./automicon" }
+image = "0.25.10"
 
 [build-dependencies]
 prost-build = "0.13.5"

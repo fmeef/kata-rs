@@ -1,8 +1,11 @@
+use std::io::Cursor;
+
 use anyhow::anyhow;
+use automicon::automata::CellularAutomata;
 use flutter_rust_bridge::frb;
+use image::{imageops::resize, ImageFormat};
 use latkerlo_jvotci::{jvozba::get_lujvo_from_list, Settings};
 use lazy_static::lazy_static;
-use sequoia_openpgp::Fingerprint;
 
 use crate::{api::pgp::UserHandle, error::InternalErr};
 
@@ -453,6 +456,12 @@ pub struct VisualKey {
     pub phone: String,
 }
 
+pub struct SizedImage {
+    pub buf: Vec<u8>,
+    pub height: u32,
+    pub width: u32,
+}
+
 impl VisualKey {
     #[frb(sync)]
     pub fn join_gismu(&self) -> String {
@@ -465,6 +474,7 @@ impl VisualKey {
     }
 }
 
+#[frb(non_opaque)]
 pub enum VisualKeyOr {
     Gismu(VisualKey),
     Name(String),
@@ -510,6 +520,43 @@ impl UserHandle {
             gismu,
             emoji,
             phone,
+        })
+    }
+
+    pub fn identicon(&self, scale: u32) -> anyhow::Result<SizedImage> {
+        let fp = self.as_bytes();
+
+        let len = ((fp.len() - 1) * 2) as u32;
+        let step = 8 as u32;
+
+        let mut v = CellularAutomata::allocate(len, len);
+
+        for x in 0..4 {
+            for y in 0..4 {
+                let rule = fp[x + 1 * y];
+                v.rule_interlace(&[rule], &[fp[x + y]])?
+                    .offset(step * x as u32, step * y as u32)
+                    .second(false)
+                    .run()?;
+            }
+        }
+
+        let image = resize(
+            &v.image,
+            len * scale,
+            len * scale,
+            image_hasher::FilterType::Nearest,
+        );
+
+        let mut buf = Vec::new();
+        let mut b = Cursor::new(&mut buf);
+
+        image.write_to(&mut b, ImageFormat::WebP)?;
+
+        Ok(SizedImage {
+            buf,
+            height: image.height(),
+            width: image.width(),
         })
     }
 

@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use flate2::{read::GzDecoder, write::GzEncoder, Compression};
+
 use flutter_rust_bridge::frb;
 use sequoia_cert_store::{LazyCert, Store, StoreUpdate};
 use sequoia_openpgp::cert::amalgamation::ValidateAmalgamation;
@@ -16,13 +16,12 @@ use sequoia_openpgp::{
 use sequoia_openpgp::{Cert, Fingerprint, Packet};
 use sequoia_wot::store::StoreError;
 use serde::{Deserialize, Serialize};
-use std::cell::LazyCell;
 use std::io::Read;
 use std::io::Write;
 use std::sync::Arc;
 
 use crate::api::pgp::cert::PgpCertWithIds;
-use crate::api::pgp::{PgpServiceTrait, UserHandle};
+use crate::api::pgp::UserHandle;
 use crate::{
     api::{
         pgp::{sign::PgpAppVerifier, POLICY},

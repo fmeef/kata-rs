@@ -13,3 +13,6 @@
 [submodule "pgp-cert-d"]
 	path = pgp-cert-d
 	url = https://gitlab.com/sequoia-pgp/pgp-cert-d.git
+[submodule "automicon"]
+	path = automicon
+	url = https://github.com/fmeef/automicon.git

@@ -21,6 +21,8 @@ pub enum InternalErr {
     Lojban(Jvonunfli),
     #[error("Key offset out of range")]
     KeySlice,
+    #[error("Overlapping ranges {0}")]
+    KeyOverlap(&'static str),
     #[error("Identicon size error")]
     IdenticonSize,
 }

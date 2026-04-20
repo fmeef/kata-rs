@@ -9,6 +9,7 @@ use image::{imageops::resize, ImageFormat};
 use latkerlo_jvotci::{jvozba::get_lujvo_from_list, Settings};
 use lazy_static::lazy_static;
 
+use crate::error::Result;
 use crate::{api::pgp::UserHandle, error::InternalErr};
 
 #[derive(Clone)]
@@ -42,9 +43,64 @@ struct VisualKeyBuilderInner<'a> {
     data: &'a UserHandle,
 }
 
+#[inline]
+fn is_overlapping(r: &Range<usize>, other: &Range<usize>) -> bool {
+    (r.start < other.end) & (other.start < r.end)
+}
+
 #[derive(Debug, Clone)]
 #[frb(opaque)]
 pub struct VisualKeyBuilder<'a>(Arc<RwLock<VisualKeyBuilderInner<'a>>>);
+
+impl<'a> VisualKeyBuilderInner<'a> {
+    fn validate_overlap_single(&self, test: &Range<usize>) -> Result<()> {
+        if let Some(ref lujvo) = self.lujvo {
+            if lujvo != test && is_overlapping(lujvo, test) {
+                return Err(InternalErr::KeyOverlap("lujvo"));
+            }
+        }
+
+        if let Some(ref phone) = self.phone {
+            if phone != test && is_overlapping(phone, test) {
+                return Err(InternalErr::KeyOverlap("phone"));
+            }
+        }
+
+        if let Some(ref emoji) = self.emoji {
+            if emoji != test && is_overlapping(emoji, test) {
+                return Err(InternalErr::KeyOverlap("emoji"));
+            }
+        }
+
+        // if let Some(IdenticonConfig { ref range, .. }) = self.identicon {
+        //     if range != test && is_overlapping(range, test) {
+        //         return Err(InternalErr::KeyOverlap("identicon"));
+        //     }
+        // }
+
+        Ok(())
+    }
+
+    fn validate_overlap(&self) -> Result<()> {
+        if let Some(ref emoji) = self.emoji {
+            self.validate_overlap_single(emoji)?;
+        }
+
+        if let Some(ref lujvo) = self.lujvo {
+            self.validate_overlap_single(lujvo)?;
+        }
+
+        if let Some(ref phone) = self.phone {
+            self.validate_overlap_single(phone)?;
+        }
+
+        // if let Some(IdenticonConfig { ref range, .. }) = self.identicon {
+        //     self.validate_overlap_single(range)?;
+        // }
+
+        Ok(())
+    }
+}
 
 impl<'a> VisualKeyBuilder<'a> {
     #[frb(sync)]
@@ -102,6 +158,7 @@ impl<'a> VisualKeyBuilder<'a> {
 
     fn apply(&self) -> anyhow::Result<VisualKey> {
         let i = self.0.read().unwrap();
+        i.validate_overlap()?;
         let data = i.data.as_bytes();
         let gismu = match i.lujvo {
             Some(ref v) => Some(lujvo_combined(
@@ -132,6 +189,7 @@ impl<'a> VisualKeyBuilder<'a> {
 
     pub fn get_identicon(&self) -> anyhow::Result<Option<SizedImage>> {
         let s = self.0.read().unwrap();
+        s.validate_overlap()?;
         let res = match s.identicon {
             Some(IdenticonConfig {
                 ref range,

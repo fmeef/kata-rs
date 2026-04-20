@@ -11,20 +11,28 @@ use lazy_static::lazy_static;
 
 use crate::{api::pgp::UserHandle, error::InternalErr};
 
+#[frb(opaque)]
+pub struct IdenticonKey<'a> {
+    visualkey: VisualKeyOr,
+    identicon: Option<IdenticonConfig>,
+    data: &'a [u8],
+}
+
+#[derive(Clone)]
 pub struct VisualKey {
     pub gismu: Option<Vec<String>>,
     pub emoji: Option<Vec<String>>,
     pub phone: Option<String>,
-    pub identicon: Option<SizedImage>,
 }
 
+#[derive(Clone)]
 #[frb(non_opaque)]
 pub enum VisualKeyOr {
     Gismu(VisualKey),
     Name(String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct IdenticonConfig {
     range: Range<usize>,
     count: u32,
@@ -84,17 +92,23 @@ impl VisualKeyBuilder {
         self.clone()
     }
 
-    pub fn apply_userhandle_or_else(&self, handle: &UserHandle) -> VisualKeyOr {
+    pub fn apply_userhandle_or_else<'a>(&'a self, handle: &'a UserHandle) -> IdenticonKey<'a> {
         self.apply_userhandle(handle)
-            .map(VisualKeyOr::Gismu)
-            .unwrap_or_else(|_| VisualKeyOr::Name(handle.name()))
+            .unwrap_or_else(|_| IdenticonKey {
+                visualkey: VisualKeyOr::Name(handle.name()),
+                identicon: None,
+                data: &[],
+            })
     }
 
-    pub fn apply_userhandle(&self, handle: &UserHandle) -> anyhow::Result<VisualKey> {
+    pub fn apply_userhandle<'a>(
+        &'a self,
+        handle: &'a UserHandle,
+    ) -> anyhow::Result<IdenticonKey<'a>> {
         self.apply_bytes(handle.as_bytes())
     }
 
-    pub fn apply_bytes(&self, bytes: &[u8]) -> anyhow::Result<VisualKey> {
+    fn apply_bytes<'a>(&'a self, bytes: &'a [u8]) -> anyhow::Result<IdenticonKey<'a>> {
         let i = self.0.read().unwrap();
         let gismu = match i.lujvo {
             Some(ref v) => Some(lujvo_combined(
@@ -115,24 +129,17 @@ impl VisualKeyBuilder {
             None => None,
         };
 
-        let identicon = match i.identicon {
-            Some(IdenticonConfig {
-                ref range,
-                count,
-                scale,
-            }) => Some(identicon(
-                &bytes.get(range.clone()).ok_or(InternalErr::KeySlice)?,
-                count,
-                scale,
-            )?),
-            None => None,
-        };
-
-        Ok(VisualKey {
+        let v = VisualKey {
             gismu,
             emoji,
             phone,
-            identicon,
+        };
+
+        let v = VisualKeyOr::Gismu(v);
+        Ok(IdenticonKey {
+            visualkey: v,
+            identicon: i.identicon.clone(),
+            data: bytes,
         })
     }
 }
@@ -304,6 +311,30 @@ pub struct SizedImage {
     pub width: u32,
 }
 
+impl<'a> IdenticonKey<'a> {
+    #[frb(sync)]
+    pub fn text(&self) -> VisualKeyOr {
+        self.visualkey.clone()
+    }
+
+    pub fn identicon(&self) -> anyhow::Result<Option<SizedImage>> {
+        let res = match self.identicon {
+            Some(IdenticonConfig {
+                ref range,
+                count,
+                scale,
+            }) => Some(identicon(
+                &self.data.get(range.clone()).ok_or(InternalErr::KeySlice)?,
+                count,
+                scale,
+            )?),
+            None => None,
+        };
+
+        Ok(res)
+    }
+}
+
 impl VisualKey {
     #[frb(sync)]
     pub fn join_gismu(&self) -> String {
@@ -347,7 +378,6 @@ impl UserHandle {
             gismu: Some(gismu),
             emoji: Some(emoji),
             phone: Some(phone),
-            identicon: None,
         })
     }
 
@@ -369,7 +399,6 @@ impl UserHandle {
             gismu: Some(gismu),
             emoji: Some(emoji),
             phone: Some(phone),
-            identicon: None,
         })
     }
 

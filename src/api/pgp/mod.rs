@@ -55,6 +55,11 @@ impl UserHandle {
     }
 
     #[frb(sync)]
+    pub fn len(&self) -> usize {
+        self.as_bytes().len()
+    }
+
+    #[frb(sync)]
     pub fn name(&self) -> String {
         match self {
             Self::KeyHandle(kh) => kh.to_hex(),
@@ -64,12 +69,6 @@ impl UserHandle {
     pub(crate) fn as_bytes(&self) -> &'_ [u8] {
         match self {
             Self::KeyHandle(kh) => kh.as_bytes(),
-        }
-    }
-
-    pub(crate) fn keyhandle(&self) -> Option<&'_ KeyHandle> {
-        match self {
-            Self::KeyHandle(kh) => Some(kh),
         }
     }
 

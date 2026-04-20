@@ -1,5 +1,4 @@
 use latkerlo_jvotci::Jvonunfli;
-
 pub(crate) type Result<T> = std::result::Result<T, InternalErr>;
 
 #[derive(thiserror::Error, Debug)]
@@ -20,6 +19,10 @@ pub enum InternalErr {
     FingerprintRequired,
     #[error("Lojban error {0}")]
     Lojban(Jvonunfli),
+    #[error("Key offset out of range")]
+    KeySlice,
+    #[error("Identicon size error")]
+    IdenticonSize,
 }
 
 impl From<InternalErr> for rusqlite::Error {

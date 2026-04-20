@@ -78,7 +78,7 @@ impl PgpCertStubSigs {
         })
     }
 
-    pub(crate) fn from_bytes_sig(bytes: Vec<u8>, store: &PgpApp) -> anyhow::Result<Self> {
+    pub fn from_bytes_sig(bytes: Vec<u8>, store: &PgpApp) -> anyhow::Result<Self> {
         let cert = Cert::from_bytes(&bytes)?;
 
         //     let valid = cert.with_policy(&POLICY, None)?;
@@ -133,7 +133,7 @@ impl PgpCertWithIds {
         })
     }
 
-    pub(crate) fn from_bytes_sig(bytes: Vec<u8>, store: &PgpApp) -> anyhow::Result<Self> {
+    pub fn from_bytes_sig(bytes: Vec<u8>, store: &PgpApp) -> anyhow::Result<Self> {
         let cert = Cert::from_bytes(&bytes)?;
 
         //     let valid = cert.with_policy(&POLICY, None)?;

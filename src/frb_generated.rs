@@ -38,6 +38,7 @@ use crate::api::db::store::*;
 use crate::api::db::CertStoreTrait;
 use crate::api::db::*;
 use crate::api::pgp::cert::*;
+use crate::api::pgp::fingerprint::visual_key::*;
 use crate::api::pgp::import::PgpImport;
 use crate::api::pgp::import::*;
 use crate::api::pgp::keys::*;
@@ -59,7 +60,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1827231207;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 730970435;
 
 // Section: executor
 
@@ -5799,6 +5800,53 @@ fn wire__crate__api__pgp__UserHandle_identicon_impl(
         },
     )
 }
+fn wire__crate__api__pgp__UserHandle_len_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "UserHandle_len",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, false,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                        _ => unreachable!(),
+                    }
+                }
+                let api_that_guard = api_that_guard.unwrap();
+                let output_ok =
+                    Result::<_, ()>::Ok(crate::api::pgp::UserHandle::len(&*api_that_guard))?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__pgp__UserHandle_name_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -5984,6 +6032,338 @@ fn wire__crate__api__pgp__UserHandle_separate_lujvo_or_else_impl(
                 let api_that_guard = api_that_guard.unwrap();
                 let output_ok = Result::<_, ()>::Ok(
                     crate::api::pgp::UserHandle::separate_lujvo_or_else(&*api_that_guard),
+                )?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_apply_bytes_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "VisualKeyBuilder_apply_bytes", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || { 
+            let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
+            let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>>>::sse_decode(&mut deserializer);
+let api_bytes = <Vec<u8>>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
+                    transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>((move ||  {
+                        let mut api_that_guard = None;
+let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(&api_that, 0, false)]);
+        for i in decode_indices_ {
+            match i {
+                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                _ => unreachable!(),
+            }
+        }
+        let api_that_guard = api_that_guard.unwrap();
+ let output_ok = crate::api::pgp::fingerprint::visual_key::VisualKeyBuilder::apply_bytes(&*api_that_guard, &api_bytes)?;   Ok(output_ok)
+                    })())
+                } })
+}
+fn wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_apply_userhandle_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "VisualKeyBuilder_apply_userhandle", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || { 
+            let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
+            let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>>>::sse_decode(&mut deserializer);
+let api_handle = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>>>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
+                    transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>((move ||  {
+                        let mut api_that_guard = None;
+let mut api_handle_guard = None;
+let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(&api_that, 0, false), flutter_rust_bridge::for_generated::LockableOrderInfo::new(&api_handle, 1, false)]);
+        for i in decode_indices_ {
+            match i {
+                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+1 => api_handle_guard = Some(api_handle.lockable_decode_sync_ref()),
+                _ => unreachable!(),
+            }
+        }
+        let api_that_guard = api_that_guard.unwrap();
+let api_handle_guard = api_handle_guard.unwrap();
+ let output_ok = crate::api::pgp::fingerprint::visual_key::VisualKeyBuilder::apply_userhandle(&*api_that_guard, &*api_handle_guard)?;   Ok(output_ok)
+                    })())
+                } })
+}
+fn wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_apply_userhandle_or_else_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "VisualKeyBuilder_apply_userhandle_or_else", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || { 
+            let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
+            let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>>>::sse_decode(&mut deserializer);
+let api_handle = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>>>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
+                    transform_result_sse::<_, ()>((move ||  {
+                        let mut api_that_guard = None;
+let mut api_handle_guard = None;
+let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(&api_that, 0, false), flutter_rust_bridge::for_generated::LockableOrderInfo::new(&api_handle, 1, false)]);
+        for i in decode_indices_ {
+            match i {
+                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+1 => api_handle_guard = Some(api_handle.lockable_decode_sync_ref()),
+                _ => unreachable!(),
+            }
+        }
+        let api_that_guard = api_that_guard.unwrap();
+let api_handle_guard = api_handle_guard.unwrap();
+ let output_ok = Result::<_,()>::Ok(crate::api::pgp::fingerprint::visual_key::VisualKeyBuilder::apply_userhandle_or_else(&*api_that_guard, &*api_handle_guard))?;   Ok(output_ok)
+                    })())
+                } })
+}
+fn wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_emoji_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "VisualKeyBuilder_emoji",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>,
+            >>::sse_decode(&mut deserializer);
+            let api_start = <usize>::sse_decode(&mut deserializer);
+            let api_end = <usize>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, false,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                        _ => unreachable!(),
+                    }
+                }
+                let api_that_guard = api_that_guard.unwrap();
+                let output_ok = Result::<_, ()>::Ok(
+                    crate::api::pgp::fingerprint::visual_key::VisualKeyBuilder::emoji(
+                        &*api_that_guard,
+                        api_start,
+                        api_end,
+                    ),
+                )?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_identicon_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "VisualKeyBuilder_identicon",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>,
+            >>::sse_decode(&mut deserializer);
+            let api_start = <usize>::sse_decode(&mut deserializer);
+            let api_end = <usize>::sse_decode(&mut deserializer);
+            let api_count = <u32>::sse_decode(&mut deserializer);
+            let api_scale = <u32>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, false,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                        _ => unreachable!(),
+                    }
+                }
+                let api_that_guard = api_that_guard.unwrap();
+                let output_ok = Result::<_, ()>::Ok(
+                    crate::api::pgp::fingerprint::visual_key::VisualKeyBuilder::identicon(
+                        &*api_that_guard,
+                        api_start,
+                        api_end,
+                        api_count,
+                        api_scale,
+                    ),
+                )?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_lujvo_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "VisualKeyBuilder_lujvo",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>,
+            >>::sse_decode(&mut deserializer);
+            let api_start = <usize>::sse_decode(&mut deserializer);
+            let api_end = <usize>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, false,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                        _ => unreachable!(),
+                    }
+                }
+                let api_that_guard = api_that_guard.unwrap();
+                let output_ok = Result::<_, ()>::Ok(
+                    crate::api::pgp::fingerprint::visual_key::VisualKeyBuilder::lujvo(
+                        &*api_that_guard,
+                        api_start,
+                        api_end,
+                    ),
+                )?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_new_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "VisualKeyBuilder_new",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(
+                    crate::api::pgp::fingerprint::visual_key::VisualKeyBuilder::new(),
+                )?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_phone_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "VisualKeyBuilder_phone",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>,
+            >>::sse_decode(&mut deserializer);
+            let api_start = <usize>::sse_decode(&mut deserializer);
+            let api_end = <usize>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, false,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                        _ => unreachable!(),
+                    }
+                }
+                let api_that_guard = api_that_guard.unwrap();
+                let output_ok = Result::<_, ()>::Ok(
+                    crate::api::pgp::fingerprint::visual_key::VisualKeyBuilder::phone(
+                        &*api_that_guard,
+                        api_start,
+                        api_end,
+                    ),
                 )?;
                 Ok(output_ok)
             })())
@@ -6685,6 +7065,61 @@ fn wire__crate__api__pgp__cert__pgp_cert_stub_sigs_from_bytes_impl(
         },
     )
 }
+fn wire__crate__api__pgp__cert__pgp_cert_stub_sigs_from_bytes_sig_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "pgp_cert_stub_sigs_from_bytes_sig",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_bytes = <Vec<u8>>::sse_decode(&mut deserializer);
+            let api_store = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_store_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_store, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_store_guard = Some(api_store.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_store_guard = api_store_guard.unwrap();
+                        let output_ok = crate::api::pgp::cert::PgpCertStubSigs::from_bytes_sig(
+                            api_bytes,
+                            &*api_store_guard,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -6714,6 +7149,61 @@ fn wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_impl(
                     Ok(output_ok)
                 })(),
             )
+        },
+    )
+}
+fn wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_sig_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "pgp_cert_with_ids_from_bytes_sig",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_bytes = <Vec<u8>>::sse_decode(&mut deserializer);
+            let api_store = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_store_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_store, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_store_guard = Some(api_store.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_store_guard = api_store_guard.unwrap();
+                        let output_ok = crate::api::pgp::cert::PgpCertWithIds::from_bytes_sig(
+                            api_bytes,
+                            &*api_store_guard,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
         },
     )
 }
@@ -6801,7 +7291,7 @@ fn wire__crate__api__db__migrations__run_migrations_impl(
         },
     )
 }
-fn wire__crate__api__pgp__fingerprint__visual_key_join_emoji_impl(
+fn wire__crate__api__pgp__fingerprint__visual_key__visual_key_join_emoji_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
@@ -6822,18 +7312,20 @@ fn wire__crate__api__pgp__fingerprint__visual_key_join_emoji_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <crate::api::pgp::fingerprint::VisualKey>::sse_decode(&mut deserializer);
+            let api_that = <crate::api::pgp::fingerprint::visual_key::VisualKey>::sse_decode(
+                &mut deserializer,
+            );
             deserializer.end();
             transform_result_sse::<_, ()>((move || {
                 let output_ok = Result::<_, ()>::Ok(
-                    crate::api::pgp::fingerprint::VisualKey::join_emoji(&api_that),
+                    crate::api::pgp::fingerprint::visual_key::VisualKey::join_emoji(&api_that),
                 )?;
                 Ok(output_ok)
             })())
         },
     )
 }
-fn wire__crate__api__pgp__fingerprint__visual_key_join_gismu_impl(
+fn wire__crate__api__pgp__fingerprint__visual_key__visual_key_join_gismu_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
@@ -6854,11 +7346,13 @@ fn wire__crate__api__pgp__fingerprint__visual_key_join_gismu_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <crate::api::pgp::fingerprint::VisualKey>::sse_decode(&mut deserializer);
+            let api_that = <crate::api::pgp::fingerprint::visual_key::VisualKey>::sse_decode(
+                &mut deserializer,
+            );
             deserializer.end();
             transform_result_sse::<_, ()>((move || {
                 let output_ok = Result::<_, ()>::Ok(
-                    crate::api::pgp::fingerprint::VisualKey::join_gismu(&api_that),
+                    crate::api::pgp::fingerprint::visual_key::VisualKey::join_gismu(&api_that),
                 )?;
                 Ok(output_ok)
             })())
@@ -6946,6 +7440,9 @@ flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserID>
+);
+flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
+    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Watcher>
@@ -7271,6 +7768,16 @@ impl SseDecode for UserID {
     }
 }
 
+impl SseDecode for VisualKeyBuilder {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <RustOpaqueMoi<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>,
+        >>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
+    }
+}
+
 impl SseDecode for Watcher {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -7441,6 +7948,16 @@ impl SseDecode
 }
 
 impl SseDecode for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserID>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <usize>::sse_decode(deserializer);
+        return decode_rust_opaque_moi(inner);
+    }
+}
+
+impl SseDecode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>>
+{
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <usize>::sse_decode(deserializer);
@@ -7928,6 +8445,19 @@ impl SseDecode for Option<crate::api::ser::QrCodeContent> {
     }
 }
 
+impl SseDecode for Option<crate::api::pgp::fingerprint::visual_key::SizedImage> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(
+                <crate::api::pgp::fingerprint::visual_key::SizedImage>::sse_decode(deserializer),
+            );
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<usize> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -8082,13 +8612,13 @@ impl SseDecode for (String, crate::api::pgp::wot::path::GraphVertex) {
     }
 }
 
-impl SseDecode for crate::api::pgp::fingerprint::SizedImage {
+impl SseDecode for crate::api::pgp::fingerprint::visual_key::SizedImage {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_buf = <Vec<u8>>::sse_decode(deserializer);
         let mut var_height = <u32>::sse_decode(deserializer);
         let mut var_width = <u32>::sse_decode(deserializer);
-        return crate::api::pgp::fingerprint::SizedImage {
+        return crate::api::pgp::fingerprint::visual_key::SizedImage {
             buf: var_buf,
             height: var_height,
             width: var_width,
@@ -8163,33 +8693,38 @@ impl SseDecode for crate::api::ser::VerifyResult {
     }
 }
 
-impl SseDecode for crate::api::pgp::fingerprint::VisualKey {
+impl SseDecode for crate::api::pgp::fingerprint::visual_key::VisualKey {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_gismu = <Vec<String>>::sse_decode(deserializer);
-        let mut var_emoji = <Vec<String>>::sse_decode(deserializer);
-        let mut var_phone = <String>::sse_decode(deserializer);
-        return crate::api::pgp::fingerprint::VisualKey {
+        let mut var_gismu = <Option<Vec<String>>>::sse_decode(deserializer);
+        let mut var_emoji = <Option<Vec<String>>>::sse_decode(deserializer);
+        let mut var_phone = <Option<String>>::sse_decode(deserializer);
+        let mut var_identicon =
+            <Option<crate::api::pgp::fingerprint::visual_key::SizedImage>>::sse_decode(
+                deserializer,
+            );
+        return crate::api::pgp::fingerprint::visual_key::VisualKey {
             gismu: var_gismu,
             emoji: var_emoji,
             phone: var_phone,
+            identicon: var_identicon,
         };
     }
 }
 
-impl SseDecode for crate::api::pgp::fingerprint::VisualKeyOr {
+impl SseDecode for crate::api::pgp::fingerprint::visual_key::VisualKeyOr {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut tag_ = <i32>::sse_decode(deserializer);
         match tag_ {
             0 => {
                 let mut var_field0 =
-                    <crate::api::pgp::fingerprint::VisualKey>::sse_decode(deserializer);
-                return crate::api::pgp::fingerprint::VisualKeyOr::Gismu(var_field0);
+                    <crate::api::pgp::fingerprint::visual_key::VisualKey>::sse_decode(deserializer);
+                return crate::api::pgp::fingerprint::visual_key::VisualKeyOr::Gismu(var_field0);
             }
             1 => {
                 let mut var_field0 = <String>::sse_decode(deserializer);
-                return crate::api::pgp::fingerprint::VisualKeyOr::Name(var_field0);
+                return crate::api::pgp::fingerprint::visual_key::VisualKeyOr::Name(var_field0);
             }
             _ => {
                 unimplemented!("");
@@ -8227,389 +8762,106 @@ fn pde_ffi_dispatcher_primary_impl(
 ) {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        2 => wire__crate__api__pgp__keys__GenerateCert_generate_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        19 => {
-            wire__crate__api__db__entities__NewsGroup_delete_impl(port, ptr, rust_vec_len, data_len)
-        }
-        20 => wire__crate__api__db__entities__NewsGroup_has_params_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        21 => {
-            wire__crate__api__db__entities__NewsGroup_insert_impl(port, ptr, rust_vec_len, data_len)
-        }
-        22 => wire__crate__api__db__entities__NewsGroup_insert_on_conflict_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        23 => wire__crate__api__db__entities__NewsGroup_is_entity_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        24 => {
-            wire__crate__api__db__entities__NewsGroup_update_impl(port, ptr, rust_vec_len, data_len)
-        }
-        25 => wire__crate__api__PgpApp_all_owned_certs_impl(port, ptr, rust_vec_len, data_len),
-        26 => wire__crate__api__PgpApp_certifications_of_impl(port, ptr, rust_vec_len, data_len),
-        27 => wire__crate__api__PgpApp_certified_userids_impl(port, ptr, rust_vec_len, data_len),
-        28 => wire__crate__api__PgpApp_certified_userids_of_impl(port, ptr, rust_vec_len, data_len),
-        29 => wire__crate__api__PgpApp_create_impl(port, ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__PgpApp_delete_cert_impl(port, ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__PgpApp_delete_private_key_impl(port, ptr, rust_vec_len, data_len),
-        32 => wire__crate__api__PgpApp_export_armor_impl(port, ptr, rust_vec_len, data_len),
-        33 => wire__crate__api__PgpApp_export_file_impl(port, ptr, rust_vec_len, data_len),
-        34 => wire__crate__api__PgpApp_fill_from_keyserver_impl(port, ptr, rust_vec_len, data_len),
-        36 => wire__crate__api__PgpApp_get_cert_by_role_impl(port, ptr, rust_vec_len, data_len),
-        38 => wire__crate__api__PgpApp_get_fingerprints_impl(port, ptr, rust_vec_len, data_len),
-        39 => wire__crate__api__PgpApp_get_key_from_fingerprint_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        40 => wire__crate__api__PgpApp_get_qr_impl(port, ptr, rust_vec_len, data_len),
-        41 => wire__crate__api__PgpApp_get_stub_from_fingerprint_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        43 => wire__crate__api__PgpApp_import_certs_impl(port, ptr, rust_vec_len, data_len),
-        44 => wire__crate__api__PgpApp_is_stub_impl(port, ptr, rust_vec_len, data_len),
-        45 => wire__crate__api__PgpApp_iter_certs_impl(port, ptr, rust_vec_len, data_len),
-        46 => wire__crate__api__PgpApp_iter_certs_search_impl(port, ptr, rust_vec_len, data_len),
-        47 => {
-            wire__crate__api__PgpApp_iter_certs_search_keyid_impl(port, ptr, rust_vec_len, data_len)
-        }
-        48 => wire__crate__api__PgpApp_iter_fingerprints_impl(port, ptr, rust_vec_len, data_len),
-        49 => wire__crate__api__PgpApp_lookup_synopses_impl(port, ptr, rust_vec_len, data_len),
-        50 => wire__crate__api__PgpApp_lookup_synopses_by_email_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        51 => wire__crate__api__PgpApp_lookup_synopses_by_userid_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        52 => {
-            wire__crate__api__PgpApp_lookup_synopsis_by_fpr_impl(port, ptr, rust_vec_len, data_len)
-        }
-        53 => wire__crate__api__PgpApp_mega_flush_impl(port, ptr, rust_vec_len, data_len),
-        55 => {
-            wire__crate__api__PgpApp_sign_with_trust_level_impl(port, ptr, rust_vec_len, data_len)
-        }
-        56 => wire__crate__api__PgpApp_synopses_impl(port, ptr, rust_vec_len, data_len),
-        57 => wire__crate__api__PgpApp_third_party_certifications_of_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        59 => wire__crate__api__PgpApp_update_cert_impl(port, ptr, rust_vec_len, data_len),
-        60 => wire__crate__api__PgpApp_update_role_impl(port, ptr, rust_vec_len, data_len),
-        61 => wire__crate__api__PgpApp_upload_to_keyserver_impl(port, ptr, rust_vec_len, data_len),
-        62 => wire__crate__api__PgpApp_verify_qr_all_certs_impl(port, ptr, rust_vec_len, data_len),
-        63 => {
-            wire__crate__api__db__store__PgpDataCert_delete_impl(port, ptr, rust_vec_len, data_len)
-        }
-        64 => wire__crate__api__db__store__PgpDataCert_has_params_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        65 => {
-            wire__crate__api__db__store__PgpDataCert_insert_impl(port, ptr, rust_vec_len, data_len)
-        }
-        66 => wire__crate__api__db__store__PgpDataCert_insert_on_conflict_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        67 => wire__crate__api__db__store__PgpDataCert_is_entity_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        68 => {
-            wire__crate__api__db__store__PgpDataCert_update_impl(port, ptr, rust_vec_len, data_len)
-        }
-        69 => wire__crate__api__pgp__import__PgpImportBytes_accept_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        70 => wire__crate__api__pgp__import__PgpImportBytes_get_packets_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        72 => wire__crate__api__pgp__import__PgpImportFile_get_packets_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        74 => wire__crate__api__pgp__wot__network__SharedNetwork_authenticate_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        75 => wire__crate__api__pgp__wot__network__SharedNetwork_dump_all_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        76 => wire__crate__api__db__connection__SqliteDb_all_certs_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        77 => wire__crate__api__db__connection__SqliteDb_all_owned_certs_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        78 => wire__crate__api__db__connection__SqliteDb_check_online_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        79 => wire__crate__api__db__connection__SqliteDb_clear_role_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        80 => wire__crate__api__db__connection__SqliteDb_delete_by_fingerprint_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        81 => wire__crate__api__db__connection__SqliteDb_get_by_domain_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        82 => wire__crate__api__db__connection__SqliteDb_get_by_email_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        83 => wire__crate__api__db__connection__SqliteDb_get_by_fingerprint_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        84 => wire__crate__api__db__connection__SqliteDb_get_by_id_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        85 => wire__crate__api__db__connection__SqliteDb_get_by_userid_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        86 => wire__crate__api__db__connection__SqliteDb_get_connection_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        87 => wire__crate__api__db__connection__SqliteDb_get_fingerprint_for_role_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        89 => wire__crate__api__db__connection__SqliteDb_grep_by_email_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        90 => wire__crate__api__db__connection__SqliteDb_grep_by_email_anchor_end_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        91 => wire__crate__api__db__connection__SqliteDb_grep_by_email_anchor_start_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        92 => wire__crate__api__db__connection__SqliteDb_grep_by_userid_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        93 => wire__crate__api__db__connection__SqliteDb_grep_by_userid_anchor_end_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        94 => wire__crate__api__db__connection__SqliteDb_grep_by_userid_anchor_start_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        95 => wire__crate__api__db__connection__SqliteDb_insert_group_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        96 => wire__crate__api__db__connection__SqliteDb_is_online_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        99 => wire__crate__api__db__connection__SqliteDb_search_owned_certs_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        100 => {
-            wire__crate__api__db__connection__SqliteDb_test_impl(port, ptr, rust_vec_len, data_len)
-        }
-        101 => wire__crate__api__db__connection__SqliteDb_test_nullable_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        102 => wire__crate__api__db__connection__SqliteDb_test_one_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        103 => wire__crate__api__db__connection__SqliteDb_update_role_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        104 => wire__crate__api__pgp__wot__network__StoreNetwork_authenticate_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        105 => wire__crate__api__pgp__wot__network__StoreNetwork_dump_all_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        172 => wire__crate__api__pgp__UserHandle_identicon_impl(port, ptr, rust_vec_len, data_len),
-        180 => wire__crate__api__init_logging_impl(port, ptr, rust_vec_len, data_len),
-        181 => wire__crate__api__db__store__only_fingerprint_delete_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        182 => wire__crate__api__db__store__only_fingerprint_has_params_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        183 => wire__crate__api__db__store__only_fingerprint_insert_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        184 => wire__crate__api__db__store__only_fingerprint_insert_on_conflict_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        185 => wire__crate__api__db__store__only_fingerprint_is_entity_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        186 => wire__crate__api__db__store__only_fingerprint_update_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        187 => {
-            wire__crate__api__db__store__only_online_delete_impl(port, ptr, rust_vec_len, data_len)
-        }
-        188 => wire__crate__api__db__store__only_online_has_params_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        189 => {
-            wire__crate__api__db__store__only_online_insert_impl(port, ptr, rust_vec_len, data_len)
-        }
-        190 => wire__crate__api__db__store__only_online_insert_on_conflict_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        191 => wire__crate__api__db__store__only_online_is_entity_impl(
-            port,
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        192 => {
-            wire__crate__api__db__store__only_online_update_impl(port, ptr, rust_vec_len, data_len)
-        }
-        196 => {
-            wire__crate__api__db__migrations__run_migrations_impl(port, ptr, rust_vec_len, data_len)
-        }
-        _ => unreachable!(),
-    }
+                        2 => wire__crate__api__pgp__keys__GenerateCert_generate_impl(port, ptr, rust_vec_len, data_len),
+19 => wire__crate__api__db__entities__NewsGroup_delete_impl(port, ptr, rust_vec_len, data_len),
+20 => wire__crate__api__db__entities__NewsGroup_has_params_impl(port, ptr, rust_vec_len, data_len),
+21 => wire__crate__api__db__entities__NewsGroup_insert_impl(port, ptr, rust_vec_len, data_len),
+22 => wire__crate__api__db__entities__NewsGroup_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
+23 => wire__crate__api__db__entities__NewsGroup_is_entity_impl(port, ptr, rust_vec_len, data_len),
+24 => wire__crate__api__db__entities__NewsGroup_update_impl(port, ptr, rust_vec_len, data_len),
+25 => wire__crate__api__PgpApp_all_owned_certs_impl(port, ptr, rust_vec_len, data_len),
+26 => wire__crate__api__PgpApp_certifications_of_impl(port, ptr, rust_vec_len, data_len),
+27 => wire__crate__api__PgpApp_certified_userids_impl(port, ptr, rust_vec_len, data_len),
+28 => wire__crate__api__PgpApp_certified_userids_of_impl(port, ptr, rust_vec_len, data_len),
+29 => wire__crate__api__PgpApp_create_impl(port, ptr, rust_vec_len, data_len),
+30 => wire__crate__api__PgpApp_delete_cert_impl(port, ptr, rust_vec_len, data_len),
+31 => wire__crate__api__PgpApp_delete_private_key_impl(port, ptr, rust_vec_len, data_len),
+32 => wire__crate__api__PgpApp_export_armor_impl(port, ptr, rust_vec_len, data_len),
+33 => wire__crate__api__PgpApp_export_file_impl(port, ptr, rust_vec_len, data_len),
+34 => wire__crate__api__PgpApp_fill_from_keyserver_impl(port, ptr, rust_vec_len, data_len),
+36 => wire__crate__api__PgpApp_get_cert_by_role_impl(port, ptr, rust_vec_len, data_len),
+38 => wire__crate__api__PgpApp_get_fingerprints_impl(port, ptr, rust_vec_len, data_len),
+39 => wire__crate__api__PgpApp_get_key_from_fingerprint_impl(port, ptr, rust_vec_len, data_len),
+40 => wire__crate__api__PgpApp_get_qr_impl(port, ptr, rust_vec_len, data_len),
+41 => wire__crate__api__PgpApp_get_stub_from_fingerprint_impl(port, ptr, rust_vec_len, data_len),
+43 => wire__crate__api__PgpApp_import_certs_impl(port, ptr, rust_vec_len, data_len),
+44 => wire__crate__api__PgpApp_is_stub_impl(port, ptr, rust_vec_len, data_len),
+45 => wire__crate__api__PgpApp_iter_certs_impl(port, ptr, rust_vec_len, data_len),
+46 => wire__crate__api__PgpApp_iter_certs_search_impl(port, ptr, rust_vec_len, data_len),
+47 => wire__crate__api__PgpApp_iter_certs_search_keyid_impl(port, ptr, rust_vec_len, data_len),
+48 => wire__crate__api__PgpApp_iter_fingerprints_impl(port, ptr, rust_vec_len, data_len),
+49 => wire__crate__api__PgpApp_lookup_synopses_impl(port, ptr, rust_vec_len, data_len),
+50 => wire__crate__api__PgpApp_lookup_synopses_by_email_impl(port, ptr, rust_vec_len, data_len),
+51 => wire__crate__api__PgpApp_lookup_synopses_by_userid_impl(port, ptr, rust_vec_len, data_len),
+52 => wire__crate__api__PgpApp_lookup_synopsis_by_fpr_impl(port, ptr, rust_vec_len, data_len),
+53 => wire__crate__api__PgpApp_mega_flush_impl(port, ptr, rust_vec_len, data_len),
+55 => wire__crate__api__PgpApp_sign_with_trust_level_impl(port, ptr, rust_vec_len, data_len),
+56 => wire__crate__api__PgpApp_synopses_impl(port, ptr, rust_vec_len, data_len),
+57 => wire__crate__api__PgpApp_third_party_certifications_of_impl(port, ptr, rust_vec_len, data_len),
+59 => wire__crate__api__PgpApp_update_cert_impl(port, ptr, rust_vec_len, data_len),
+60 => wire__crate__api__PgpApp_update_role_impl(port, ptr, rust_vec_len, data_len),
+61 => wire__crate__api__PgpApp_upload_to_keyserver_impl(port, ptr, rust_vec_len, data_len),
+62 => wire__crate__api__PgpApp_verify_qr_all_certs_impl(port, ptr, rust_vec_len, data_len),
+63 => wire__crate__api__db__store__PgpDataCert_delete_impl(port, ptr, rust_vec_len, data_len),
+64 => wire__crate__api__db__store__PgpDataCert_has_params_impl(port, ptr, rust_vec_len, data_len),
+65 => wire__crate__api__db__store__PgpDataCert_insert_impl(port, ptr, rust_vec_len, data_len),
+66 => wire__crate__api__db__store__PgpDataCert_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
+67 => wire__crate__api__db__store__PgpDataCert_is_entity_impl(port, ptr, rust_vec_len, data_len),
+68 => wire__crate__api__db__store__PgpDataCert_update_impl(port, ptr, rust_vec_len, data_len),
+69 => wire__crate__api__pgp__import__PgpImportBytes_accept_impl(port, ptr, rust_vec_len, data_len),
+70 => wire__crate__api__pgp__import__PgpImportBytes_get_packets_impl(port, ptr, rust_vec_len, data_len),
+72 => wire__crate__api__pgp__import__PgpImportFile_get_packets_impl(port, ptr, rust_vec_len, data_len),
+74 => wire__crate__api__pgp__wot__network__SharedNetwork_authenticate_impl(port, ptr, rust_vec_len, data_len),
+75 => wire__crate__api__pgp__wot__network__SharedNetwork_dump_all_impl(port, ptr, rust_vec_len, data_len),
+76 => wire__crate__api__db__connection__SqliteDb_all_certs_impl(port, ptr, rust_vec_len, data_len),
+77 => wire__crate__api__db__connection__SqliteDb_all_owned_certs_impl(port, ptr, rust_vec_len, data_len),
+78 => wire__crate__api__db__connection__SqliteDb_check_online_impl(port, ptr, rust_vec_len, data_len),
+79 => wire__crate__api__db__connection__SqliteDb_clear_role_impl(port, ptr, rust_vec_len, data_len),
+80 => wire__crate__api__db__connection__SqliteDb_delete_by_fingerprint_impl(port, ptr, rust_vec_len, data_len),
+81 => wire__crate__api__db__connection__SqliteDb_get_by_domain_impl(port, ptr, rust_vec_len, data_len),
+82 => wire__crate__api__db__connection__SqliteDb_get_by_email_impl(port, ptr, rust_vec_len, data_len),
+83 => wire__crate__api__db__connection__SqliteDb_get_by_fingerprint_impl(port, ptr, rust_vec_len, data_len),
+84 => wire__crate__api__db__connection__SqliteDb_get_by_id_impl(port, ptr, rust_vec_len, data_len),
+85 => wire__crate__api__db__connection__SqliteDb_get_by_userid_impl(port, ptr, rust_vec_len, data_len),
+86 => wire__crate__api__db__connection__SqliteDb_get_connection_impl(port, ptr, rust_vec_len, data_len),
+87 => wire__crate__api__db__connection__SqliteDb_get_fingerprint_for_role_impl(port, ptr, rust_vec_len, data_len),
+89 => wire__crate__api__db__connection__SqliteDb_grep_by_email_impl(port, ptr, rust_vec_len, data_len),
+90 => wire__crate__api__db__connection__SqliteDb_grep_by_email_anchor_end_impl(port, ptr, rust_vec_len, data_len),
+91 => wire__crate__api__db__connection__SqliteDb_grep_by_email_anchor_start_impl(port, ptr, rust_vec_len, data_len),
+92 => wire__crate__api__db__connection__SqliteDb_grep_by_userid_impl(port, ptr, rust_vec_len, data_len),
+93 => wire__crate__api__db__connection__SqliteDb_grep_by_userid_anchor_end_impl(port, ptr, rust_vec_len, data_len),
+94 => wire__crate__api__db__connection__SqliteDb_grep_by_userid_anchor_start_impl(port, ptr, rust_vec_len, data_len),
+95 => wire__crate__api__db__connection__SqliteDb_insert_group_impl(port, ptr, rust_vec_len, data_len),
+96 => wire__crate__api__db__connection__SqliteDb_is_online_impl(port, ptr, rust_vec_len, data_len),
+99 => wire__crate__api__db__connection__SqliteDb_search_owned_certs_impl(port, ptr, rust_vec_len, data_len),
+100 => wire__crate__api__db__connection__SqliteDb_test_impl(port, ptr, rust_vec_len, data_len),
+101 => wire__crate__api__db__connection__SqliteDb_test_nullable_impl(port, ptr, rust_vec_len, data_len),
+102 => wire__crate__api__db__connection__SqliteDb_test_one_impl(port, ptr, rust_vec_len, data_len),
+103 => wire__crate__api__db__connection__SqliteDb_update_role_impl(port, ptr, rust_vec_len, data_len),
+104 => wire__crate__api__pgp__wot__network__StoreNetwork_authenticate_impl(port, ptr, rust_vec_len, data_len),
+105 => wire__crate__api__pgp__wot__network__StoreNetwork_dump_all_impl(port, ptr, rust_vec_len, data_len),
+172 => wire__crate__api__pgp__UserHandle_identicon_impl(port, ptr, rust_vec_len, data_len),
+178 => wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_apply_bytes_impl(port, ptr, rust_vec_len, data_len),
+179 => wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_apply_userhandle_impl(port, ptr, rust_vec_len, data_len),
+180 => wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_apply_userhandle_or_else_impl(port, ptr, rust_vec_len, data_len),
+189 => wire__crate__api__init_logging_impl(port, ptr, rust_vec_len, data_len),
+190 => wire__crate__api__db__store__only_fingerprint_delete_impl(port, ptr, rust_vec_len, data_len),
+191 => wire__crate__api__db__store__only_fingerprint_has_params_impl(port, ptr, rust_vec_len, data_len),
+192 => wire__crate__api__db__store__only_fingerprint_insert_impl(port, ptr, rust_vec_len, data_len),
+193 => wire__crate__api__db__store__only_fingerprint_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
+194 => wire__crate__api__db__store__only_fingerprint_is_entity_impl(port, ptr, rust_vec_len, data_len),
+195 => wire__crate__api__db__store__only_fingerprint_update_impl(port, ptr, rust_vec_len, data_len),
+196 => wire__crate__api__db__store__only_online_delete_impl(port, ptr, rust_vec_len, data_len),
+197 => wire__crate__api__db__store__only_online_has_params_impl(port, ptr, rust_vec_len, data_len),
+198 => wire__crate__api__db__store__only_online_insert_impl(port, ptr, rust_vec_len, data_len),
+199 => wire__crate__api__db__store__only_online_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
+200 => wire__crate__api__db__store__only_online_is_entity_impl(port, ptr, rust_vec_len, data_len),
+201 => wire__crate__api__db__store__only_online_update_impl(port, ptr, rust_vec_len, data_len),
+203 => wire__crate__api__pgp__cert__pgp_cert_stub_sigs_from_bytes_sig_impl(port, ptr, rust_vec_len, data_len),
+205 => wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_sig_impl(port, ptr, rust_vec_len, data_len),
+207 => wire__crate__api__db__migrations__run_migrations_impl(port, ptr, rust_vec_len, data_len),
+                        _ => unreachable!(),
+                    }
 }
 
 fn pde_ffi_dispatcher_sync_impl(
@@ -8709,37 +8961,63 @@ fn pde_ffi_dispatcher_sync_impl(
             data_len,
         ),
         171 => wire__crate__api__pgp__UserHandle_from_hex_impl(ptr, rust_vec_len, data_len),
-        173 => wire__crate__api__pgp__UserHandle_name_impl(ptr, rust_vec_len, data_len),
-        174 => wire__crate__api__pgp__UserHandle_separate_impl(ptr, rust_vec_len, data_len),
-        175 => wire__crate__api__pgp__UserHandle_separate_lujvo_impl(ptr, rust_vec_len, data_len),
-        176 => wire__crate__api__pgp__UserHandle_separate_lujvo_or_else_impl(
+        173 => wire__crate__api__pgp__UserHandle_len_impl(ptr, rust_vec_len, data_len),
+        174 => wire__crate__api__pgp__UserHandle_name_impl(ptr, rust_vec_len, data_len),
+        175 => wire__crate__api__pgp__UserHandle_separate_impl(ptr, rust_vec_len, data_len),
+        176 => wire__crate__api__pgp__UserHandle_separate_lujvo_impl(ptr, rust_vec_len, data_len),
+        177 => wire__crate__api__pgp__UserHandle_separate_lujvo_or_else_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        177 => wire__crate__api__db__connection__Watcher_watch_impl(ptr, rust_vec_len, data_len),
-        178 => wire__crate__api__config_new_impl(ptr, rust_vec_len, data_len),
-        193 => wire__crate__api__pgp__cert__pgp_cert_stub_sigs_from_bytes_impl(
+        181 => wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_emoji_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        194 => wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_impl(
+        182 => wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_identicon_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        195 => wire__crate__api__pgp__cert__pgp_cert_with_ids_has_private_impl(
+        183 => wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_lujvo_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        197 => wire__crate__api__pgp__fingerprint__visual_key_join_emoji_impl(
+        184 => wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_new_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        198 => wire__crate__api__pgp__fingerprint__visual_key_join_gismu_impl(
+        185 => wire__crate__api__pgp__fingerprint__visual_key__VisualKeyBuilder_phone_impl(
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        186 => wire__crate__api__db__connection__Watcher_watch_impl(ptr, rust_vec_len, data_len),
+        187 => wire__crate__api__config_new_impl(ptr, rust_vec_len, data_len),
+        202 => wire__crate__api__pgp__cert__pgp_cert_stub_sigs_from_bytes_impl(
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        204 => wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_impl(
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        206 => wire__crate__api__pgp__cert__pgp_cert_with_ids_has_private_impl(
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        208 => wire__crate__api__pgp__fingerprint__visual_key__visual_key_join_emoji_impl(
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        209 => wire__crate__api__pgp__fingerprint__visual_key__visual_key_join_gismu_impl(
             ptr,
             rust_vec_len,
             data_len,
@@ -8961,6 +9239,21 @@ impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<
 
 impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<UserID>> for UserID {
     fn into_into_dart(self) -> FrbWrapper<UserID> {
+        self.into()
+    }
+}
+
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<VisualKeyBuilder> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
+            .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<VisualKeyBuilder> {}
+
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<VisualKeyBuilder>> for VisualKeyBuilder {
+    fn into_into_dart(self) -> FrbWrapper<VisualKeyBuilder> {
         self.into()
     }
 }
@@ -9316,7 +9609,7 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::ser::QrCodeKey> for crate::ap
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::pgp::fingerprint::SizedImage {
+impl flutter_rust_bridge::IntoDart for crate::api::pgp::fingerprint::visual_key::SizedImage {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.buf.into_into_dart().into_dart(),
@@ -9327,13 +9620,13 @@ impl flutter_rust_bridge::IntoDart for crate::api::pgp::fingerprint::SizedImage 
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::pgp::fingerprint::SizedImage
+    for crate::api::pgp::fingerprint::visual_key::SizedImage
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<crate::api::pgp::fingerprint::SizedImage>
-    for crate::api::pgp::fingerprint::SizedImage
+impl flutter_rust_bridge::IntoIntoDart<crate::api::pgp::fingerprint::visual_key::SizedImage>
+    for crate::api::pgp::fingerprint::visual_key::SizedImage
 {
-    fn into_into_dart(self) -> crate::api::pgp::fingerprint::SizedImage {
+    fn into_into_dart(self) -> crate::api::pgp::fingerprint::visual_key::SizedImage {
         self
     }
 }
@@ -9385,35 +9678,36 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::ser::VerifyResult>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::pgp::fingerprint::VisualKey {
+impl flutter_rust_bridge::IntoDart for crate::api::pgp::fingerprint::visual_key::VisualKey {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.gismu.into_into_dart().into_dart(),
             self.emoji.into_into_dart().into_dart(),
             self.phone.into_into_dart().into_dart(),
+            self.identicon.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::pgp::fingerprint::VisualKey
+    for crate::api::pgp::fingerprint::visual_key::VisualKey
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<crate::api::pgp::fingerprint::VisualKey>
-    for crate::api::pgp::fingerprint::VisualKey
+impl flutter_rust_bridge::IntoIntoDart<crate::api::pgp::fingerprint::visual_key::VisualKey>
+    for crate::api::pgp::fingerprint::visual_key::VisualKey
 {
-    fn into_into_dart(self) -> crate::api::pgp::fingerprint::VisualKey {
+    fn into_into_dart(self) -> crate::api::pgp::fingerprint::visual_key::VisualKey {
         self
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::pgp::fingerprint::VisualKeyOr {
+impl flutter_rust_bridge::IntoDart for crate::api::pgp::fingerprint::visual_key::VisualKeyOr {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
-            crate::api::pgp::fingerprint::VisualKeyOr::Gismu(field0) => {
+            crate::api::pgp::fingerprint::visual_key::VisualKeyOr::Gismu(field0) => {
                 [0.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::pgp::fingerprint::VisualKeyOr::Name(field0) => {
+            crate::api::pgp::fingerprint::visual_key::VisualKeyOr::Name(field0) => {
                 [1.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
             _ => {
@@ -9423,13 +9717,13 @@ impl flutter_rust_bridge::IntoDart for crate::api::pgp::fingerprint::VisualKeyOr
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::pgp::fingerprint::VisualKeyOr
+    for crate::api::pgp::fingerprint::visual_key::VisualKeyOr
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<crate::api::pgp::fingerprint::VisualKeyOr>
-    for crate::api::pgp::fingerprint::VisualKeyOr
+impl flutter_rust_bridge::IntoIntoDart<crate::api::pgp::fingerprint::visual_key::VisualKeyOr>
+    for crate::api::pgp::fingerprint::visual_key::VisualKeyOr
 {
-    fn into_into_dart(self) -> crate::api::pgp::fingerprint::VisualKeyOr {
+    fn into_into_dart(self) -> crate::api::pgp::fingerprint::visual_key::VisualKeyOr {
         self
     }
 }
@@ -9591,6 +9885,13 @@ impl SseEncode for UserID {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserID>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
+    }
+}
+
+impl SseEncode for VisualKeyBuilder {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
     }
 }
 
@@ -9775,6 +10076,17 @@ impl SseEncode
 }
 
 impl SseEncode for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserID>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        let (ptr, size) = self.sse_encode_raw();
+        <usize>::sse_encode(ptr, serializer);
+        <i32>::sse_encode(size, serializer);
+    }
+}
+
+impl SseEncode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>>
+{
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         let (ptr, size) = self.sse_encode_raw();
@@ -10185,6 +10497,16 @@ impl SseEncode for Option<crate::api::ser::QrCodeContent> {
     }
 }
 
+impl SseEncode for Option<crate::api::pgp::fingerprint::visual_key::SizedImage> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::pgp::fingerprint::visual_key::SizedImage>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<usize> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -10305,7 +10627,7 @@ impl SseEncode for (String, crate::api::pgp::wot::path::GraphVertex) {
     }
 }
 
-impl SseEncode for crate::api::pgp::fingerprint::SizedImage {
+impl SseEncode for crate::api::pgp::fingerprint::visual_key::SizedImage {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Vec<u8>>::sse_encode(self.buf, serializer);
@@ -10377,24 +10699,30 @@ impl SseEncode for crate::api::ser::VerifyResult {
     }
 }
 
-impl SseEncode for crate::api::pgp::fingerprint::VisualKey {
+impl SseEncode for crate::api::pgp::fingerprint::visual_key::VisualKey {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <Vec<String>>::sse_encode(self.gismu, serializer);
-        <Vec<String>>::sse_encode(self.emoji, serializer);
-        <String>::sse_encode(self.phone, serializer);
+        <Option<Vec<String>>>::sse_encode(self.gismu, serializer);
+        <Option<Vec<String>>>::sse_encode(self.emoji, serializer);
+        <Option<String>>::sse_encode(self.phone, serializer);
+        <Option<crate::api::pgp::fingerprint::visual_key::SizedImage>>::sse_encode(
+            self.identicon,
+            serializer,
+        );
     }
 }
 
-impl SseEncode for crate::api::pgp::fingerprint::VisualKeyOr {
+impl SseEncode for crate::api::pgp::fingerprint::visual_key::VisualKeyOr {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         match self {
-            crate::api::pgp::fingerprint::VisualKeyOr::Gismu(field0) => {
+            crate::api::pgp::fingerprint::visual_key::VisualKeyOr::Gismu(field0) => {
                 <i32>::sse_encode(0, serializer);
-                <crate::api::pgp::fingerprint::VisualKey>::sse_encode(field0, serializer);
+                <crate::api::pgp::fingerprint::visual_key::VisualKey>::sse_encode(
+                    field0, serializer,
+                );
             }
-            crate::api::pgp::fingerprint::VisualKeyOr::Name(field0) => {
+            crate::api::pgp::fingerprint::visual_key::VisualKeyOr::Name(field0) => {
                 <i32>::sse_encode(1, serializer);
                 <String>::sse_encode(field0, serializer);
             }
@@ -10439,6 +10767,7 @@ mod io {
     use crate::api::db::CertStoreTrait;
     use crate::api::db::*;
     use crate::api::pgp::cert::*;
+    use crate::api::pgp::fingerprint::visual_key::*;
     use crate::api::pgp::import::PgpImport;
     use crate::api::pgp::import::*;
     use crate::api::pgp::keys::*;
@@ -10677,6 +11006,20 @@ mod io {
     }
 
     #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_kata_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilder(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>>::increment_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_kata_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilder(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>>::decrement_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
     pub extern "C" fn frbgen_kata_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWatcher(
         ptr: *const std::ffi::c_void,
     ) {
@@ -10714,6 +11057,7 @@ mod web {
     use crate::api::db::CertStoreTrait;
     use crate::api::db::*;
     use crate::api::pgp::cert::*;
+    use crate::api::pgp::fingerprint::visual_key::*;
     use crate::api::pgp::import::PgpImport;
     use crate::api::pgp::import::*;
     use crate::api::pgp::keys::*;
@@ -10951,6 +11295,20 @@ mod web {
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserID>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilder(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilder(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VisualKeyBuilder>>::decrement_strong_count(ptr as _);
     }
 
     #[wasm_bindgen]

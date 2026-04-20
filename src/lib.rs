@@ -1,4 +1,3 @@
-#![feature(allocator_api)]
 #![allow(unexpected_cfgs)]
 #![allow(mismatched_lifetime_syntaxes)]
 pub mod api;

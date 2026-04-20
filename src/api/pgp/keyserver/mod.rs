@@ -1,6 +1,6 @@
 use sequoia_cert_store::{store::KeyServer, Store, StoreUpdate};
 use sequoia_net::KeyServer as Upload;
-use sequoia_openpgp::{Cert, Fingerprint, Packet};
+use sequoia_openpgp::{Cert, Packet};
 
 use crate::{
     api::{pgp::UserHandle, PgpApp},

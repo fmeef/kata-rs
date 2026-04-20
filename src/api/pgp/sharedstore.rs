@@ -6,18 +6,18 @@ pub struct SharedStore<'a, T>(Arc<sequoia_wot::store::CertStore<'a, 'a, T>>)
 where
     T: Send + Sync + Store<'a> + sequoia_wot::sequoia_cert_store::Store<'a>;
 
-impl<'a, T> SharedStore<'a, T>
-where
-    T: Send + Sync + Store<'a> + sequoia_wot::sequoia_cert_store::Store<'a>,
-{
-    pub(crate) fn new(store: sequoia_wot::store::CertStore<'a, 'a, T>) -> Self {
-        Self(Arc::new(store))
-    }
+// impl<'a, T> SharedStore<'a, T>
+// where
+//     T: Send + Sync + Store<'a> + sequoia_wot::sequoia_cert_store::Store<'a>,
+// {
+//     pub(crate) fn new(store: sequoia_wot::store::CertStore<'a, 'a, T>) -> Self {
+//         Self(Arc::new(store))
+//     }
 
-    pub(crate) fn store(&self) -> &'_ sequoia_wot::store::CertStore<'a, 'a, T> {
-        self.0.as_ref()
-    }
-}
+//     pub(crate) fn store(&self) -> &'_ sequoia_wot::store::CertStore<'a, 'a, T> {
+//         self.0.as_ref()
+//     }
+// }
 
 impl<'b, T> sequoia_wot::store::Store for SharedStore<'b, T>
 where

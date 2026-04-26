@@ -1,4 +1,5 @@
 use latkerlo_jvotci::Jvonunfli;
+use std::ops::Range;
 pub(crate) type Result<T> = std::result::Result<T, InternalErr>;
 
 #[derive(thiserror::Error, Debug)]
@@ -21,8 +22,8 @@ pub enum InternalErr {
     Lojban(Jvonunfli),
     #[error("Key offset out of range")]
     KeySlice,
-    #[error("Overlapping ranges {0}")]
-    KeyOverlap(&'static str),
+    #[error("Overlapping ranges {0} len={1:?}")]
+    KeyOverlap(&'static str, Range<usize>),
     #[error("Identicon size error")]
     IdenticonSize,
 }

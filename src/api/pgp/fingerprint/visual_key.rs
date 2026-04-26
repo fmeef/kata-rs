@@ -12,6 +12,10 @@ use lazy_static::lazy_static;
 use crate::error::Result;
 use crate::{api::pgp::UserHandle, error::InternalErr};
 
+const COOL_RULES: [u8; 16] = [
+    9, 11, 17, 18, 22, 28, 30, 41, 45, 57, 60, 61, 75, 73, 107, 110,
+];
+
 #[derive(Clone)]
 pub struct VisualKey {
     pub gismu: Option<Vec<String>>,
@@ -53,49 +57,86 @@ fn is_overlapping(r: &Range<usize>, other: &Range<usize>) -> bool {
 pub struct VisualKeyBuilder<'a>(Arc<RwLock<VisualKeyBuilderInner<'a>>>);
 
 impl<'a> VisualKeyBuilderInner<'a> {
-    fn validate_overlap_single(&self, test: &Range<usize>) -> Result<()> {
-        if let Some(ref lujvo) = self.lujvo {
-            if lujvo != test && is_overlapping(lujvo, test) {
-                return Err(InternalErr::KeyOverlap("lujvo"));
-            }
-        }
-
-        if let Some(ref phone) = self.phone {
-            if phone != test && is_overlapping(phone, test) {
-                return Err(InternalErr::KeyOverlap("phone"));
-            }
-        }
-
-        if let Some(ref emoji) = self.emoji {
-            if emoji != test && is_overlapping(emoji, test) {
-                return Err(InternalErr::KeyOverlap("emoji"));
-            }
-        }
-
-        // if let Some(IdenticonConfig { ref range, .. }) = self.identicon {
-        //     if range != test && is_overlapping(range, test) {
-        //         return Err(InternalErr::KeyOverlap("identicon"));
-        //     }
-        // }
-
-        Ok(())
-    }
-
     fn validate_overlap(&self) -> Result<()> {
-        if let Some(ref emoji) = self.emoji {
-            self.validate_overlap_single(emoji)?;
+        let len = self.data.len();
+        if let Some(ref test) = self.emoji {
+            if let Some(ref lujvo) = self.lujvo {
+                if is_overlapping(lujvo, test) {
+                    return Err(InternalErr::KeyOverlap("lujvo", test.clone()));
+                }
+            }
+
+            if let Some(ref phone) = self.phone {
+                if is_overlapping(phone, test) {
+                    return Err(InternalErr::KeyOverlap("phone", test.clone()));
+                }
+            }
+
+            // if let Some(IdenticonConfig { ref range, .. }) = self.identicon {
+            //     if is_overlapping(range, test) {
+            //         return Err(InternalErr::KeyOverlap("identicon", test.clone()));
+            //     }
+            // }
         }
 
-        if let Some(ref lujvo) = self.lujvo {
-            self.validate_overlap_single(lujvo)?;
+        if let Some(ref test) = self.lujvo {
+            if let Some(ref phone) = self.phone {
+                if is_overlapping(phone, test) {
+                    return Err(InternalErr::KeyOverlap("phone", test.clone()));
+                }
+            }
+
+            if let Some(ref emoji) = self.emoji {
+                if is_overlapping(emoji, test) {
+                    return Err(InternalErr::KeyOverlap("emoji", test.clone()));
+                }
+            }
+
+            // if let Some(IdenticonConfig { ref range, .. }) = self.identicon {
+            //     if is_overlapping(range, test) {
+            //         return Err(InternalErr::KeyOverlap("identicon", test.clone()));
+            //     }
+            // }
         }
 
-        if let Some(ref phone) = self.phone {
-            self.validate_overlap_single(phone)?;
+        if let Some(ref test) = self.phone {
+            if let Some(ref lujvo) = self.lujvo {
+                if is_overlapping(lujvo, test) {
+                    return Err(InternalErr::KeyOverlap("lujvo", test.clone()));
+                }
+            }
+
+            if let Some(ref emoji) = self.emoji {
+                if is_overlapping(emoji, test) {
+                    return Err(InternalErr::KeyOverlap("emoji", test.clone()));
+                }
+            }
+
+            if let Some(IdenticonConfig { ref range, .. }) = self.identicon {
+                if is_overlapping(range, test) {
+                    return Err(InternalErr::KeyOverlap("identicon", range.clone()));
+                }
+            }
         }
 
         // if let Some(IdenticonConfig { ref range, .. }) = self.identicon {
-        //     self.validate_overlap_single(range)?;
+        //     if let Some(ref lujvo) = self.lujvo {
+        //         if is_overlapping(lujvo, range) {
+        //             return Err(InternalErr::KeyOverlap("lujvo", range.clone()));
+        //         }
+        //     }
+
+        //     if let Some(ref phone) = self.phone {
+        //         if is_overlapping(phone, range) {
+        //             return Err(InternalErr::KeyOverlap("phone", range.clone()));
+        //         }
+        //     }
+
+        //     if let Some(ref emoji) = self.emoji {
+        //         if is_overlapping(emoji, range) {
+        //             return Err(InternalErr::KeyOverlap("emoji", range.clone()));
+        //         }
+        //     }
         // }
 
         Ok(())
@@ -261,44 +302,51 @@ fn data_to_gismu(data: &[u8]) -> anyhow::Result<Vec<String>> {
     Ok(out)
 }
 
-fn identicon(bytes: &[u8], count: u32, scale: u32) -> anyhow::Result<SizedImage> {
-    let total = count.pow(2);
-    let fp = &bytes
-        .get(0..total as usize)
-        .ok_or(InternalErr::IdenticonSize)?;
-
+fn identicon(fp: &[u8], count: u32, scale: u32) -> anyhow::Result<SizedImage> {
     let step = 8 as u32;
 
-    let len = (fp.len() as u32 * step) / count;
+    let len = step * count;
+
+    // println!("identicon len={len} fp={}", fp.len());
 
     let mut v = CellularAutomata::allocate(len, len);
     let mut x: u32 = 0;
     let mut y: u32 = 0;
     let mut size = 1;
     let mut horizantal = true;
-    for offset in 0..total as usize {
+    let mut offset = 0;
+    while size * step < len {
         let rule = fp[offset];
+        let upper = rule & 0xF;
+        let lower = (rule >> 0x4) & 0xF;
+        //println!("upper={upper} lower={lower}");
 
-        if x >= size && horizantal {
-            y = 0;
-            horizantal = false;
-        } else if y >= size && !horizantal {
-            x = 0;
-            horizantal = true;
-            size += 1;
+        for rule in [COOL_RULES[lower as usize], COOL_RULES[upper as usize]] {
+            if x >= size && horizantal {
+                y = 0;
+                horizantal = false;
+            } else if y >= size && !horizantal {
+                x = 0;
+                horizantal = true;
+                size += 1;
+            }
+
+            v.rule_interlace(&[rule], &[rule])?
+                .offset(step * x, step * y)
+                .second(rule & 0x1 == 1)
+                .run()?;
+
+            if horizantal {
+                x += 1;
+            } else {
+                y += 1;
+            }
         }
 
-        v.rule_interlace(&[rule], &[rule])?
-            .offset(step * x, step * y)
-            .second(rule & 0x1 == 1)
-            .run()?;
-
-        if horizantal {
-            x += 1;
-        } else {
-            y += 1;
-        }
+        offset += 1;
     }
+
+    //print!("finished with x={x} y={y} len={len}");
 
     let image = resize(
         &v.image,

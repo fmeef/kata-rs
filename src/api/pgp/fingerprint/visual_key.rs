@@ -58,7 +58,6 @@ pub struct VisualKeyBuilder<'a>(Arc<RwLock<VisualKeyBuilderInner<'a>>>);
 
 impl<'a> VisualKeyBuilderInner<'a> {
     fn validate_overlap(&self) -> Result<()> {
-        let len = self.data.len();
         if let Some(ref test) = self.emoji {
             if let Some(ref lujvo) = self.lujvo {
                 if is_overlapping(lujvo, test) {
@@ -72,11 +71,11 @@ impl<'a> VisualKeyBuilderInner<'a> {
                 }
             }
 
-            // if let Some(IdenticonConfig { ref range, .. }) = self.identicon {
-            //     if is_overlapping(range, test) {
-            //         return Err(InternalErr::KeyOverlap("identicon", test.clone()));
-            //     }
-            // }
+            if let Some(IdenticonConfig { ref range, .. }) = self.identicon {
+                if is_overlapping(range, test) {
+                    return Err(InternalErr::KeyOverlap("identicon", test.clone()));
+                }
+            }
         }
 
         if let Some(ref test) = self.lujvo {
@@ -92,11 +91,11 @@ impl<'a> VisualKeyBuilderInner<'a> {
                 }
             }
 
-            // if let Some(IdenticonConfig { ref range, .. }) = self.identicon {
-            //     if is_overlapping(range, test) {
-            //         return Err(InternalErr::KeyOverlap("identicon", test.clone()));
-            //     }
-            // }
+            if let Some(IdenticonConfig { ref range, .. }) = self.identicon {
+                if is_overlapping(range, test) {
+                    return Err(InternalErr::KeyOverlap("identicon", test.clone()));
+                }
+            }
         }
 
         if let Some(ref test) = self.phone {
@@ -119,25 +118,25 @@ impl<'a> VisualKeyBuilderInner<'a> {
             }
         }
 
-        // if let Some(IdenticonConfig { ref range, .. }) = self.identicon {
-        //     if let Some(ref lujvo) = self.lujvo {
-        //         if is_overlapping(lujvo, range) {
-        //             return Err(InternalErr::KeyOverlap("lujvo", range.clone()));
-        //         }
-        //     }
+        if let Some(IdenticonConfig { ref range, .. }) = self.identicon {
+            if let Some(ref lujvo) = self.lujvo {
+                if is_overlapping(lujvo, range) {
+                    return Err(InternalErr::KeyOverlap("lujvo", range.clone()));
+                }
+            }
 
-        //     if let Some(ref phone) = self.phone {
-        //         if is_overlapping(phone, range) {
-        //             return Err(InternalErr::KeyOverlap("phone", range.clone()));
-        //         }
-        //     }
+            if let Some(ref phone) = self.phone {
+                if is_overlapping(phone, range) {
+                    return Err(InternalErr::KeyOverlap("phone", range.clone()));
+                }
+            }
 
-        //     if let Some(ref emoji) = self.emoji {
-        //         if is_overlapping(emoji, range) {
-        //             return Err(InternalErr::KeyOverlap("emoji", range.clone()));
-        //         }
-        //     }
-        // }
+            if let Some(ref emoji) = self.emoji {
+                if is_overlapping(emoji, range) {
+                    return Err(InternalErr::KeyOverlap("emoji", range.clone()));
+                }
+            }
+        }
 
         Ok(())
     }

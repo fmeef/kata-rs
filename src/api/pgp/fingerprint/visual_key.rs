@@ -330,7 +330,7 @@ fn identicon(fp: &[u8], count: u32, scale: u32) -> anyhow::Result<SizedImage> {
                 size += 1;
             }
 
-            v.rule_interlace(&[rule], &[rule])?
+            v.rule_interlace(&[rule], &[fp[offset]])?
                 .offset(step * x, step * y)
                 .second(rule & 0x1 == 1)
                 .run()?;

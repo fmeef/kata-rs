@@ -179,6 +179,37 @@ impl<'a> VisualKeyBuilder<'a> {
     }
 
     #[frb(sync)]
+    pub fn identicon_max_end(&'a self, scale: u32) -> VisualKeyBuilder<'a> {
+        let mut s = self.0.write().unwrap();
+        let mut start = 0;
+        let count = (s.data.len() as f64).sqrt().ceil() as u32;
+        println!("datalen={}", s.data.len());
+        if let Some(ref emoji) = s.emoji {
+            if emoji.end > start {
+                start = emoji.end;
+            }
+        }
+
+        if let Some(ref lujvo) = s.lujvo {
+            if lujvo.end > start {
+                start = lujvo.end;
+            }
+        }
+
+        if let Some(ref phone) = s.phone {
+            if phone.end > start {
+                start = phone.end;
+            }
+        }
+        s.identicon = Some(IdenticonConfig {
+            range: start..s.data.len(),
+            count,
+            scale,
+        });
+        self.clone()
+    }
+
+    #[frb(sync)]
     pub fn phone(&'a self, start: usize, end: usize) -> VisualKeyBuilder<'a> {
         self.0.write().unwrap().phone = Some(start..end);
         self.clone()
@@ -546,7 +577,7 @@ impl UserHandle {
 
 #[cfg(test)]
 mod test {
-    use crate::api::pgp::UserHandle;
+    use crate::api::pgp::{fingerprint::visual_key::VisualKeyBuilder, UserHandle};
 
     #[test]
     fn gismu_emoji_phone_fingerprint() {
@@ -560,6 +591,17 @@ mod test {
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
         let c = v.composite_lujvo(false).unwrap();
         assert_eq!(c, "cajyjeftu kixpei nansne kitladru (+2 823-346-9494)");
+    }
+
+    #[test]
+    fn builder_end() {
+        let _ = VisualKeyBuilder::from_handle(
+            &UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap(),
+        )
+        .lujvo(0, 8)
+        .identicon_max_end(3)
+        .get_identicon()
+        .unwrap();
     }
 }
 

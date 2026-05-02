@@ -179,11 +179,41 @@ impl<'a> VisualKeyBuilder<'a> {
     }
 
     #[frb(sync)]
-    pub fn identicon_max_end(&'a self, scale: u32) -> VisualKeyBuilder<'a> {
+    pub fn identicon_auto_end(&'a self, scale: u32) -> VisualKeyBuilder<'a> {
         let mut s = self.0.write().unwrap();
         let mut start = 0;
         let count = (s.data.len() as f64).sqrt().ceil() as u32;
-        println!("datalen={}", s.data.len());
+
+        if let Some(ref emoji) = s.emoji {
+            if emoji.end > start {
+                start = emoji.end;
+            }
+        }
+
+        if let Some(ref lujvo) = s.lujvo {
+            if lujvo.end > start {
+                start = lujvo.end;
+            }
+        }
+
+        if let Some(ref phone) = s.phone {
+            if phone.end > start {
+                start = phone.end;
+            }
+        }
+        s.identicon = Some(IdenticonConfig {
+            range: start..s.data.len(),
+            count,
+            scale,
+        });
+        self.clone()
+    }
+
+    #[frb(sync)]
+    pub fn identicon_auto_size(&'a self, count: u32, scale: u32) -> VisualKeyBuilder<'a> {
+        let mut s = self.0.write().unwrap();
+        let mut start = 0;
+
         if let Some(ref emoji) = s.emoji {
             if emoji.end > start {
                 start = emoji.end;
@@ -599,7 +629,7 @@ mod test {
             &UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap(),
         )
         .lujvo(0, 8)
-        .identicon_max_end(3)
+        .identicon_auto_end(3)
         .get_identicon()
         .unwrap();
     }

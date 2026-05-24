@@ -80,8 +80,14 @@ impl<'de> Visitor<'de> for UserHandleVisitor {
     {
         if let Some((key, value)) = map.next_entry::<String, String>()? {
             match key.as_str() {
-                "key_handle" => return Ok(UserHandle::from_hex(&value).unwrap()),
-                "raw" => return Ok(UserHandle::from_raw_hex(&value).unwrap()),
+                "key_handle" => {
+                    return Ok(UserHandle::from_hex(&value)
+                        .map_err(|_| A::Error::custom("UserHandle invalid hex"))?)
+                }
+                "raw" => {
+                    return Ok(UserHandle::from_raw_hex(&value)
+                        .map_err(|_| A::Error::custom("UserHandle invalid raw hex"))?)
+                }
                 _ => return Err(A::Error::custom("invalid keyhandle type")),
             };
         }

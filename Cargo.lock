@@ -3056,6 +3056,7 @@ dependencies = [
  "flate2",
  "flutter_rust_bridge",
  "futures",
+ "hex",
  "image",
  "image_hasher",
  "latkerlo-jvotci",

@@ -1,10 +1,12 @@
 use anyhow::anyhow;
 use flutter_rust_bridge::frb;
+use serde::{de::Visitor, ser::SerializeMap, Deserialize, Serialize};
 #[cfg(test)]
 use std::path::PathBuf;
 
 use sequoia_cert_store::{store::Pep, LazyCert, Store, StoreUpdate};
 use sequoia_openpgp::{policy::StandardPolicy, Fingerprint, KeyHandle};
+use serde::de::Error;
 use std::{str::FromStr, sync::Arc};
 
 #[cfg(test)]
@@ -22,6 +24,7 @@ use crate::{
 use crate::api::pgp::mut_store::ReadStore;
 
 pub mod cert;
+pub mod circles;
 pub mod export;
 pub mod fingerprint;
 pub mod import;
@@ -42,6 +45,58 @@ pub trait Verifier {
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum UserHandle {
     KeyHandle(KeyHandle),
+    RawBytes(Vec<u8>),
+}
+
+impl Serialize for UserHandle {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(Some(1))?;
+        let key = match self {
+            Self::KeyHandle(_) => "key_handle",
+            Self::RawBytes(_) => "raw",
+        };
+        map.serialize_key(key)?;
+        map.serialize_value(&self.name())?;
+
+        map.end()
+    }
+}
+
+struct UserHandleVisitor;
+
+impl<'de> Visitor<'de> for UserHandleVisitor {
+    type Value = UserHandle;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("Expecting a UserHandle")
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        if let Some((key, value)) = map.next_entry::<String, String>()? {
+            match key.as_str() {
+                "key_handle" => return Ok(UserHandle::from_hex(&value).unwrap()),
+                "raw" => return Ok(UserHandle::from_raw_hex(&value).unwrap()),
+                _ => return Err(A::Error::custom("invalid keyhandle type")),
+            };
+        }
+
+        Err(A::Error::custom("no map key/value"))
+    }
+}
+
+impl<'de> Deserialize<'de> for UserHandle {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_map(UserHandleVisitor)
+    }
 }
 
 impl UserHandle {
@@ -59,22 +114,29 @@ impl UserHandle {
         self.as_bytes().len()
     }
 
+    fn from_raw_hex(hex: &str) -> crate::error::Result<Self> {
+        Ok(Self::RawBytes(hex::decode(hex)?))
+    }
+
     #[frb(sync)]
     pub fn name(&self) -> String {
         match self {
             Self::KeyHandle(kh) => kh.to_hex(),
+            Self::RawBytes(bytes) => hex::encode(bytes),
         }
     }
 
     pub(crate) fn as_bytes(&self) -> &'_ [u8] {
         match self {
             Self::KeyHandle(kh) => kh.as_bytes(),
+            Self::RawBytes(bytes) => bytes,
         }
     }
 
     pub(crate) fn try_keyhandle(&self) -> anyhow::Result<&'_ KeyHandle> {
         match self {
             Self::KeyHandle(kh) => Ok(kh),
+            Self::RawBytes(_) => Err(anyhow!(InternalErr::NotRepr("KeyHandle"))),
         }
     }
 
@@ -84,6 +146,7 @@ impl UserHandle {
                 KeyHandle::Fingerprint(fp) => Ok(fp),
                 KeyHandle::KeyID(_) => Err(anyhow!(InternalErr::FingerprintRequired)),
             },
+            Self::RawBytes(_) => Err(anyhow!(InternalErr::NotRepr("Fingerprint"))),
         }
     }
 
@@ -93,6 +156,7 @@ impl UserHandle {
                 KeyHandle::Fingerprint(fp) => Ok(fp),
                 KeyHandle::KeyID(_) => Err(anyhow!(InternalErr::FingerprintRequired)),
             },
+            Self::RawBytes(_) => Err(anyhow!(InternalErr::NotRepr("Fingerprint"))),
         }
     }
 }
@@ -317,7 +381,7 @@ pub fn test_config(namespace: &str) -> Config {
 #[cfg(test)]
 mod test {
     use crate::api::{
-        pgp::{test_keystore, PgpService},
+        pgp::{test_keystore, PgpService, UserHandle},
         SqliteDb,
     };
 
@@ -325,5 +389,14 @@ mod test {
     fn new_pgp_service() {
         let _ =
             PgpService::new(&test_keystore("test"), SqliteDb::new_in_memory().unwrap()).unwrap();
+    }
+
+    #[test]
+    fn userhandle_serde() {
+        let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
+        let s = serde_json::to_string(&v).unwrap();
+        let o: UserHandle = serde_json::from_str(&s).unwrap();
+
+        assert_eq!(v.name(), o.name())
     }
 }

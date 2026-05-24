@@ -26,6 +26,10 @@ pub enum InternalErr {
     KeyOverlap(&'static str, Range<usize>),
     #[error("Identicon size error")]
     IdenticonSize,
+    #[error("Not representable as {0}")]
+    NotRepr(&'static str),
+    #[error("Hex encode error")]
+    Hex(#[from] hex::FromHexError),
 }
 
 impl From<InternalErr> for rusqlite::Error {

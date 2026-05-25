@@ -48,6 +48,21 @@ pub struct Circle {
 }
 
 impl Circle {
+    pub fn is_member(&self, user: &UserHandle) -> bool {
+        self.members.iter().any(|v| v.is_member(user))
+    }
+}
+
+impl CircleOr {
+    pub fn is_member(&self, user: &UserHandle) -> bool {
+        match self {
+            Self::Circle(c) => c.is_member(user),
+            Self::User(u) => u == user,
+        }
+    }
+}
+
+impl Circle {
     fn members_reader<'a>(&'a self) -> Box<dyn std::io::Read + Send + Sync + 'a> {
         let v: &[u8] = &[];
         for (i, member) in self.members.iter().enumerate() {

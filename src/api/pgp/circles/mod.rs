@@ -48,18 +48,18 @@ pub struct Circle {
 }
 
 impl Circle {
-    fn members_reader<'a>(&'a self) -> impl std::io::Read + 'a {
-        let v = &[];
+    fn members_reader<'a>(&'a self) -> Box<dyn std::io::Read + Send + Sync + 'a> {
+        let v: &[u8] = &[];
         for (i, member) in self.members.iter().enumerate() {
             let v = v.chain(member.as_bytes());
             if i + 1 == self.members.len() {
-                return v;
+                return Box::new(v);
             }
         }
-        panic!("not possible")
+        Box::new(v)
     }
 
-    fn bytes_buf<'a>(&'a self) -> (impl std::io::Read + 'a, Option<&'a [u8]>) {
+    fn bytes_buf<'a>(&'a self) -> (impl std::io::Read + Send + Sync + 'a, Option<&'a [u8]>) {
         // let mut size = self.id.as_bytes().len()
         //     + self
         //         .members

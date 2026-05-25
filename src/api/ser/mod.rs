@@ -233,13 +233,8 @@ mod test {
     use std::sync::Arc;
 
     use sequoia_cert_store::{LazyCert, Store, StoreUpdate};
-    use sequoia_openpgp::Fingerprint;
 
-    use crate::api::{
-        pgp::{test_config, UserHandle},
-        ser::strip_cert,
-        PgpApp, PgpAppTrait,
-    };
+    use crate::api::{pgp::test_config, ser::strip_cert, PgpApp, PgpAppTrait};
 
     #[test]
     fn qr_code_signing() {

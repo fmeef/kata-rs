@@ -1,6 +1,7 @@
-use std::io::Write;
+use std::io::{Read, Write};
 
 use anyhow::anyhow;
+use flutter_rust_bridge::frb;
 use sequoia_openpgp::{
     parse::{stream::DetachedVerifierBuilder, Parse},
     serialize::stream::{Message, Signer},
@@ -23,30 +24,77 @@ pub struct CircleAuthor {
     pub sig: Vec<u8>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
+#[frb(non_opaque)]
+pub enum CircleOr {
+    Circle(Circle),
+    User(UserHandle),
+}
+
+impl CircleOr {
+    fn as_bytes(&self) -> &'_ [u8] {
+        match self {
+            Self::Circle(Circle { id, .. }) => id.as_bytes(),
+            Self::User(user) => user.as_bytes(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Circle {
     pub author: Option<CircleAuthor>,
-    pub members: Vec<UserHandle>,
+    pub members: Vec<CircleOr>,
     pub id: UserHandle,
 }
 
 impl Circle {
-    fn bytes_buf(self) -> (Vec<u8>, Option<Vec<u8>>) {
-        let mut size =
-            self.id.as_bytes().len() + self.members.iter().map(|v| v.len()).sum::<usize>();
-        if let Some(CircleAuthor { ref author, .. }) = self.author {
-            size += author.as_bytes().len();
+    fn members_reader<'a>(&'a self) -> impl std::io::Read + 'a {
+        let v = &[];
+        for (i, member) in self.members.iter().enumerate() {
+            let v = v.chain(member.as_bytes());
+            if i + 1 == self.members.len() {
+                return v;
+            }
         }
-        let mut out = Vec::with_capacity(size);
-        if let Some(CircleAuthor { ref author, .. }) = self.author {
-            out.extend_from_slice(author.as_bytes());
-        }
+        panic!("not possible")
+    }
 
-        for member in self.members.iter() {
-            out.extend_from_slice(member.as_bytes());
-        }
-        out.extend_from_slice(self.id.as_bytes());
-        (out, self.author.map(|CircleAuthor { sig, .. }| sig))
+    fn bytes_buf<'a>(&'a self) -> (impl std::io::Read + 'a, Option<&'a [u8]>) {
+        // let mut size = self.id.as_bytes().len()
+        //     + self
+        //         .members
+        //         .iter()
+        //         .map(|v| v.as_bytes().len())
+        //         .sum::<usize>();
+        // if let Some(CircleAuthor { ref author, .. }) = self.author {
+        //     size += author.as_bytes().len();
+        // }
+        // let mut out = Vec::with_capacity(size);
+        // if let Some(CircleAuthor { ref author, .. }) = self.author {
+        //     out.extend_from_slice(author.as_bytes());
+        // }
+
+        // for member in self.members.iter() {
+        //     out.extend_from_slice(member.as_bytes());
+        // }
+        // out.extend_from_slice(self.id.as_bytes());
+        //
+        //
+
+        let v = self.id.as_bytes().chain(self.members_reader());
+
+        let author = if let Some(ref author) = self.author {
+            author.author.as_bytes()
+        } else {
+            &[]
+        };
+
+        (
+            v.chain(author),
+            self.author
+                .as_ref()
+                .map(|CircleAuthor { ref sig, .. }| sig.as_slice()),
+        )
     }
 }
 
@@ -70,14 +118,14 @@ impl PgpApp {
                 }),
             }?;
 
-            verifier.verify_bytes(&buf)?;
+            verifier.verify_reader(buf)?;
             return Ok(true);
         }
 
         Ok(false)
     }
 
-    pub fn create_circle(&self, keys: Vec<UserHandle>) -> anyhow::Result<Circle> {
+    pub fn create_circle(&self, keys: Vec<CircleOr>) -> anyhow::Result<Circle> {
         let mut digest = Sha256::new();
 
         for member in &keys {
@@ -96,7 +144,7 @@ impl PgpApp {
     pub fn create_circle_signed(
         &self,
         author: UserHandle,
-        keys: Vec<UserHandle>,
+        keys: Vec<CircleOr>,
     ) -> anyhow::Result<Circle> {
         let cert = self.private_cert(&author)?;
         let mut out = Vec::new();
@@ -140,14 +188,16 @@ impl PgpApp {
 #[cfg(test)]
 mod test {
     use crate::api::{
-        pgp::{test_config, UserHandle},
+        pgp::{circles::CircleOr, test_config, UserHandle},
         PgpApp, PgpAppTrait,
     };
 
     #[test]
     fn create_signed_circle() {
         let app = PgpApp::create(test_config("app")).unwrap();
-        let keys = vec![UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap()];
+        let keys = vec![CircleOr::User(
+            UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap(),
+        )];
 
         let key = app
             .generate_key("test@example.com".to_owned())
@@ -163,8 +213,9 @@ mod test {
     #[test]
     fn verify_signed_circle() {
         let app = PgpApp::create(test_config("app")).unwrap();
-        let keys = vec![UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap()];
-
+        let keys = vec![CircleOr::User(
+            UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap(),
+        )];
         let key = app
             .generate_key("test@example.com".to_owned())
             .generate()

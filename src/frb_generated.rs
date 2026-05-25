@@ -527,7 +527,8 @@ fn wire__crate__api__pgp__circles__Circle_auto_accessor_set_members_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Circle>,
             >>::sse_decode(&mut deserializer);
-            let api_members = <Vec<UserHandle>>::sse_decode(&mut deserializer);
+            let api_members =
+                <Vec<crate::api::pgp::circles::CircleOr>>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse::<_, ()>((move || {
                 let mut api_that_guard = None;
@@ -2230,7 +2231,7 @@ fn wire__crate__api__PgpApp_create_circle_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
             >>::sse_decode(&mut deserializer);
-            let api_keys = <Vec<UserHandle>>::sse_decode(&mut deserializer);
+            let api_keys = <Vec<crate::api::pgp::circles::CircleOr>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -2284,7 +2285,7 @@ fn wire__crate__api__PgpApp_create_circle_signed_impl(
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
             >>::sse_decode(&mut deserializer);
             let api_author = <UserHandle>::sse_decode(&mut deserializer);
-            let api_keys = <Vec<UserHandle>>::sse_decode(&mut deserializer);
+            let api_keys = <Vec<crate::api::pgp::circles::CircleOr>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -8710,6 +8711,26 @@ impl SseDecode for crate::api::db::CertificationSet {
     }
 }
 
+impl SseDecode for crate::api::pgp::circles::CircleOr {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut tag_ = <i32>::sse_decode(deserializer);
+        match tag_ {
+            0 => {
+                let mut var_field0 = <Circle>::sse_decode(deserializer);
+                return crate::api::pgp::circles::CircleOr::Circle(var_field0);
+            }
+            1 => {
+                let mut var_field0 = <UserHandle>::sse_decode(deserializer);
+                return crate::api::pgp::circles::CircleOr::User(var_field0);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+
 impl SseDecode for crate::api::Config {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -8831,18 +8852,6 @@ impl SseDecode for Vec<PgpDataCert> {
     }
 }
 
-impl SseDecode for Vec<UserHandle> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut len_ = <i32>::sse_decode(deserializer);
-        let mut ans_ = Vec::with_capacity(len_ as usize);
-        for idx_ in 0..len_ {
-            ans_.push(<UserHandle>::sse_decode(deserializer));
-        }
-        return ans_;
-    }
-}
-
 impl SseDecode for Vec<UserID> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -8898,6 +8907,20 @@ impl SseDecode for Vec<crate::api::db::CertificationSet> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<crate::api::db::CertificationSet>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::pgp::circles::CircleOr> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::pgp::circles::CircleOr>::sse_decode(
+                deserializer,
+            ));
         }
         return ans_;
     }
@@ -9920,6 +9943,33 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::db::CertificationSet>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::pgp::circles::CircleOr {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            crate::api::pgp::circles::CircleOr::Circle(field0) => {
+                [0.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::pgp::circles::CircleOr::User(field0) => {
+                [1.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::pgp::circles::CircleOr
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::pgp::circles::CircleOr>
+    for crate::api::pgp::circles::CircleOr
+{
+    fn into_into_dart(self) -> crate::api::pgp::circles::CircleOr {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::Config {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -10814,6 +10864,25 @@ impl SseEncode for crate::api::db::CertificationSet {
     }
 }
 
+impl SseEncode for crate::api::pgp::circles::CircleOr {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        match self {
+            crate::api::pgp::circles::CircleOr::Circle(field0) => {
+                <i32>::sse_encode(0, serializer);
+                <Circle>::sse_encode(field0, serializer);
+            }
+            crate::api::pgp::circles::CircleOr::User(field0) => {
+                <i32>::sse_encode(1, serializer);
+                <UserHandle>::sse_encode(field0, serializer);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+
 impl SseEncode for crate::api::Config {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -10915,16 +10984,6 @@ impl SseEncode for Vec<PgpDataCert> {
     }
 }
 
-impl SseEncode for Vec<UserHandle> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <i32>::sse_encode(self.len() as _, serializer);
-        for item in self {
-            <UserHandle>::sse_encode(item, serializer);
-        }
-    }
-}
-
 impl SseEncode for Vec<UserID> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -10971,6 +11030,16 @@ impl SseEncode for Vec<crate::api::db::CertificationSet> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::db::CertificationSet>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::pgp::circles::CircleOr> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::pgp::circles::CircleOr>::sse_encode(item, serializer);
         }
     }
 }

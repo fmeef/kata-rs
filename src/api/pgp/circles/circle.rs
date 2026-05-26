@@ -51,6 +51,22 @@ impl Circle {
     pub fn is_member(&self, user: &UserHandle) -> bool {
         self.members.iter().any(|v| v.is_member(user))
     }
+
+    pub fn create(keys: Vec<CircleOr>) -> anyhow::Result<Circle> {
+        let mut digest = Sha256::new();
+
+        for member in &keys {
+            digest.update(member.as_bytes());
+        }
+
+        let circle = Circle {
+            members: keys,
+            author: None,
+            id: UserHandle::RawBytes(digest.finalize().to_vec()),
+        };
+
+        Ok(circle)
+    }
 }
 
 impl CircleOr {
@@ -140,22 +156,6 @@ impl PgpApp {
         Ok(false)
     }
 
-    pub fn create_circle(&self, keys: Vec<CircleOr>) -> anyhow::Result<Circle> {
-        let mut digest = Sha256::new();
-
-        for member in &keys {
-            digest.update(member.as_bytes());
-        }
-
-        let circle = Circle {
-            members: keys,
-            author: None,
-            id: UserHandle::RawBytes(digest.finalize().to_vec()),
-        };
-
-        Ok(circle)
-    }
-
     pub fn create_circle_signed(
         &self,
         author: UserHandle,
@@ -182,7 +182,7 @@ impl PgpApp {
 
             let mut signer = Signer::new(message, private_kp)?.detached().build()?;
 
-            let mut circle = self.create_circle(keys)?;
+            let mut circle = Circle::create(keys)?;
 
             signer.write_all(author.as_bytes())?;
 
@@ -203,7 +203,10 @@ impl PgpApp {
 #[cfg(test)]
 mod test {
     use crate::api::{
-        pgp::{circles::circle::CircleOr, test_config, UserHandle},
+        pgp::{
+            circles::circle::{Circle, CircleOr},
+            test_config, UserHandle,
+        },
         PgpApp, PgpAppTrait,
     };
 
@@ -241,5 +244,21 @@ mod test {
         let circle = app.create_circle_signed(author.clone(), keys).unwrap();
         let res = app.verify_circle(circle).unwrap();
         assert!(res);
+    }
+
+    #[test]
+    fn verify_membership() {
+        let app = PgpApp::create(test_config("app")).unwrap();
+        let keys = vec![CircleOr::User(
+            UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap(),
+        )];
+
+        let circle = Circle::create(keys).unwrap();
+
+        let key = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
+
+        let member = circle.is_member(&key);
+
+        assert!(member)
     }
 }

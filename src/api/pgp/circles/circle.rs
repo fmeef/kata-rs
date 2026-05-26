@@ -1,5 +1,3 @@
-use std::io::{Read, Write};
-
 use anyhow::anyhow;
 use flutter_rust_bridge::frb;
 use sequoia_openpgp::{
@@ -9,6 +7,10 @@ use sequoia_openpgp::{
 use sequoia_wot::store::StoreError;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::{
+    collections::BTreeSet,
+    io::{Read, Write},
+};
 
 use crate::{
     api::{
@@ -18,13 +20,13 @@ use crate::{
     error::InternalErr,
 };
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
 pub struct CircleAuthor {
     pub author: UserHandle,
     pub sig: Vec<u8>,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
 #[frb(non_opaque)]
 pub enum CircleOr {
     Circle(Circle),
@@ -40,11 +42,12 @@ impl CircleOr {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[frb(opaque)]
 pub struct Circle {
-    pub author: Option<CircleAuthor>,
-    pub members: Vec<CircleOr>,
-    pub id: UserHandle,
+    author: Option<CircleAuthor>,
+    members: BTreeSet<CircleOr>,
+    id: UserHandle,
 }
 
 impl Circle {
@@ -60,7 +63,7 @@ impl Circle {
         }
 
         let circle = Circle {
-            members: keys,
+            members: keys.into_iter().collect(),
             author: None,
             id: UserHandle::RawBytes(digest.finalize().to_vec()),
         };
@@ -161,22 +164,9 @@ impl PgpApp {
         author: UserHandle,
         keys: Vec<CircleOr>,
     ) -> anyhow::Result<Circle> {
-        let cert = self.private_cert(&author)?;
         let mut out = Vec::new();
         {
-            let private_kp = cert
-                .keys()
-                .secret()
-                .with_policy(&POLICY, None)
-                .supported()
-                .alive()
-                .revoked(false)
-                .for_signing()
-                .nth(0)
-                .ok_or_else(|| InternalErr::NotFound("subkey"))?
-                .key()
-                .clone()
-                .into_keypair()?;
+            let private_kp = self.configured_privkey(&author, |p| p.for_signing())?;
 
             let message = Message::new(&mut out);
 

@@ -13,19 +13,29 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use sequoia_openpgp::{packet::UserID, KeyHandle};
+use sequoia_openpgp::{
+    crypto::KeyPair,
+    packet::{
+        key::{SecretParts, UnspecifiedParts, UnspecifiedRole},
+        UserID,
+    },
+    KeyHandle,
+};
 
 use crate::{
     api::{
         db::{connection::Crud, store::PgpDataCert},
         pgp::{
             cert::{MaybeCert, PgpCert, PgpCertWithIds},
-            PgpServiceStore, UserHandle,
+            PgpServiceStore, UserHandle, POLICY,
         },
-        PgpAppTrait,
+        PgpApp, PgpAppTrait,
     },
+    error::InternalErr,
     frb_generated::StreamSink,
 };
+
+use sequoia_openpgp::cert::amalgamation::key::ValidKeyAmalgamationIter;
 
 impl PgpCertWithIds {
     // pub fn revocation_cert(&self) -> anyhow::Result<Option<String>> {
@@ -286,6 +296,37 @@ where
             }
         }
         Ok(())
+    }
+}
+
+impl PgpApp {
+    pub(crate) fn configured_privkey<F>(
+        &self,
+        cert: &UserHandle,
+        func: F,
+    ) -> crate::error::Result<KeyPair>
+    where
+        for<'b> F: FnOnce(
+            ValidKeyAmalgamationIter<'b, SecretParts, UnspecifiedRole>,
+        ) -> ValidKeyAmalgamationIter<'b, SecretParts, UnspecifiedRole>,
+    {
+        let cert = self.private_cert(&cert)?;
+        let private_kp = cert
+            .keys()
+            .secret()
+            .with_policy(&POLICY, None)
+            .supported()
+            .alive()
+            .revoked(false);
+
+        let private_kp = func(private_kp)
+            .nth(0)
+            .ok_or_else(|| InternalErr::NotFound("subkey"))?
+            .key()
+            .clone()
+            .into_keypair()?;
+
+        Ok(private_kp)
     }
 }
 

@@ -48,6 +48,14 @@ pub enum UserHandle {
     RawBytes(Vec<u8>),
 }
 
+impl Ord for UserHandle {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.name().cmp(&other.name())
+    }
+}
+
+impl Eq for UserHandle {}
+
 impl Serialize for UserHandle {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

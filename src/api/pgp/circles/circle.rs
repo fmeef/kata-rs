@@ -12,12 +12,9 @@ use std::{
     io::{Read, Write},
 };
 
-use crate::{
-    api::{
-        pgp::{sign::PgpAppVerifier, UserHandle, POLICY},
-        PgpApp,
-    },
-    error::InternalErr,
+use crate::api::{
+    pgp::{sign::PgpAppVerifier, UserHandle, POLICY},
+    PgpApp,
 };
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]

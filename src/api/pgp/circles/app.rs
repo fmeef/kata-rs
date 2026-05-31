@@ -13,13 +13,16 @@ use sequoia_wot::store::StoreError;
 use serde::{Deserialize, Serialize};
 use std::io::Read;
 
-use crate::api::{
-    pgp::{
-        circles::{circle::Circle, CircleOr},
-        sign::PgpAppVerifier,
-        UserHandle, POLICY,
+use crate::{
+    api::{
+        pgp::{
+            circles::{circle::Circle, CircleOr},
+            sign::PgpAppVerifier,
+            UserHandle, POLICY,
+        },
+        PgpApp,
     },
-    PgpApp,
+    frb_generated::StreamSink,
 };
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -41,10 +44,10 @@ impl MemberTag {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-#[frb(opaque)]
+#[frb(non_opaque)]
 pub struct AppMember {
-    member: Option<CircleOr>,
-    tag: MemberTag,
+    pub member: Option<CircleOr>,
+    pub tag: MemberTag,
 }
 
 impl AppMember {
@@ -115,6 +118,12 @@ impl CircleApp {
         self.inner.owner.as_bytes().chain(self.tag_reader())
     }
 
+    pub fn iter_members(&self, sink: StreamSink<AppMember>) {
+        for (_, member) in self.inner.children.iter() {
+            sink.add(member.clone()).unwrap();
+        }
+    }
+
     fn resign(&mut self) -> anyhow::Result<()> {
         let mut out = Vec::new();
         {
@@ -141,6 +150,34 @@ impl CircleApp {
                 member: match tag {
                     MemberTag::Delete => None,
                     _ => Some(CircleOr::Circle(circle)),
+                },
+                tag,
+            },
+        );
+        self.resign()
+    }
+
+    pub fn add_app(&mut self, app: CircleApp, tag: MemberTag) -> anyhow::Result<()> {
+        self.inner.children.insert(
+            app.inner.owner.as_bytes().to_owned(),
+            AppMember {
+                member: match tag {
+                    MemberTag::Delete => None,
+                    _ => Some(CircleOr::App(app)),
+                },
+                tag,
+            },
+        );
+        self.resign()
+    }
+
+    pub fn add_user(&mut self, user: UserHandle, tag: MemberTag) -> anyhow::Result<()> {
+        self.inner.children.insert(
+            user.as_bytes().to_owned(),
+            AppMember {
+                member: match tag {
+                    MemberTag::Delete => None,
+                    _ => Some(CircleOr::User(user)),
                 },
                 tag,
             },

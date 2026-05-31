@@ -17,13 +17,13 @@ use crate::api::{
     PgpApp,
 };
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
 pub struct CircleAuthor {
     pub author: UserHandle,
     pub sig: Vec<u8>,
 }
 
-#[derive(Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
 #[frb(opaque)]
 pub struct Circle {
     pub(crate) author: Option<CircleAuthor>,

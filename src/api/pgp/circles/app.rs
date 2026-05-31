@@ -14,11 +14,15 @@ use serde::{Deserialize, Serialize};
 use std::io::Read;
 
 use crate::api::{
-    pgp::{circles::CircleOr, sign::PgpAppVerifier, UserHandle, POLICY},
+    pgp::{
+        circles::{circle::Circle, CircleOr},
+        sign::PgpAppVerifier,
+        UserHandle, POLICY,
+    },
     PgpApp,
 };
 
-#[derive(Serialize, Deserialize, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum MemberTag {
     Merge = 1,
@@ -36,7 +40,7 @@ impl MemberTag {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[frb(opaque)]
 pub struct AppMember {
     member: CircleOr,
@@ -52,7 +56,7 @@ impl AppMember {
         self.member.as_bytes().chain(self.tag.as_bytes())
     }
 }
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[frb(opaque)]
 pub(crate) struct CircleAppInner {
     pub(crate) owner: UserHandle,
@@ -60,7 +64,7 @@ pub(crate) struct CircleAppInner {
     pub(crate) sig: Vec<u8>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 #[frb(opaque)]
 pub struct CircleApp {
     pub(crate) inner: CircleAppInner,
@@ -127,6 +131,17 @@ impl CircleApp {
         }
         self.inner.sig = out;
         Ok(())
+    }
+
+    pub fn add_circle(&mut self, circle: Circle, tag: MemberTag) -> anyhow::Result<()> {
+        self.inner.children.insert(
+            circle.id.as_bytes().to_owned(),
+            AppMember {
+                member: CircleOr::Circle(circle),
+                tag,
+            },
+        );
+        self.resign()
     }
 
     pub fn add_members(&mut self, members: Vec<AppMember>) -> anyhow::Result<()> {
@@ -237,7 +252,13 @@ impl PgpApp {
 
 #[cfg(test)]
 mod test {
-    use crate::api::{pgp::test_config, PgpApp, PgpAppTrait};
+    use crate::api::{
+        pgp::{
+            circles::{app::MemberTag, circle::Circle, CircleOr},
+            test_config,
+        },
+        PgpApp, PgpAppTrait,
+    };
 
     #[test]
     fn create_signed_app() {
@@ -307,5 +328,29 @@ mod test {
         assert!(res);
         let res = service.verify_app(&a2).unwrap();
         assert!(res);
+    }
+
+    #[test]
+    fn merge_apps_members() {
+        let service = PgpApp::create(test_config("app")).unwrap();
+
+        let key = service
+            .generate_key("test@example.com".to_owned())
+            .generate()
+            .unwrap();
+
+        let author = key.cert.fingerprint;
+
+        let mut a = service.create_app(author.clone()).unwrap();
+        let circ = Circle::create(vec![]).unwrap();
+        let mut a2 = service.create_app(author.clone()).unwrap();
+        a2.add_circle(circ, MemberTag::Merge).unwrap();
+        a.merge(&a2).unwrap();
+        let res = service.verify_app(&a).unwrap();
+        assert!(res);
+        let res = service.verify_app(&a2).unwrap();
+        assert!(res);
+
+        assert_eq!(a.inner.children, a2.inner.children);
     }
 }

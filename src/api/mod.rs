@@ -60,6 +60,12 @@ pub struct PgpApp {
     pub(crate) pgp: PgpService,
 }
 
+impl std::fmt::Debug for PgpApp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PgpApp")
+    }
+}
+
 // impl PartialEq for PgpApp {
 //     fn eq(&self, _: &Self) -> bool {
 //         true

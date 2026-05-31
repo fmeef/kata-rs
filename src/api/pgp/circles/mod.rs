@@ -8,7 +8,7 @@ use crate::api::pgp::{
 pub mod app;
 pub mod circle;
 
-#[derive(Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
 #[frb(non_opaque)]
 pub enum CircleOr {
     Circle(Circle),

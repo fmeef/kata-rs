@@ -1,7 +1,6 @@
 use std::{
-    collections::{btree_map::Entry, BTreeMap, BTreeSet},
+    collections::{btree_map::Entry, BTreeMap},
     io::Write,
-    mem,
 };
 
 use anyhow::anyhow;
@@ -144,27 +143,24 @@ impl CircleApp {
         self.add_members(members)
     }
 
-    fn merge_app(&self, key: &[u8], app: &AppMember) -> anyhow::Result<()> {
-        Ok(())
+    pub fn merge_both(&mut self, other: &mut CircleApp) -> anyhow::Result<()> {
+        self.merge(other)?;
+        other.merge(self)
     }
 
-    pub fn merge(&mut self, other: &mut CircleApp) -> anyhow::Result<()> {
-        for (id, entry) in other.inner.children.iter_mut() {
+    pub fn merge(&mut self, other: &CircleApp) -> anyhow::Result<()> {
+        for (id, entry) in other.inner.children.iter() {
             match self.inner.children.entry(id.to_owned()) {
                 Entry::Occupied(mut ours) => match (ours.get().tag, entry.tag) {
                     (MemberTag::Delete, MemberTag::Delete) => (),
-                    (MemberTag::Delete, _) => {
-                        entry.tag = MemberTag::Delete;
-                    }
+                    (MemberTag::Delete, _) => {}
                     (_, MemberTag::Delete) => {
                         ours.get_mut().tag = MemberTag::Delete;
                     }
                     (MemberTag::Overwrite, MemberTag::Overwrite) => {
                         // TODO: how to handle this
                     }
-                    (MemberTag::Overwrite, _) => {
-                        entry.member = ours.get().member.clone();
-                    }
+                    (MemberTag::Overwrite, _) => {}
                     (_, MemberTag::Overwrite) => {
                         ours.get_mut().member = entry.member.clone();
                     }
@@ -172,7 +168,7 @@ impl CircleApp {
                         // if the id is the same, we have the same user or the same circle,
                         // but apps must be merged
                         if let (CircleOr::App(ours), CircleOr::App(theirs)) =
-                            (&mut ours.get_mut().member, &mut entry.member)
+                            (&mut ours.get_mut().member, &entry.member)
                         {
                             ours.merge(theirs)?;
                         }
@@ -182,13 +178,9 @@ impl CircleApp {
                     vacent.insert(entry.clone());
                 }
             }
-            // match (entry.member, entry.tag) {
-            //     (CircleOr::App(app), MemberTag::Merge)
-            // }
         }
 
         self.resign()?;
-        other.resign()?;
         Ok(())
     }
 }
@@ -289,8 +281,28 @@ mod test {
         let author = key.cert.fingerprint;
 
         let mut a = service.create_app(author.clone()).unwrap();
+        let a2 = service.create_app(author.clone()).unwrap();
+        a.merge(&a2).unwrap();
+        let res = service.verify_app(&a).unwrap();
+        assert!(res);
+        let res = service.verify_app(&a2).unwrap();
+        assert!(res);
+    }
+
+    #[test]
+    fn merge_apps_both() {
+        let service = PgpApp::create(test_config("app")).unwrap();
+
+        let key = service
+            .generate_key("test@example.com".to_owned())
+            .generate()
+            .unwrap();
+
+        let author = key.cert.fingerprint;
+
+        let mut a = service.create_app(author.clone()).unwrap();
         let mut a2 = service.create_app(author.clone()).unwrap();
-        a.merge(&mut a2).unwrap();
+        a.merge_both(&mut a2).unwrap();
         let res = service.verify_app(&a).unwrap();
         assert!(res);
         let res = service.verify_app(&a2).unwrap();

@@ -138,7 +138,10 @@ impl CircleApp {
         self.inner.children.insert(
             circle.id.as_bytes().to_owned(),
             AppMember {
-                member: Some(CircleOr::Circle(circle)),
+                member: match tag {
+                    MemberTag::Delete => None,
+                    _ => Some(CircleOr::Circle(circle)),
+                },
                 tag,
             },
         );
@@ -154,8 +157,11 @@ impl CircleApp {
         for (id, entry) in other.inner.children.iter() {
             match self.inner.children.entry(id.to_owned()) {
                 Entry::Occupied(mut ours) => match (ours.get().tag, entry.tag) {
-                    (MemberTag::Delete, MemberTag::Delete) => (),
-                    (MemberTag::Delete, _) => {}
+                    (MemberTag::Delete, _) => {
+                        let ours = ours.get_mut();
+                        ours.tag = MemberTag::Delete;
+                        ours.member = None;
+                    }
                     (_, MemberTag::Delete) => {
                         let ours = ours.get_mut();
                         ours.tag = MemberTag::Delete;
@@ -375,6 +381,9 @@ mod test {
             a2.inner.children.values().next().unwrap().tag,
             MemberTag::Delete
         );
+
+        assert!(a.inner.children.values().next().unwrap().member.is_none());
+        assert!(a2.inner.children.values().next().unwrap().member.is_none());
         assert_eq!(a.inner.children, a2.inner.children);
     }
 }

@@ -43,17 +43,17 @@ impl MemberTag {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[frb(opaque)]
 pub struct AppMember {
-    member: CircleOr,
+    member: Option<CircleOr>,
     tag: MemberTag,
 }
 
 impl AppMember {
-    fn get_id(&self) -> &'_ [u8] {
-        self.member.get_id()
-    }
-
     fn as_read<'a>(&'a self) -> impl std::io::Read + Send + Sync + 'a {
-        self.member.as_bytes().chain(self.tag.as_bytes())
+        self.member
+            .as_ref()
+            .map(|v| v.as_bytes())
+            .unwrap_or(&[])
+            .chain(self.tag.as_bytes())
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -107,7 +107,8 @@ impl CircleApp {
         self.inner
             .children
             .values()
-            .any(|v| v.member.is_member(user))
+            .flat_map(|v| v.member.as_ref())
+            .any(|v| v.is_member(user))
     }
 
     fn to_read<'a>(&'a self) -> impl std::io::Read + Send + Sync + 'a {
@@ -137,25 +138,11 @@ impl CircleApp {
         self.inner.children.insert(
             circle.id.as_bytes().to_owned(),
             AppMember {
-                member: CircleOr::Circle(circle),
+                member: Some(CircleOr::Circle(circle)),
                 tag,
             },
         );
         self.resign()
-    }
-
-    pub fn add_members(&mut self, members: Vec<AppMember>) -> anyhow::Result<()> {
-        for member in members {
-            self.inner
-                .children
-                .insert(member.get_id().to_owned(), member);
-        }
-        self.resign()
-    }
-
-    pub fn set_members(&mut self, members: Vec<AppMember>) -> anyhow::Result<()> {
-        self.inner.children.clear();
-        self.add_members(members)
     }
 
     pub fn merge_both(&mut self, other: &mut CircleApp) -> anyhow::Result<()> {
@@ -170,7 +157,9 @@ impl CircleApp {
                     (MemberTag::Delete, MemberTag::Delete) => (),
                     (MemberTag::Delete, _) => {}
                     (_, MemberTag::Delete) => {
-                        ours.get_mut().tag = MemberTag::Delete;
+                        let ours = ours.get_mut();
+                        ours.tag = MemberTag::Delete;
+                        ours.member = None;
                     }
                     (MemberTag::Overwrite, MemberTag::Overwrite) => {
                         // TODO: how to handle this
@@ -182,7 +171,7 @@ impl CircleApp {
                     (MemberTag::Merge, MemberTag::Merge) => {
                         // if the id is the same, we have the same user or the same circle,
                         // but apps must be merged
-                        if let (CircleOr::App(ours), CircleOr::App(theirs)) =
+                        if let (Some(CircleOr::App(ours)), Some(CircleOr::App(theirs))) =
                             (&mut ours.get_mut().member, &entry.member)
                         {
                             ours.merge(theirs)?;

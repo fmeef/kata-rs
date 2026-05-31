@@ -182,11 +182,13 @@ impl CircleApp {
                     vacent.insert(entry.clone());
                 }
             }
-
             // match (entry.member, entry.tag) {
             //     (CircleOr::App(app), MemberTag::Merge)
             // }
         }
+
+        self.resign()?;
+        other.resign()?;
         Ok(())
     }
 }
@@ -272,6 +274,26 @@ mod test {
 
         let a = app.create_app(author.clone()).unwrap();
         let res = app.verify_app(&a).unwrap();
+        assert!(res);
+    }
+
+    #[test]
+    fn merge_apps() {
+        let service = PgpApp::create(test_config("app")).unwrap();
+
+        let key = service
+            .generate_key("test@example.com".to_owned())
+            .generate()
+            .unwrap();
+
+        let author = key.cert.fingerprint;
+
+        let mut a = service.create_app(author.clone()).unwrap();
+        let mut a2 = service.create_app(author.clone()).unwrap();
+        a.merge(&mut a2).unwrap();
+        let res = service.verify_app(&a).unwrap();
+        assert!(res);
+        let res = service.verify_app(&a2).unwrap();
         assert!(res);
     }
 }

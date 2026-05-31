@@ -345,12 +345,47 @@ mod test {
         let circ = Circle::create(vec![]).unwrap();
         let mut a2 = service.create_app(author.clone()).unwrap();
         a2.add_circle(circ, MemberTag::Merge).unwrap();
-        a.merge(&a2).unwrap();
+        a.merge_both(&mut a2).unwrap();
         let res = service.verify_app(&a).unwrap();
         assert!(res);
         let res = service.verify_app(&a2).unwrap();
         assert!(res);
 
+        assert_eq!(a.inner.children.len(), 1);
+        assert_eq!(a.inner.children.len(), 1);
+        assert_eq!(a.inner.children, a2.inner.children);
+    }
+
+    #[test]
+    fn merge_apps_delete() {
+        let service = PgpApp::create(test_config("app")).unwrap();
+
+        let key = service
+            .generate_key("test@example.com".to_owned())
+            .generate()
+            .unwrap();
+
+        let author = key.cert.fingerprint;
+
+        let mut a = service.create_app(author.clone()).unwrap();
+        let circ = Circle::create(vec![]).unwrap();
+        let mut a2 = service.create_app(author.clone()).unwrap();
+        a2.add_circle(circ, MemberTag::Delete).unwrap();
+        a.merge_both(&mut a2).unwrap();
+        let res = service.verify_app(&a).unwrap();
+        assert!(res);
+        let res = service.verify_app(&a2).unwrap();
+        assert!(res);
+        assert_eq!(a.inner.children.len(), 1);
+        assert_eq!(a.inner.children.len(), 1);
+        assert_eq!(
+            a.inner.children.values().next().unwrap().tag,
+            MemberTag::Delete
+        );
+        assert_eq!(
+            a2.inner.children.values().next().unwrap().tag,
+            MemberTag::Delete
+        );
         assert_eq!(a.inner.children, a2.inner.children);
     }
 }

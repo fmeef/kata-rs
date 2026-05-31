@@ -13,7 +13,7 @@ use std::{
 };
 
 use crate::api::{
-    pgp::{sign::PgpAppVerifier, UserHandle, POLICY},
+    pgp::{circles::CircleOr, sign::PgpAppVerifier, UserHandle, POLICY},
     PgpApp,
 };
 
@@ -23,28 +23,12 @@ pub struct CircleAuthor {
     pub sig: Vec<u8>,
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
-#[frb(non_opaque)]
-pub enum CircleOr {
-    Circle(Circle),
-    User(UserHandle),
-}
-
-impl CircleOr {
-    fn as_bytes(&self) -> &'_ [u8] {
-        match self {
-            Self::Circle(Circle { id, .. }) => id.as_bytes(),
-            Self::User(user) => user.as_bytes(),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Clone, PartialEq, PartialOrd, Eq, Ord)]
 #[frb(opaque)]
 pub struct Circle {
-    author: Option<CircleAuthor>,
-    members: BTreeSet<CircleOr>,
-    id: UserHandle,
+    pub(crate) author: Option<CircleAuthor>,
+    pub(crate) members: BTreeSet<CircleOr>,
+    pub(crate) id: UserHandle,
 }
 
 impl Circle {
@@ -74,6 +58,7 @@ impl CircleOr {
         match self {
             Self::Circle(c) => c.is_member(user),
             Self::User(u) => u == user,
+            Self::App(u) => u.is_member(user),
         }
     }
 }

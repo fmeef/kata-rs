@@ -60,6 +60,26 @@ pub struct PgpApp {
     pub(crate) pgp: PgpService,
 }
 
+// impl PartialEq for PgpApp {
+//     fn eq(&self, _: &Self) -> bool {
+//         true
+//     }
+// }
+
+// impl PartialOrd for PgpApp {
+//     fn partial_cmp(&self, _: &Self) -> Option<std::cmp::Ordering> {
+//         Some(std::cmp::Ordering::Equal)
+//     }
+// }
+
+// impl Ord for PgpApp {
+//     fn cmp(&self, _: &Self) -> std::cmp::Ordering {
+//         std::cmp::Ordering::Equal
+//     }
+// }
+
+// impl Eq for PgpApp {}
+
 #[cfg(test)]
 #[derive(Clone)]
 pub struct PgpAppTest {

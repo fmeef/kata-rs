@@ -9,6 +9,7 @@ pub mod connection;
 pub mod entities;
 pub mod migrations;
 pub mod store;
+pub(crate) mod utils;
 
 pub enum KeyHandle {
     KeyId(String),

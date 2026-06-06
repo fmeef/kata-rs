@@ -15,13 +15,18 @@ use std::io::Read;
 
 use crate::{
     api::{
+        db::{
+            connection::Crud,
+            store::{CircleData, CircleMembersData},
+        },
         pgp::{
-            circles::{circle::Circle, CircleOr},
+            circles::{circle::Circle, CircleEntry, CircleLike, CircleOr},
             sign::PgpAppVerifier,
             UserHandle, POLICY,
         },
-        PgpApp,
+        PgpApp, SqliteDb,
     },
+    error::{InternalErr, Result},
     frb_generated::StreamSink,
 };
 
@@ -41,9 +46,17 @@ impl MemberTag {
             Self::Delete => &[3],
         }
     }
+
+    fn as_str(&self) -> &str {
+        match self {
+            Self::Delete => "delete",
+            Self::Merge => "merge",
+            Self::Overwrite => "overwrite",
+        }
+    }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[frb(non_opaque)]
 pub struct AppMember {
     pub member: Option<CircleOr>,
@@ -59,7 +72,8 @@ impl AppMember {
             .chain(self.tag.as_bytes())
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[frb(opaque)]
 pub(crate) struct CircleAppInner {
     pub(crate) owner: UserHandle,
@@ -67,11 +81,13 @@ pub(crate) struct CircleAppInner {
     pub(crate) sig: Vec<u8>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[frb(opaque)]
 pub struct CircleApp {
+    #[serde(flatten)]
     pub(crate) inner: CircleAppInner,
-    pgp: PgpApp,
+    #[serde(deserialize_with = "none", skip)]
+    pgp: Option<PgpApp>,
 }
 
 impl PartialEq for CircleApp {
@@ -94,7 +110,85 @@ impl Ord for CircleApp {
     }
 }
 
+impl CircleLike for CircleApp {
+    fn iter_members(&self, sink: StreamSink<CircleEntry>) {
+        for (id, member) in self.inner.children.iter() {
+            let id = UserHandle::RawBytes(id.clone());
+            sink.add(CircleEntry::from_app_member(member.clone(), id))
+                .unwrap();
+        }
+    }
+
+    fn consume_members(self) -> Vec<CircleEntry> {
+        self.inner
+            .children
+            .into_iter()
+            .map(|(k, v)| CircleEntry::from_app_member(v, UserHandle::RawBytes(k)))
+            .collect()
+    }
+
+    fn get_member(&self, id: UserHandle) -> Option<CircleEntry> {
+        self.inner
+            .children
+            .get(id.as_bytes())
+            .cloned()
+            .map(|v| CircleEntry::from_app_member(v, id))
+    }
+
+    fn verify(&self) -> anyhow::Result<bool> {
+        let res = self
+            .pgp
+            .as_ref()
+            .ok_or(InternalErr::MissingPgpApp)?
+            .verify_app(self)
+            .is_ok();
+        Ok(res)
+    }
+}
+
 impl CircleApp {
+    pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
+        let entity = CircleData {
+            id: self.inner.owner.name(),
+            circle_type: "app".to_owned(),
+            author: Some(self.inner.owner.name()),
+            sig: Some(self.inner.sig.clone()),
+        };
+        entity.insert(db)?;
+        for member in self.inner.children.values() {
+            if let Some(ref m) = member.member {
+                m.to_db(db)?;
+                let entity = CircleMembersData {
+                    circle_member_id: None,
+                    member_id: m.id_hex(),
+                    parent_id: self.inner.owner.name(),
+                    tag: Some(member.tag.as_str().to_owned()),
+                };
+
+                entity.insert(db)?
+            }
+        }
+        Ok(())
+    }
+
+    pub(crate) fn new_empty(author: Option<UserHandle>, sig: Option<Vec<u8>>) -> Result<Self> {
+        let (owner, sig) = match (author, sig) {
+            (Some(owner), Some(sig)) => (owner, sig),
+            _ => (UserHandle::RawBytes(vec![]), vec![]),
+        };
+
+        let res = Self {
+            inner: CircleAppInner {
+                owner,
+                children: BTreeMap::new(),
+                sig,
+            },
+            pgp: None,
+        };
+
+        Ok(res)
+    }
+
     fn tag_reader<'a>(&'a self) -> Box<dyn std::io::Read + Send + Sync + 'a> {
         let v: &[u8] = &[];
         for (i, tag) in self.inner.children.values().enumerate() {
@@ -114,14 +208,12 @@ impl CircleApp {
             .any(|v| v.is_member(user))
     }
 
-    fn to_read<'a>(&'a self) -> impl std::io::Read + Send + Sync + 'a {
-        self.inner.owner.as_bytes().chain(self.tag_reader())
+    pub fn set_pgp(&mut self, app: PgpApp) {
+        self.pgp = Some(app);
     }
 
-    pub fn iter_members(&self, sink: StreamSink<AppMember>) {
-        for (_, member) in self.inner.children.iter() {
-            sink.add(member.clone()).unwrap();
-        }
+    fn to_read<'a>(&'a self) -> impl std::io::Read + Send + Sync + 'a {
+        self.inner.owner.as_bytes().chain(self.tag_reader())
     }
 
     fn resign(&mut self) -> anyhow::Result<()> {
@@ -129,6 +221,8 @@ impl CircleApp {
         {
             let cert = self
                 .pgp
+                .as_ref()
+                .ok_or(InternalErr::MissingPgpApp)?
                 .configured_privkey(&self.inner.owner, |v| v.for_signing())?;
 
             let message = Message::new(&mut out);
@@ -145,7 +239,7 @@ impl CircleApp {
 
     pub fn add_circle(&mut self, circle: Circle, tag: MemberTag) -> anyhow::Result<()> {
         self.inner.children.insert(
-            circle.id.as_bytes().to_owned(),
+            circle.inner.id.as_bytes().to_owned(),
             AppMember {
                 member: match tag {
                     MemberTag::Delete => None,
@@ -277,7 +371,7 @@ impl PgpApp {
                 children,
                 sig: out,
             },
-            pgp: self.clone(),
+            pgp: Some(self.clone()),
         })
     }
 }
@@ -285,10 +379,7 @@ impl PgpApp {
 #[cfg(test)]
 mod test {
     use crate::api::{
-        pgp::{
-            circles::{app::MemberTag, circle::Circle, CircleOr},
-            test_config,
-        },
+        pgp::{circles::app::MemberTag, test_config},
         PgpApp, PgpAppTrait,
     };
 
@@ -374,8 +465,8 @@ mod test {
         let author = key.cert.fingerprint;
 
         let mut a = service.create_app(author.clone()).unwrap();
-        let circ = Circle::create(vec![]).unwrap();
         let mut a2 = service.create_app(author.clone()).unwrap();
+        let circ = service.create_circle(vec![]).unwrap();
         a2.add_circle(circ, MemberTag::Merge).unwrap();
         a.merge_both(&mut a2).unwrap();
         let res = service.verify_app(&a).unwrap();
@@ -400,7 +491,7 @@ mod test {
         let author = key.cert.fingerprint;
 
         let mut a = service.create_app(author.clone()).unwrap();
-        let circ = Circle::create(vec![]).unwrap();
+        let circ = service.create_circle(vec![]).unwrap();
         let mut a2 = service.create_app(author.clone()).unwrap();
         a2.add_circle(circ, MemberTag::Delete).unwrap();
         a.merge_both(&mut a2).unwrap();

@@ -40,6 +40,8 @@ use crate::api::db::*;
 use crate::api::pgp::cert::*;
 use crate::api::pgp::circles::app::*;
 use crate::api::pgp::circles::circle::*;
+use crate::api::pgp::circles::CircleLike;
+use crate::api::pgp::circles::*;
 use crate::api::pgp::fingerprint::visual_key::*;
 use crate::api::pgp::import::PgpImport;
 use crate::api::pgp::import::*;
@@ -62,7 +64,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1458341658;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1895656912;
 
 // Section: executor
 
@@ -241,6 +243,95 @@ fn wire__crate__api__pgp__circles__app__CircleApp_add_user_impl(
         },
     )
 }
+fn wire__crate__api__pgp__circles__app__CircleApp_consume_members_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleApp_consume_members",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <CircleApp>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok(
+                        crate::api::pgp::circles::app::CircleApp::consume_members(api_that),
+                    )?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__app__CircleApp_get_member_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleApp_get_member",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleApp>,
+            >>::sse_decode(&mut deserializer);
+            let api_id = <UserHandle>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let mut api_that_guard = None;
+                    let decode_indices_ =
+                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_that, 0, false,
+                            ),
+                        ]);
+                    for i in decode_indices_ {
+                        match i {
+                            0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                            _ => unreachable!(),
+                        }
+                    }
+                    let api_that_guard = api_that_guard.unwrap();
+                    let output_ok =
+                        Result::<_, ()>::Ok(crate::api::pgp::circles::app::CircleApp::get_member(
+                            &*api_that_guard,
+                            api_id,
+                        ))?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__pgp__circles__app__CircleApp_is_member_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -328,10 +419,10 @@ fn wire__crate__api__pgp__circles__app__CircleApp_iter_members_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleApp>,
             >>::sse_decode(&mut deserializer);
-            let api_sink = <StreamSink<
-                crate::api::pgp::circles::app::AppMember,
-                flutter_rust_bridge::for_generated::SseCodec,
-            >>::sse_decode(&mut deserializer);
+            let api_sink =
+                <StreamSink<CircleEntry, flutter_rust_bridge::for_generated::SseCodec>>::sse_decode(
+                    &mut deserializer,
+                );
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, ()>((move || {
@@ -486,6 +577,178 @@ fn wire__crate__api__pgp__circles__app__CircleApp_merge_both_impl(
                             &mut *api_that_guard,
                             &mut *api_other_guard,
                         )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__app__CircleApp_set_pgp_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleApp_set_pgp",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleApp>,
+            >>::sse_decode(&mut deserializer);
+            let api_app = <PgpApp>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let mut api_that_guard = None;
+                    let decode_indices_ =
+                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_that, 0, true,
+                            ),
+                        ]);
+                    for i in decode_indices_ {
+                        match i {
+                            0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
+                            _ => unreachable!(),
+                        }
+                    }
+                    let mut api_that_guard = api_that_guard.unwrap();
+                    let output_ok = Result::<_, ()>::Ok({
+                        crate::api::pgp::circles::app::CircleApp::set_pgp(
+                            &mut *api_that_guard,
+                            api_app,
+                        );
+                    })?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__app__CircleApp_to_db_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleApp_to_db",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleApp>,
+            >>::sse_decode(&mut deserializer);
+            let api_db = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let mut api_db_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_db, 1, false,
+                                    ),
+                                ],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => api_db_guard = Some(api_db.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let api_db_guard = api_db_guard.unwrap();
+                        let output_ok = crate::api::pgp::circles::app::CircleApp::to_db(
+                            &*api_that_guard,
+                            &*api_db_guard,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__app__CircleApp_verify_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleApp_verify",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleApp>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok =
+                            crate::api::pgp::circles::app::CircleApp::verify(&*api_that_guard)?;
                         Ok(output_ok)
                     })(),
                 )
@@ -687,7 +950,7 @@ fn wire__crate__api__pgp__circles__circle__CircleAuthor_auto_accessor_set_sig_im
         },
     )
 }
-fn wire__crate__api__pgp__circles__circle__Circle_create_impl(
+fn wire__crate__api__db__store__CircleData_delete_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -695,7 +958,7 @@ fn wire__crate__api__pgp__circles__circle__Circle_create_impl(
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "Circle_create",
+            debug_name: "CircleData_delete",
             port: Some(port_),
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
@@ -709,15 +972,1637 @@ fn wire__crate__api__pgp__circles__circle__Circle_create_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_keys = <Vec<crate::api::pgp::circles::CircleOr>>::sse_decode(&mut deserializer);
+            let api_that = <CircleData>::sse_decode(&mut deserializer);
+            let api_conn = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || {
-                        let output_ok = crate::api::pgp::circles::circle::Circle::create(api_keys)?;
+                        let mut api_conn_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_conn, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_conn_guard = Some(api_conn.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_conn_guard = api_conn_guard.unwrap();
+                        let output_ok =
+                            crate::api::db::store::CircleData::delete(api_that, &*api_conn_guard)?;
                         Ok(output_ok)
                     })(),
                 )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleData_has_params_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleData_has_params",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok =
+                        Result::<_, ()>::Ok(crate::api::db::store::CircleData::has_params())?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleData_insert_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleData_insert",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleData>,
+            >>::sse_decode(&mut deserializer);
+            let api_conn = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let mut api_conn_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_conn, 1, false,
+                                    ),
+                                ],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => api_conn_guard = Some(api_conn.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let api_conn_guard = api_conn_guard.unwrap();
+                        let output_ok = crate::api::db::store::CircleData::insert(
+                            &*api_that_guard,
+                            &*api_conn_guard,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleData_insert_on_conflict_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleData_insert_on_conflict",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleData>,
+            >>::sse_decode(&mut deserializer);
+            let api_conn = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            let api_on_conflict =
+                <crate::api::db::connection::OnConflict>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let mut api_conn_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_conn, 1, false,
+                                    ),
+                                ],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => api_conn_guard = Some(api_conn.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let api_conn_guard = api_conn_guard.unwrap();
+                        let output_ok = crate::api::db::store::CircleData::insert_on_conflict(
+                            &*api_that_guard,
+                            &*api_conn_guard,
+                            api_on_conflict,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleData_is_entity_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleData_is_entity",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok =
+                        Result::<_, ()>::Ok(crate::api::db::store::CircleData::is_entity())?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleData_update_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleData_update",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleData>,
+            >>::sse_decode(&mut deserializer);
+            let api_conn = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let mut api_conn_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_conn, 1, false,
+                                    ),
+                                ],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => api_conn_guard = Some(api_conn.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let api_conn_guard = api_conn_guard.unwrap();
+                        let output_ok = crate::api::db::store::CircleData::update(
+                            &*api_that_guard,
+                            &*api_conn_guard,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__CircleEntry_auto_accessor_get_content_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleEntry_auto_accessor_get_content",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleEntry>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, false,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                        _ => unreachable!(),
+                    }
+                }
+                let api_that_guard = api_that_guard.unwrap();
+                let output_ok = Result::<_, ()>::Ok(api_that_guard.content.clone())?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__CircleEntry_auto_accessor_get_id_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleEntry_auto_accessor_get_id",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleEntry>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, false,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                        _ => unreachable!(),
+                    }
+                }
+                let api_that_guard = api_that_guard.unwrap();
+                let output_ok = Result::<_, ()>::Ok(api_that_guard.id.clone())?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__CircleEntry_auto_accessor_get_tag_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleEntry_auto_accessor_get_tag",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleEntry>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, false,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                        _ => unreachable!(),
+                    }
+                }
+                let api_that_guard = api_that_guard.unwrap();
+                let output_ok = Result::<_, ()>::Ok(api_that_guard.tag.clone())?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__CircleEntry_auto_accessor_set_content_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleEntry_auto_accessor_set_content",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleEntry>,
+            >>::sse_decode(&mut deserializer);
+            let api_content =
+                <Option<crate::api::pgp::circles::CircleOr>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, true,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
+                        _ => unreachable!(),
+                    }
+                }
+                let mut api_that_guard = api_that_guard.unwrap();
+                let output_ok = Result::<_, ()>::Ok({
+                    {
+                        api_that_guard.content = api_content;
+                    };
+                })?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__CircleEntry_auto_accessor_set_id_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleEntry_auto_accessor_set_id",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleEntry>,
+            >>::sse_decode(&mut deserializer);
+            let api_id = <UserHandle>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, true,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
+                        _ => unreachable!(),
+                    }
+                }
+                let mut api_that_guard = api_that_guard.unwrap();
+                let output_ok = Result::<_, ()>::Ok({
+                    {
+                        api_that_guard.id = api_id;
+                    };
+                })?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__CircleEntry_auto_accessor_set_tag_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleEntry_auto_accessor_set_tag",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleEntry>,
+            >>::sse_decode(&mut deserializer);
+            let api_tag =
+                <Option<crate::api::pgp::circles::app::MemberTag>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, true,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
+                        _ => unreachable!(),
+                    }
+                }
+                let mut api_that_guard = api_that_guard.unwrap();
+                let output_ok = Result::<_, ()>::Ok({
+                    {
+                        api_that_guard.tag = api_tag;
+                    };
+                })?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleMembersData_delete_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleMembersData_delete",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <CircleMembersData>::sse_decode(&mut deserializer);
+            let api_conn = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_conn_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_conn, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_conn_guard = Some(api_conn.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_conn_guard = api_conn_guard.unwrap();
+                        let output_ok = crate::api::db::store::CircleMembersData::delete(
+                            api_that,
+                            &*api_conn_guard,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleMembersData_has_params_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleMembersData_has_params",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok(
+                        crate::api::db::store::CircleMembersData::has_params(),
+                    )?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleMembersData_insert_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleMembersData_insert",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleMembersData>,
+            >>::sse_decode(&mut deserializer);
+            let api_conn = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let mut api_conn_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_conn, 1, false,
+                                    ),
+                                ],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => api_conn_guard = Some(api_conn.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let api_conn_guard = api_conn_guard.unwrap();
+                        let output_ok = crate::api::db::store::CircleMembersData::insert(
+                            &*api_that_guard,
+                            &*api_conn_guard,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleMembersData_insert_on_conflict_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleMembersData_insert_on_conflict",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleMembersData>,
+            >>::sse_decode(&mut deserializer);
+            let api_conn = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            let api_on_conflict =
+                <crate::api::db::connection::OnConflict>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let mut api_conn_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_conn, 1, false,
+                                    ),
+                                ],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => api_conn_guard = Some(api_conn.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let api_conn_guard = api_conn_guard.unwrap();
+                        let output_ok =
+                            crate::api::db::store::CircleMembersData::insert_on_conflict(
+                                &*api_that_guard,
+                                &*api_conn_guard,
+                                api_on_conflict,
+                            )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleMembersData_is_entity_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleMembersData_is_entity",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok =
+                        Result::<_, ()>::Ok(crate::api::db::store::CircleMembersData::is_entity())?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleMembersData_update_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleMembersData_update",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleMembersData>,
+            >>::sse_decode(&mut deserializer);
+            let api_conn = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let mut api_conn_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_conn, 1, false,
+                                    ),
+                                ],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => api_conn_guard = Some(api_conn.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let api_conn_guard = api_conn_guard.unwrap();
+                        let output_ok = crate::api::db::store::CircleMembersData::update(
+                            &*api_that_guard,
+                            &*api_conn_guard,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleWithMembers_delete_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleWithMembers_delete",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <CircleWithMembers>::sse_decode(&mut deserializer);
+            let api_conn = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_conn_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_conn, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_conn_guard = Some(api_conn.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_conn_guard = api_conn_guard.unwrap();
+                        let output_ok = crate::api::db::store::CircleWithMembers::delete(
+                            api_that,
+                            &*api_conn_guard,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleWithMembers_get_author_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleWithMembers_get_author",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok =
+                            crate::api::db::store::CircleWithMembers::get_author(&*api_that_guard)?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleWithMembers_get_id_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleWithMembers_get_id",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok =
+                            crate::api::db::store::CircleWithMembers::get_id(&*api_that_guard)?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleWithMembers_get_id_userhandle_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleWithMembers_get_id_userhandle",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok =
+                            crate::api::db::store::CircleWithMembers::get_id_userhandle(
+                                &*api_that_guard,
+                            )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleWithMembers_get_member_id_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleWithMembers_get_member_id",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok = crate::api::db::store::CircleWithMembers::get_member_id(
+                            &*api_that_guard,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleWithMembers_get_parent_id_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleWithMembers_get_parent_id",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok = crate::api::db::store::CircleWithMembers::get_parent_id(
+                            &*api_that_guard,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleWithMembers_get_tag_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleWithMembers_get_tag",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok =
+                            crate::api::db::store::CircleWithMembers::get_tag(&*api_that_guard)?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleWithMembers_has_params_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleWithMembers_has_params",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok(
+                        crate::api::db::store::CircleWithMembers::has_params(),
+                    )?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleWithMembers_insert_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleWithMembers_insert",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>,
+            >>::sse_decode(&mut deserializer);
+            let api_conn = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let mut api_conn_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_conn, 1, false,
+                                    ),
+                                ],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => api_conn_guard = Some(api_conn.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let api_conn_guard = api_conn_guard.unwrap();
+                        let output_ok = crate::api::db::store::CircleWithMembers::insert(
+                            &*api_that_guard,
+                            &*api_conn_guard,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleWithMembers_insert_on_conflict_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleWithMembers_insert_on_conflict",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>,
+            >>::sse_decode(&mut deserializer);
+            let api_conn = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            let api_on_conflict =
+                <crate::api::db::connection::OnConflict>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let mut api_conn_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_conn, 1, false,
+                                    ),
+                                ],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => api_conn_guard = Some(api_conn.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let api_conn_guard = api_conn_guard.unwrap();
+                        let output_ok =
+                            crate::api::db::store::CircleWithMembers::insert_on_conflict(
+                                &*api_that_guard,
+                                &*api_conn_guard,
+                                api_on_conflict,
+                            )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleWithMembers_is_entity_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleWithMembers_is_entity",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok =
+                        Result::<_, ()>::Ok(crate::api::db::store::CircleWithMembers::is_entity())?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__CircleWithMembers_update_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "CircleWithMembers_update",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>,
+            >>::sse_decode(&mut deserializer);
+            let api_conn = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let mut api_conn_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_conn, 1, false,
+                                    ),
+                                ],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => api_conn_guard = Some(api_conn.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let api_conn_guard = api_conn_guard.unwrap();
+                        let output_ok = crate::api::db::store::CircleWithMembers::update(
+                            &*api_that_guard,
+                            &*api_conn_guard,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__circle__Circle_consume_members_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "Circle_consume_members",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <Circle>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok(
+                        crate::api::pgp::circles::circle::Circle::consume_members(api_that),
+                    )?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__circle__Circle_get_member_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "Circle_get_member",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Circle>,
+            >>::sse_decode(&mut deserializer);
+            let api_id = <UserHandle>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let mut api_that_guard = None;
+                    let decode_indices_ =
+                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_that, 0, false,
+                            ),
+                        ]);
+                    for i in decode_indices_ {
+                        match i {
+                            0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                            _ => unreachable!(),
+                        }
+                    }
+                    let api_that_guard = api_that_guard.unwrap();
+                    let output_ok =
+                        Result::<_, ()>::Ok(crate::api::pgp::circles::circle::Circle::get_member(
+                            &*api_that_guard,
+                            api_id,
+                        ))?;
+                    Ok(output_ok)
+                })())
             }
         },
     )
@@ -778,6 +2663,287 @@ fn wire__crate__api__pgp__circles__circle__Circle_is_member_impl(
                             &*api_that_guard,
                             &*api_user_guard,
                         ))?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__circle__Circle_iter_members_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "Circle_iter_members",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Circle>,
+            >>::sse_decode(&mut deserializer);
+            let api_sink =
+                <StreamSink<CircleEntry, flutter_rust_bridge::for_generated::SseCodec>>::sse_decode(
+                    &mut deserializer,
+                );
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let mut api_that_guard = None;
+                    let decode_indices_ =
+                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_that, 0, false,
+                            ),
+                        ]);
+                    for i in decode_indices_ {
+                        match i {
+                            0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                            _ => unreachable!(),
+                        }
+                    }
+                    let api_that_guard = api_that_guard.unwrap();
+                    let output_ok = Result::<_, ()>::Ok({
+                        crate::api::pgp::circles::circle::Circle::iter_members(
+                            &*api_that_guard,
+                            api_sink,
+                        );
+                    })?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__circle__Circle_set_pgp_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "Circle_set_pgp",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Circle>,
+            >>::sse_decode(&mut deserializer);
+            let api_pgp = <PgpApp>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let mut api_that_guard = None;
+                    let decode_indices_ =
+                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_that, 0, true,
+                            ),
+                        ]);
+                    for i in decode_indices_ {
+                        match i {
+                            0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
+                            _ => unreachable!(),
+                        }
+                    }
+                    let mut api_that_guard = api_that_guard.unwrap();
+                    let output_ok = Result::<_, ()>::Ok({
+                        crate::api::pgp::circles::circle::Circle::set_pgp(
+                            &mut *api_that_guard,
+                            api_pgp,
+                        );
+                    })?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__circle__Circle_to_db_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "Circle_to_db",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Circle>,
+            >>::sse_decode(&mut deserializer);
+            let api_db = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let mut api_db_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_db, 1, false,
+                                    ),
+                                ],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => api_db_guard = Some(api_db.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let api_db_guard = api_db_guard.unwrap();
+                        let output_ok = crate::api::pgp::circles::circle::Circle::to_db(
+                            &*api_that_guard,
+                            &*api_db_guard,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__circle__Circle_verify_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "Circle_verify",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Circle>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok =
+                            crate::api::pgp::circles::circle::Circle::verify(&*api_that_guard)?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__store__DbMembers_id_hex_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "DbMembers_id_hex",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<DbMembers>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let mut api_that_guard = None;
+                    let decode_indices_ =
+                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_that, 0, false,
+                            ),
+                        ]);
+                    for i in decode_indices_ {
+                        match i {
+                            0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                            _ => unreachable!(),
+                        }
+                    }
+                    let api_that_guard = api_that_guard.unwrap();
+                    let output_ok = Result::<_, ()>::Ok(crate::api::db::store::DbMembers::id_hex(
+                        &*api_that_guard,
+                    ))?;
                     Ok(output_ok)
                 })())
             }
@@ -2481,6 +4647,59 @@ fn wire__crate__api__PgpApp_create_app_impl(
                         let api_that_guard = api_that_guard.unwrap();
                         let output_ok =
                             crate::api::PgpApp::create_app(&*api_that_guard, api_owner)?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__PgpApp_create_circle_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "PgpApp_create_circle",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
+            >>::sse_decode(&mut deserializer);
+            let api_keys = <Vec<crate::api::pgp::circles::CircleOr>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok =
+                            crate::api::PgpApp::create_circle(&*api_that_guard, api_keys)?;
                         Ok(output_ok)
                     })(),
                 )
@@ -4486,27 +6705,41 @@ fn wire__crate__api__PgpApp_verify_circle_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
             >>::sse_decode(&mut deserializer);
-            let api_circle = <Circle>::sse_decode(&mut deserializer);
+            let api_circle = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Circle>,
+            >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || {
                         let mut api_that_guard = None;
+                        let mut api_circle_guard = None;
                         let decode_indices_ =
                             flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, false,
-                                )],
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_circle,
+                                        1,
+                                        false,
+                                    ),
+                                ],
                             );
                         for i in decode_indices_ {
                             match i {
                                 0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => api_circle_guard = Some(api_circle.lockable_decode_sync_ref()),
                                 _ => unreachable!(),
                             }
                         }
                         let api_that_guard = api_that_guard.unwrap();
-                        let output_ok =
-                            crate::api::PgpApp::verify_circle(&*api_that_guard, api_circle)?;
+                        let api_circle_guard = api_circle_guard.unwrap();
+                        let output_ok = crate::api::PgpApp::verify_circle(
+                            &*api_that_guard,
+                            &*api_circle_guard,
+                        )?;
                         Ok(output_ok)
                     })(),
                 )
@@ -5714,6 +7947,114 @@ fn wire__crate__api__db__connection__SqliteDb_get_by_userid_impl(
                         let output_ok = crate::api::db::connection::SqliteDb::get_by_userid(
                             &*api_that_guard,
                             &api_userid,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__connection__SqliteDb_get_circle_by_id_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "SqliteDb_get_circle_by_id",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            let api_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok = crate::api::db::connection::SqliteDb::get_circle_by_id(
+                            &*api_that_guard,
+                            &api_id,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__db__connection__SqliteDb_get_circles_join_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "SqliteDb_get_circles_join",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok = crate::api::db::connection::SqliteDb::get_circles_join(
+                            &*api_that_guard,
                         )?;
                         Ok(output_ok)
                     })(),
@@ -7251,6 +9592,69 @@ fn wire__crate__api__pgp__UserHandle_separate_lujvo_or_else_impl(
         },
     )
 }
+fn wire__crate__api__pgp__UserHandle_to_db_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "UserHandle_to_db",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
+            let api_db = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let mut api_db_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, false,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_db, 1, false,
+                                    ),
+                                ],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                1 => api_db_guard = Some(api_db.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let api_db_guard = api_db_guard.unwrap();
+                        let output_ok =
+                            crate::api::pgp::UserHandle::to_db(&*api_that_guard, &*api_db_guard)?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__db__connection__Watcher_watch_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -7274,6 +9678,75 @@ let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decod
         let api_that_guard = api_that_guard.unwrap();
  let output_ok = Result::<_,()>::Ok({ crate::api::db::connection::Watcher::watch(&*api_that_guard, api_table, api_cb); })?;   Ok(output_ok)
                 })()) })
+}
+fn wire__crate__api__pgp__circles__circle_or_from_db_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "circle_or_from_db",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_members = <Vec<CircleWithMembers>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let output_ok = crate::api::pgp::circles::CircleOr::from_db(api_members)?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__circle_or_id_hex_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "circle_or_id_hex",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <crate::api::pgp::circles::CircleOr>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok =
+                        Result::<_, ()>::Ok(crate::api::pgp::circles::CircleOr::id_hex(&api_that))?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
 }
 fn wire__crate__api__pgp__circles__circle_or_is_member_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
@@ -7323,6 +9796,59 @@ fn wire__crate__api__pgp__circles__circle_or_is_member_impl(
                     )?;
                     Ok(output_ok)
                 })())
+            }
+        },
+    )
+}
+fn wire__crate__api__pgp__circles__circle_or_to_db_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "circle_or_to_db",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <crate::api::pgp::circles::CircleOr>::sse_decode(&mut deserializer);
+            let api_db = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_db_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_db, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_db_guard = Some(api_db.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_db_guard = api_db_guard.unwrap();
+                        let output_ok =
+                            crate::api::pgp::circles::CircleOr::to_db(&api_that, &*api_db_guard)?;
+                        Ok(output_ok)
+                    })(),
+                )
             }
         },
     )
@@ -8340,6 +10866,21 @@ flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleAuthor>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
+    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleData>
+);
+flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
+    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleEntry>
+);
+flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
+    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleMembersData>
+);
+flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
+    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>
+);
+flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
+    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<DbMembers>
+);
+flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GenerateCert>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
@@ -8624,6 +11165,56 @@ impl SseDecode for CircleAuthor {
     }
 }
 
+impl SseDecode for CircleData {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <RustOpaqueMoi<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleData>,
+        >>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
+    }
+}
+
+impl SseDecode for CircleEntry {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <RustOpaqueMoi<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleEntry>,
+        >>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
+    }
+}
+
+impl SseDecode for CircleMembersData {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <RustOpaqueMoi<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleMembersData>,
+        >>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
+    }
+}
+
+impl SseDecode for CircleWithMembers {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <RustOpaqueMoi<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>,
+        >>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
+    }
+}
+
+impl SseDecode for DbMembers {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <RustOpaqueMoi<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<DbMembers>,
+        >>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
+    }
+}
+
 impl SseDecode for GenerateCert {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -8822,6 +11413,56 @@ impl SseDecode
 }
 
 impl SseDecode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleData>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <usize>::sse_decode(deserializer);
+        return decode_rust_opaque_moi(inner);
+    }
+}
+
+impl SseDecode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleEntry>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <usize>::sse_decode(deserializer);
+        return decode_rust_opaque_moi(inner);
+    }
+}
+
+impl SseDecode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleMembersData>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <usize>::sse_decode(deserializer);
+        return decode_rust_opaque_moi(inner);
+    }
+}
+
+impl SseDecode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <usize>::sse_decode(deserializer);
+        return decode_rust_opaque_moi(inner);
+    }
+}
+
+impl SseDecode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<DbMembers>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <usize>::sse_decode(deserializer);
+        return decode_rust_opaque_moi(inner);
+    }
+}
+
+impl SseDecode
     for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GenerateCert>>
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -8989,7 +11630,7 @@ impl SseDecode for std::collections::HashSet<crate::api::pgp::wot::path::GraphEd
     }
 }
 
-impl SseDecode for StreamSink<String, flutter_rust_bridge::for_generated::SseCodec> {
+impl SseDecode for StreamSink<CircleEntry, flutter_rust_bridge::for_generated::SseCodec> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <String>::sse_decode(deserializer);
@@ -8997,12 +11638,7 @@ impl SseDecode for StreamSink<String, flutter_rust_bridge::for_generated::SseCod
     }
 }
 
-impl SseDecode
-    for StreamSink<
-        crate::api::pgp::circles::app::AppMember,
-        flutter_rust_bridge::for_generated::SseCodec,
-    >
-{
+impl SseDecode for StreamSink<String, flutter_rust_bridge::for_generated::SseCodec> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <String>::sse_decode(deserializer);
@@ -9036,18 +11672,6 @@ impl SseDecode for uuid::Uuid {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <Vec<u8>>::sse_decode(deserializer);
         return uuid::Uuid::from_slice(&inner).expect("fail to decode uuid");
-    }
-}
-
-impl SseDecode for crate::api::pgp::circles::app::AppMember {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_member = <Option<crate::api::pgp::circles::CircleOr>>::sse_decode(deserializer);
-        let mut var_tag = <crate::api::pgp::circles::app::MemberTag>::sse_decode(deserializer);
-        return crate::api::pgp::circles::app::AppMember {
-            member: var_member,
-            tag: var_tag,
-        };
     }
 }
 
@@ -9209,6 +11833,30 @@ impl SseDecode for crate::api::db::KeyHandle {
                 unimplemented!("");
             }
         }
+    }
+}
+
+impl SseDecode for Vec<CircleEntry> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<CircleEntry>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<CircleWithMembers> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<CircleWithMembers>::sse_decode(deserializer));
+        }
+        return ans_;
     }
 }
 
@@ -9468,6 +12116,17 @@ impl SseDecode for Option<uuid::Uuid> {
     }
 }
 
+impl SseDecode for Option<CircleEntry> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<CircleEntry>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<NewsGroup> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -9479,11 +12138,35 @@ impl SseDecode for Option<NewsGroup> {
     }
 }
 
+impl SseDecode for Option<UserHandle> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<UserHandle>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<crate::api::pgp::circles::CircleOr> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<crate::api::pgp::circles::CircleOr>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::pgp::circles::app::MemberTag> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::pgp::circles::app::MemberTag>::sse_decode(
                 deserializer,
             ));
         } else {
@@ -9857,114 +12540,156 @@ fn pde_ffi_dispatcher_primary_impl(
                         1 => wire__crate__api__pgp__circles__app__CircleApp_add_app_impl(port, ptr, rust_vec_len, data_len),
 2 => wire__crate__api__pgp__circles__app__CircleApp_add_circle_impl(port, ptr, rust_vec_len, data_len),
 3 => wire__crate__api__pgp__circles__app__CircleApp_add_user_impl(port, ptr, rust_vec_len, data_len),
-4 => wire__crate__api__pgp__circles__app__CircleApp_is_member_impl(port, ptr, rust_vec_len, data_len),
-5 => wire__crate__api__pgp__circles__app__CircleApp_iter_members_impl(port, ptr, rust_vec_len, data_len),
-6 => wire__crate__api__pgp__circles__app__CircleApp_merge_impl(port, ptr, rust_vec_len, data_len),
-7 => wire__crate__api__pgp__circles__app__CircleApp_merge_both_impl(port, ptr, rust_vec_len, data_len),
-12 => wire__crate__api__pgp__circles__circle__Circle_create_impl(port, ptr, rust_vec_len, data_len),
-13 => wire__crate__api__pgp__circles__circle__Circle_is_member_impl(port, ptr, rust_vec_len, data_len),
-15 => wire__crate__api__pgp__keys__GenerateCert_generate_impl(port, ptr, rust_vec_len, data_len),
-18 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_apply_or_else_impl(port, ptr, rust_vec_len, data_len),
-21 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_get_identicon_impl(port, ptr, rust_vec_len, data_len),
-41 => wire__crate__api__db__entities__NewsGroup_delete_impl(port, ptr, rust_vec_len, data_len),
-42 => wire__crate__api__db__entities__NewsGroup_has_params_impl(port, ptr, rust_vec_len, data_len),
-43 => wire__crate__api__db__entities__NewsGroup_insert_impl(port, ptr, rust_vec_len, data_len),
-44 => wire__crate__api__db__entities__NewsGroup_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
-45 => wire__crate__api__db__entities__NewsGroup_is_entity_impl(port, ptr, rust_vec_len, data_len),
-46 => wire__crate__api__db__entities__NewsGroup_update_impl(port, ptr, rust_vec_len, data_len),
-47 => wire__crate__api__PgpApp_all_owned_certs_impl(port, ptr, rust_vec_len, data_len),
-48 => wire__crate__api__PgpApp_certifications_of_impl(port, ptr, rust_vec_len, data_len),
-49 => wire__crate__api__PgpApp_certified_userids_impl(port, ptr, rust_vec_len, data_len),
-50 => wire__crate__api__PgpApp_certified_userids_of_impl(port, ptr, rust_vec_len, data_len),
-51 => wire__crate__api__PgpApp_create_impl(port, ptr, rust_vec_len, data_len),
-52 => wire__crate__api__PgpApp_create_app_impl(port, ptr, rust_vec_len, data_len),
-53 => wire__crate__api__PgpApp_create_circle_signed_impl(port, ptr, rust_vec_len, data_len),
-54 => wire__crate__api__PgpApp_delete_cert_impl(port, ptr, rust_vec_len, data_len),
-55 => wire__crate__api__PgpApp_delete_private_key_impl(port, ptr, rust_vec_len, data_len),
-56 => wire__crate__api__PgpApp_export_armor_impl(port, ptr, rust_vec_len, data_len),
-57 => wire__crate__api__PgpApp_export_file_impl(port, ptr, rust_vec_len, data_len),
-58 => wire__crate__api__PgpApp_fill_from_keyserver_impl(port, ptr, rust_vec_len, data_len),
-60 => wire__crate__api__PgpApp_get_cert_by_role_impl(port, ptr, rust_vec_len, data_len),
-62 => wire__crate__api__PgpApp_get_fingerprints_impl(port, ptr, rust_vec_len, data_len),
-63 => wire__crate__api__PgpApp_get_key_from_fingerprint_impl(port, ptr, rust_vec_len, data_len),
-64 => wire__crate__api__PgpApp_get_qr_impl(port, ptr, rust_vec_len, data_len),
-65 => wire__crate__api__PgpApp_get_stub_from_fingerprint_impl(port, ptr, rust_vec_len, data_len),
-67 => wire__crate__api__PgpApp_import_certs_impl(port, ptr, rust_vec_len, data_len),
-68 => wire__crate__api__PgpApp_is_stub_impl(port, ptr, rust_vec_len, data_len),
-69 => wire__crate__api__PgpApp_iter_certs_impl(port, ptr, rust_vec_len, data_len),
-70 => wire__crate__api__PgpApp_iter_certs_search_impl(port, ptr, rust_vec_len, data_len),
-71 => wire__crate__api__PgpApp_iter_certs_search_keyid_impl(port, ptr, rust_vec_len, data_len),
-72 => wire__crate__api__PgpApp_iter_fingerprints_impl(port, ptr, rust_vec_len, data_len),
-73 => wire__crate__api__PgpApp_lookup_synopses_impl(port, ptr, rust_vec_len, data_len),
-74 => wire__crate__api__PgpApp_lookup_synopses_by_email_impl(port, ptr, rust_vec_len, data_len),
-75 => wire__crate__api__PgpApp_lookup_synopses_by_userid_impl(port, ptr, rust_vec_len, data_len),
-76 => wire__crate__api__PgpApp_lookup_synopsis_by_fpr_impl(port, ptr, rust_vec_len, data_len),
-77 => wire__crate__api__PgpApp_mega_flush_impl(port, ptr, rust_vec_len, data_len),
-79 => wire__crate__api__PgpApp_sign_with_trust_level_impl(port, ptr, rust_vec_len, data_len),
-80 => wire__crate__api__PgpApp_synopses_impl(port, ptr, rust_vec_len, data_len),
-81 => wire__crate__api__PgpApp_third_party_certifications_of_impl(port, ptr, rust_vec_len, data_len),
-83 => wire__crate__api__PgpApp_update_cert_impl(port, ptr, rust_vec_len, data_len),
-84 => wire__crate__api__PgpApp_update_role_impl(port, ptr, rust_vec_len, data_len),
-85 => wire__crate__api__PgpApp_upload_to_keyserver_impl(port, ptr, rust_vec_len, data_len),
-86 => wire__crate__api__PgpApp_verify_app_impl(port, ptr, rust_vec_len, data_len),
-87 => wire__crate__api__PgpApp_verify_circle_impl(port, ptr, rust_vec_len, data_len),
-88 => wire__crate__api__PgpApp_verify_qr_all_certs_impl(port, ptr, rust_vec_len, data_len),
-89 => wire__crate__api__db__store__PgpDataCert_delete_impl(port, ptr, rust_vec_len, data_len),
-90 => wire__crate__api__db__store__PgpDataCert_has_params_impl(port, ptr, rust_vec_len, data_len),
-91 => wire__crate__api__db__store__PgpDataCert_insert_impl(port, ptr, rust_vec_len, data_len),
-92 => wire__crate__api__db__store__PgpDataCert_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
-93 => wire__crate__api__db__store__PgpDataCert_is_entity_impl(port, ptr, rust_vec_len, data_len),
-94 => wire__crate__api__db__store__PgpDataCert_update_impl(port, ptr, rust_vec_len, data_len),
-95 => wire__crate__api__pgp__import__PgpImportBytes_accept_impl(port, ptr, rust_vec_len, data_len),
-96 => wire__crate__api__pgp__import__PgpImportBytes_get_packets_impl(port, ptr, rust_vec_len, data_len),
-98 => wire__crate__api__pgp__import__PgpImportFile_get_packets_impl(port, ptr, rust_vec_len, data_len),
-100 => wire__crate__api__pgp__wot__network__SharedNetwork_authenticate_impl(port, ptr, rust_vec_len, data_len),
-101 => wire__crate__api__pgp__wot__network__SharedNetwork_dump_all_impl(port, ptr, rust_vec_len, data_len),
-102 => wire__crate__api__db__connection__SqliteDb_all_certs_impl(port, ptr, rust_vec_len, data_len),
-103 => wire__crate__api__db__connection__SqliteDb_all_owned_certs_impl(port, ptr, rust_vec_len, data_len),
-104 => wire__crate__api__db__connection__SqliteDb_check_online_impl(port, ptr, rust_vec_len, data_len),
-105 => wire__crate__api__db__connection__SqliteDb_clear_role_impl(port, ptr, rust_vec_len, data_len),
-106 => wire__crate__api__db__connection__SqliteDb_delete_by_fingerprint_impl(port, ptr, rust_vec_len, data_len),
-107 => wire__crate__api__db__connection__SqliteDb_get_by_domain_impl(port, ptr, rust_vec_len, data_len),
-108 => wire__crate__api__db__connection__SqliteDb_get_by_email_impl(port, ptr, rust_vec_len, data_len),
-109 => wire__crate__api__db__connection__SqliteDb_get_by_fingerprint_impl(port, ptr, rust_vec_len, data_len),
-110 => wire__crate__api__db__connection__SqliteDb_get_by_id_impl(port, ptr, rust_vec_len, data_len),
-111 => wire__crate__api__db__connection__SqliteDb_get_by_userid_impl(port, ptr, rust_vec_len, data_len),
-112 => wire__crate__api__db__connection__SqliteDb_get_connection_impl(port, ptr, rust_vec_len, data_len),
-113 => wire__crate__api__db__connection__SqliteDb_get_fingerprint_for_role_impl(port, ptr, rust_vec_len, data_len),
-115 => wire__crate__api__db__connection__SqliteDb_grep_by_email_impl(port, ptr, rust_vec_len, data_len),
-116 => wire__crate__api__db__connection__SqliteDb_grep_by_email_anchor_end_impl(port, ptr, rust_vec_len, data_len),
-117 => wire__crate__api__db__connection__SqliteDb_grep_by_email_anchor_start_impl(port, ptr, rust_vec_len, data_len),
-118 => wire__crate__api__db__connection__SqliteDb_grep_by_userid_impl(port, ptr, rust_vec_len, data_len),
-119 => wire__crate__api__db__connection__SqliteDb_grep_by_userid_anchor_end_impl(port, ptr, rust_vec_len, data_len),
-120 => wire__crate__api__db__connection__SqliteDb_grep_by_userid_anchor_start_impl(port, ptr, rust_vec_len, data_len),
-121 => wire__crate__api__db__connection__SqliteDb_insert_group_impl(port, ptr, rust_vec_len, data_len),
-122 => wire__crate__api__db__connection__SqliteDb_is_online_impl(port, ptr, rust_vec_len, data_len),
-125 => wire__crate__api__db__connection__SqliteDb_search_owned_certs_impl(port, ptr, rust_vec_len, data_len),
-126 => wire__crate__api__db__connection__SqliteDb_test_impl(port, ptr, rust_vec_len, data_len),
-127 => wire__crate__api__db__connection__SqliteDb_test_nullable_impl(port, ptr, rust_vec_len, data_len),
-128 => wire__crate__api__db__connection__SqliteDb_test_one_impl(port, ptr, rust_vec_len, data_len),
-129 => wire__crate__api__db__connection__SqliteDb_update_role_impl(port, ptr, rust_vec_len, data_len),
-130 => wire__crate__api__pgp__wot__network__StoreNetwork_authenticate_impl(port, ptr, rust_vec_len, data_len),
-131 => wire__crate__api__pgp__wot__network__StoreNetwork_dump_all_impl(port, ptr, rust_vec_len, data_len),
-198 => wire__crate__api__pgp__UserHandle_identicon_impl(port, ptr, rust_vec_len, data_len),
-205 => wire__crate__api__pgp__circles__circle_or_is_member_impl(port, ptr, rust_vec_len, data_len),
-208 => wire__crate__api__init_logging_impl(port, ptr, rust_vec_len, data_len),
-209 => wire__crate__api__db__store__only_fingerprint_delete_impl(port, ptr, rust_vec_len, data_len),
-210 => wire__crate__api__db__store__only_fingerprint_has_params_impl(port, ptr, rust_vec_len, data_len),
-211 => wire__crate__api__db__store__only_fingerprint_insert_impl(port, ptr, rust_vec_len, data_len),
-212 => wire__crate__api__db__store__only_fingerprint_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
-213 => wire__crate__api__db__store__only_fingerprint_is_entity_impl(port, ptr, rust_vec_len, data_len),
-214 => wire__crate__api__db__store__only_fingerprint_update_impl(port, ptr, rust_vec_len, data_len),
-215 => wire__crate__api__db__store__only_online_delete_impl(port, ptr, rust_vec_len, data_len),
-216 => wire__crate__api__db__store__only_online_has_params_impl(port, ptr, rust_vec_len, data_len),
-217 => wire__crate__api__db__store__only_online_insert_impl(port, ptr, rust_vec_len, data_len),
-218 => wire__crate__api__db__store__only_online_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
-219 => wire__crate__api__db__store__only_online_is_entity_impl(port, ptr, rust_vec_len, data_len),
-220 => wire__crate__api__db__store__only_online_update_impl(port, ptr, rust_vec_len, data_len),
-222 => wire__crate__api__pgp__cert__pgp_cert_stub_sigs_from_bytes_sig_impl(port, ptr, rust_vec_len, data_len),
-224 => wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_sig_impl(port, ptr, rust_vec_len, data_len),
-226 => wire__crate__api__db__migrations__run_migrations_impl(port, ptr, rust_vec_len, data_len),
+4 => wire__crate__api__pgp__circles__app__CircleApp_consume_members_impl(port, ptr, rust_vec_len, data_len),
+5 => wire__crate__api__pgp__circles__app__CircleApp_get_member_impl(port, ptr, rust_vec_len, data_len),
+6 => wire__crate__api__pgp__circles__app__CircleApp_is_member_impl(port, ptr, rust_vec_len, data_len),
+7 => wire__crate__api__pgp__circles__app__CircleApp_iter_members_impl(port, ptr, rust_vec_len, data_len),
+8 => wire__crate__api__pgp__circles__app__CircleApp_merge_impl(port, ptr, rust_vec_len, data_len),
+9 => wire__crate__api__pgp__circles__app__CircleApp_merge_both_impl(port, ptr, rust_vec_len, data_len),
+10 => wire__crate__api__pgp__circles__app__CircleApp_set_pgp_impl(port, ptr, rust_vec_len, data_len),
+11 => wire__crate__api__pgp__circles__app__CircleApp_to_db_impl(port, ptr, rust_vec_len, data_len),
+12 => wire__crate__api__pgp__circles__app__CircleApp_verify_impl(port, ptr, rust_vec_len, data_len),
+17 => wire__crate__api__db__store__CircleData_delete_impl(port, ptr, rust_vec_len, data_len),
+18 => wire__crate__api__db__store__CircleData_has_params_impl(port, ptr, rust_vec_len, data_len),
+19 => wire__crate__api__db__store__CircleData_insert_impl(port, ptr, rust_vec_len, data_len),
+20 => wire__crate__api__db__store__CircleData_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
+21 => wire__crate__api__db__store__CircleData_is_entity_impl(port, ptr, rust_vec_len, data_len),
+22 => wire__crate__api__db__store__CircleData_update_impl(port, ptr, rust_vec_len, data_len),
+29 => wire__crate__api__db__store__CircleMembersData_delete_impl(port, ptr, rust_vec_len, data_len),
+30 => wire__crate__api__db__store__CircleMembersData_has_params_impl(port, ptr, rust_vec_len, data_len),
+31 => wire__crate__api__db__store__CircleMembersData_insert_impl(port, ptr, rust_vec_len, data_len),
+32 => wire__crate__api__db__store__CircleMembersData_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
+33 => wire__crate__api__db__store__CircleMembersData_is_entity_impl(port, ptr, rust_vec_len, data_len),
+34 => wire__crate__api__db__store__CircleMembersData_update_impl(port, ptr, rust_vec_len, data_len),
+35 => wire__crate__api__db__store__CircleWithMembers_delete_impl(port, ptr, rust_vec_len, data_len),
+36 => wire__crate__api__db__store__CircleWithMembers_get_author_impl(port, ptr, rust_vec_len, data_len),
+37 => wire__crate__api__db__store__CircleWithMembers_get_id_impl(port, ptr, rust_vec_len, data_len),
+38 => wire__crate__api__db__store__CircleWithMembers_get_id_userhandle_impl(port, ptr, rust_vec_len, data_len),
+39 => wire__crate__api__db__store__CircleWithMembers_get_member_id_impl(port, ptr, rust_vec_len, data_len),
+40 => wire__crate__api__db__store__CircleWithMembers_get_parent_id_impl(port, ptr, rust_vec_len, data_len),
+41 => wire__crate__api__db__store__CircleWithMembers_get_tag_impl(port, ptr, rust_vec_len, data_len),
+42 => wire__crate__api__db__store__CircleWithMembers_has_params_impl(port, ptr, rust_vec_len, data_len),
+43 => wire__crate__api__db__store__CircleWithMembers_insert_impl(port, ptr, rust_vec_len, data_len),
+44 => wire__crate__api__db__store__CircleWithMembers_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
+45 => wire__crate__api__db__store__CircleWithMembers_is_entity_impl(port, ptr, rust_vec_len, data_len),
+46 => wire__crate__api__db__store__CircleWithMembers_update_impl(port, ptr, rust_vec_len, data_len),
+47 => wire__crate__api__pgp__circles__circle__Circle_consume_members_impl(port, ptr, rust_vec_len, data_len),
+48 => wire__crate__api__pgp__circles__circle__Circle_get_member_impl(port, ptr, rust_vec_len, data_len),
+49 => wire__crate__api__pgp__circles__circle__Circle_is_member_impl(port, ptr, rust_vec_len, data_len),
+50 => wire__crate__api__pgp__circles__circle__Circle_iter_members_impl(port, ptr, rust_vec_len, data_len),
+51 => wire__crate__api__pgp__circles__circle__Circle_set_pgp_impl(port, ptr, rust_vec_len, data_len),
+52 => wire__crate__api__pgp__circles__circle__Circle_to_db_impl(port, ptr, rust_vec_len, data_len),
+53 => wire__crate__api__pgp__circles__circle__Circle_verify_impl(port, ptr, rust_vec_len, data_len),
+54 => wire__crate__api__db__store__DbMembers_id_hex_impl(port, ptr, rust_vec_len, data_len),
+56 => wire__crate__api__pgp__keys__GenerateCert_generate_impl(port, ptr, rust_vec_len, data_len),
+59 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_apply_or_else_impl(port, ptr, rust_vec_len, data_len),
+62 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_get_identicon_impl(port, ptr, rust_vec_len, data_len),
+82 => wire__crate__api__db__entities__NewsGroup_delete_impl(port, ptr, rust_vec_len, data_len),
+83 => wire__crate__api__db__entities__NewsGroup_has_params_impl(port, ptr, rust_vec_len, data_len),
+84 => wire__crate__api__db__entities__NewsGroup_insert_impl(port, ptr, rust_vec_len, data_len),
+85 => wire__crate__api__db__entities__NewsGroup_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
+86 => wire__crate__api__db__entities__NewsGroup_is_entity_impl(port, ptr, rust_vec_len, data_len),
+87 => wire__crate__api__db__entities__NewsGroup_update_impl(port, ptr, rust_vec_len, data_len),
+88 => wire__crate__api__PgpApp_all_owned_certs_impl(port, ptr, rust_vec_len, data_len),
+89 => wire__crate__api__PgpApp_certifications_of_impl(port, ptr, rust_vec_len, data_len),
+90 => wire__crate__api__PgpApp_certified_userids_impl(port, ptr, rust_vec_len, data_len),
+91 => wire__crate__api__PgpApp_certified_userids_of_impl(port, ptr, rust_vec_len, data_len),
+92 => wire__crate__api__PgpApp_create_impl(port, ptr, rust_vec_len, data_len),
+93 => wire__crate__api__PgpApp_create_app_impl(port, ptr, rust_vec_len, data_len),
+94 => wire__crate__api__PgpApp_create_circle_impl(port, ptr, rust_vec_len, data_len),
+95 => wire__crate__api__PgpApp_create_circle_signed_impl(port, ptr, rust_vec_len, data_len),
+96 => wire__crate__api__PgpApp_delete_cert_impl(port, ptr, rust_vec_len, data_len),
+97 => wire__crate__api__PgpApp_delete_private_key_impl(port, ptr, rust_vec_len, data_len),
+98 => wire__crate__api__PgpApp_export_armor_impl(port, ptr, rust_vec_len, data_len),
+99 => wire__crate__api__PgpApp_export_file_impl(port, ptr, rust_vec_len, data_len),
+100 => wire__crate__api__PgpApp_fill_from_keyserver_impl(port, ptr, rust_vec_len, data_len),
+102 => wire__crate__api__PgpApp_get_cert_by_role_impl(port, ptr, rust_vec_len, data_len),
+104 => wire__crate__api__PgpApp_get_fingerprints_impl(port, ptr, rust_vec_len, data_len),
+105 => wire__crate__api__PgpApp_get_key_from_fingerprint_impl(port, ptr, rust_vec_len, data_len),
+106 => wire__crate__api__PgpApp_get_qr_impl(port, ptr, rust_vec_len, data_len),
+107 => wire__crate__api__PgpApp_get_stub_from_fingerprint_impl(port, ptr, rust_vec_len, data_len),
+109 => wire__crate__api__PgpApp_import_certs_impl(port, ptr, rust_vec_len, data_len),
+110 => wire__crate__api__PgpApp_is_stub_impl(port, ptr, rust_vec_len, data_len),
+111 => wire__crate__api__PgpApp_iter_certs_impl(port, ptr, rust_vec_len, data_len),
+112 => wire__crate__api__PgpApp_iter_certs_search_impl(port, ptr, rust_vec_len, data_len),
+113 => wire__crate__api__PgpApp_iter_certs_search_keyid_impl(port, ptr, rust_vec_len, data_len),
+114 => wire__crate__api__PgpApp_iter_fingerprints_impl(port, ptr, rust_vec_len, data_len),
+115 => wire__crate__api__PgpApp_lookup_synopses_impl(port, ptr, rust_vec_len, data_len),
+116 => wire__crate__api__PgpApp_lookup_synopses_by_email_impl(port, ptr, rust_vec_len, data_len),
+117 => wire__crate__api__PgpApp_lookup_synopses_by_userid_impl(port, ptr, rust_vec_len, data_len),
+118 => wire__crate__api__PgpApp_lookup_synopsis_by_fpr_impl(port, ptr, rust_vec_len, data_len),
+119 => wire__crate__api__PgpApp_mega_flush_impl(port, ptr, rust_vec_len, data_len),
+121 => wire__crate__api__PgpApp_sign_with_trust_level_impl(port, ptr, rust_vec_len, data_len),
+122 => wire__crate__api__PgpApp_synopses_impl(port, ptr, rust_vec_len, data_len),
+123 => wire__crate__api__PgpApp_third_party_certifications_of_impl(port, ptr, rust_vec_len, data_len),
+125 => wire__crate__api__PgpApp_update_cert_impl(port, ptr, rust_vec_len, data_len),
+126 => wire__crate__api__PgpApp_update_role_impl(port, ptr, rust_vec_len, data_len),
+127 => wire__crate__api__PgpApp_upload_to_keyserver_impl(port, ptr, rust_vec_len, data_len),
+128 => wire__crate__api__PgpApp_verify_app_impl(port, ptr, rust_vec_len, data_len),
+129 => wire__crate__api__PgpApp_verify_circle_impl(port, ptr, rust_vec_len, data_len),
+130 => wire__crate__api__PgpApp_verify_qr_all_certs_impl(port, ptr, rust_vec_len, data_len),
+131 => wire__crate__api__db__store__PgpDataCert_delete_impl(port, ptr, rust_vec_len, data_len),
+132 => wire__crate__api__db__store__PgpDataCert_has_params_impl(port, ptr, rust_vec_len, data_len),
+133 => wire__crate__api__db__store__PgpDataCert_insert_impl(port, ptr, rust_vec_len, data_len),
+134 => wire__crate__api__db__store__PgpDataCert_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
+135 => wire__crate__api__db__store__PgpDataCert_is_entity_impl(port, ptr, rust_vec_len, data_len),
+136 => wire__crate__api__db__store__PgpDataCert_update_impl(port, ptr, rust_vec_len, data_len),
+137 => wire__crate__api__pgp__import__PgpImportBytes_accept_impl(port, ptr, rust_vec_len, data_len),
+138 => wire__crate__api__pgp__import__PgpImportBytes_get_packets_impl(port, ptr, rust_vec_len, data_len),
+140 => wire__crate__api__pgp__import__PgpImportFile_get_packets_impl(port, ptr, rust_vec_len, data_len),
+142 => wire__crate__api__pgp__wot__network__SharedNetwork_authenticate_impl(port, ptr, rust_vec_len, data_len),
+143 => wire__crate__api__pgp__wot__network__SharedNetwork_dump_all_impl(port, ptr, rust_vec_len, data_len),
+144 => wire__crate__api__db__connection__SqliteDb_all_certs_impl(port, ptr, rust_vec_len, data_len),
+145 => wire__crate__api__db__connection__SqliteDb_all_owned_certs_impl(port, ptr, rust_vec_len, data_len),
+146 => wire__crate__api__db__connection__SqliteDb_check_online_impl(port, ptr, rust_vec_len, data_len),
+147 => wire__crate__api__db__connection__SqliteDb_clear_role_impl(port, ptr, rust_vec_len, data_len),
+148 => wire__crate__api__db__connection__SqliteDb_delete_by_fingerprint_impl(port, ptr, rust_vec_len, data_len),
+149 => wire__crate__api__db__connection__SqliteDb_get_by_domain_impl(port, ptr, rust_vec_len, data_len),
+150 => wire__crate__api__db__connection__SqliteDb_get_by_email_impl(port, ptr, rust_vec_len, data_len),
+151 => wire__crate__api__db__connection__SqliteDb_get_by_fingerprint_impl(port, ptr, rust_vec_len, data_len),
+152 => wire__crate__api__db__connection__SqliteDb_get_by_id_impl(port, ptr, rust_vec_len, data_len),
+153 => wire__crate__api__db__connection__SqliteDb_get_by_userid_impl(port, ptr, rust_vec_len, data_len),
+154 => wire__crate__api__db__connection__SqliteDb_get_circle_by_id_impl(port, ptr, rust_vec_len, data_len),
+155 => wire__crate__api__db__connection__SqliteDb_get_circles_join_impl(port, ptr, rust_vec_len, data_len),
+156 => wire__crate__api__db__connection__SqliteDb_get_connection_impl(port, ptr, rust_vec_len, data_len),
+157 => wire__crate__api__db__connection__SqliteDb_get_fingerprint_for_role_impl(port, ptr, rust_vec_len, data_len),
+159 => wire__crate__api__db__connection__SqliteDb_grep_by_email_impl(port, ptr, rust_vec_len, data_len),
+160 => wire__crate__api__db__connection__SqliteDb_grep_by_email_anchor_end_impl(port, ptr, rust_vec_len, data_len),
+161 => wire__crate__api__db__connection__SqliteDb_grep_by_email_anchor_start_impl(port, ptr, rust_vec_len, data_len),
+162 => wire__crate__api__db__connection__SqliteDb_grep_by_userid_impl(port, ptr, rust_vec_len, data_len),
+163 => wire__crate__api__db__connection__SqliteDb_grep_by_userid_anchor_end_impl(port, ptr, rust_vec_len, data_len),
+164 => wire__crate__api__db__connection__SqliteDb_grep_by_userid_anchor_start_impl(port, ptr, rust_vec_len, data_len),
+165 => wire__crate__api__db__connection__SqliteDb_insert_group_impl(port, ptr, rust_vec_len, data_len),
+166 => wire__crate__api__db__connection__SqliteDb_is_online_impl(port, ptr, rust_vec_len, data_len),
+169 => wire__crate__api__db__connection__SqliteDb_search_owned_certs_impl(port, ptr, rust_vec_len, data_len),
+170 => wire__crate__api__db__connection__SqliteDb_test_impl(port, ptr, rust_vec_len, data_len),
+171 => wire__crate__api__db__connection__SqliteDb_test_nullable_impl(port, ptr, rust_vec_len, data_len),
+172 => wire__crate__api__db__connection__SqliteDb_test_one_impl(port, ptr, rust_vec_len, data_len),
+173 => wire__crate__api__db__connection__SqliteDb_update_role_impl(port, ptr, rust_vec_len, data_len),
+174 => wire__crate__api__pgp__wot__network__StoreNetwork_authenticate_impl(port, ptr, rust_vec_len, data_len),
+175 => wire__crate__api__pgp__wot__network__StoreNetwork_dump_all_impl(port, ptr, rust_vec_len, data_len),
+250 => wire__crate__api__pgp__UserHandle_identicon_impl(port, ptr, rust_vec_len, data_len),
+256 => wire__crate__api__pgp__UserHandle_to_db_impl(port, ptr, rust_vec_len, data_len),
+258 => wire__crate__api__pgp__circles__circle_or_from_db_impl(port, ptr, rust_vec_len, data_len),
+259 => wire__crate__api__pgp__circles__circle_or_id_hex_impl(port, ptr, rust_vec_len, data_len),
+260 => wire__crate__api__pgp__circles__circle_or_is_member_impl(port, ptr, rust_vec_len, data_len),
+261 => wire__crate__api__pgp__circles__circle_or_to_db_impl(port, ptr, rust_vec_len, data_len),
+264 => wire__crate__api__init_logging_impl(port, ptr, rust_vec_len, data_len),
+265 => wire__crate__api__db__store__only_fingerprint_delete_impl(port, ptr, rust_vec_len, data_len),
+266 => wire__crate__api__db__store__only_fingerprint_has_params_impl(port, ptr, rust_vec_len, data_len),
+267 => wire__crate__api__db__store__only_fingerprint_insert_impl(port, ptr, rust_vec_len, data_len),
+268 => wire__crate__api__db__store__only_fingerprint_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
+269 => wire__crate__api__db__store__only_fingerprint_is_entity_impl(port, ptr, rust_vec_len, data_len),
+270 => wire__crate__api__db__store__only_fingerprint_update_impl(port, ptr, rust_vec_len, data_len),
+271 => wire__crate__api__db__store__only_online_delete_impl(port, ptr, rust_vec_len, data_len),
+272 => wire__crate__api__db__store__only_online_has_params_impl(port, ptr, rust_vec_len, data_len),
+273 => wire__crate__api__db__store__only_online_insert_impl(port, ptr, rust_vec_len, data_len),
+274 => wire__crate__api__db__store__only_online_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
+275 => wire__crate__api__db__store__only_online_is_entity_impl(port, ptr, rust_vec_len, data_len),
+276 => wire__crate__api__db__store__only_online_update_impl(port, ptr, rust_vec_len, data_len),
+278 => wire__crate__api__pgp__cert__pgp_cert_stub_sigs_from_bytes_sig_impl(port, ptr, rust_vec_len, data_len),
+280 => wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_sig_impl(port, ptr, rust_vec_len, data_len),
+282 => wire__crate__api__db__migrations__run_migrations_impl(port, ptr, rust_vec_len, data_len),
                         _ => unreachable!(),
                     }
 }
@@ -9977,60 +12702,66 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-                        8 => wire__crate__api__pgp__circles__circle__CircleAuthor_auto_accessor_get_author_impl(ptr, rust_vec_len, data_len),
-9 => wire__crate__api__pgp__circles__circle__CircleAuthor_auto_accessor_get_sig_impl(ptr, rust_vec_len, data_len),
-10 => wire__crate__api__pgp__circles__circle__CircleAuthor_auto_accessor_set_author_impl(ptr, rust_vec_len, data_len),
-11 => wire__crate__api__pgp__circles__circle__CircleAuthor_auto_accessor_set_sig_impl(ptr, rust_vec_len, data_len),
-14 => wire__crate__api__pgp__keys__GenerateCert_comment_impl(ptr, rust_vec_len, data_len),
-16 => wire__crate__api__pgp__keys__GenerateCert_name_impl(ptr, rust_vec_len, data_len),
-17 => wire__crate__api__pgp__keys__GenerateCert_online_impl(ptr, rust_vec_len, data_len),
-19 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_emoji_impl(ptr, rust_vec_len, data_len),
-20 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_from_handle_impl(ptr, rust_vec_len, data_len),
-22 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_identicon_impl(ptr, rust_vec_len, data_len),
-23 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_identicon_auto_end_impl(ptr, rust_vec_len, data_len),
-24 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_identicon_auto_size_impl(ptr, rust_vec_len, data_len),
-25 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_lujvo_impl(ptr, rust_vec_len, data_len),
-26 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_phone_impl(ptr, rust_vec_len, data_len),
-27 => wire__crate__api__pgp__cert__MaybeCert_fingerprint_impl(ptr, rust_vec_len, data_len),
-28 => wire__crate__api__pgp__cert__MaybeCert_maybe_ids_impl(ptr, rust_vec_len, data_len),
-29 => wire__crate__api__db__entities__NewsGroup_auto_accessor_get_description_impl(ptr, rust_vec_len, data_len),
-30 => wire__crate__api__db__entities__NewsGroup_auto_accessor_get_group_name_impl(ptr, rust_vec_len, data_len),
-31 => wire__crate__api__db__entities__NewsGroup_auto_accessor_get_parent_impl(ptr, rust_vec_len, data_len),
-32 => wire__crate__api__db__entities__NewsGroup_auto_accessor_get_parent_hash_impl(ptr, rust_vec_len, data_len),
-33 => wire__crate__api__db__entities__NewsGroup_auto_accessor_get_sent_impl(ptr, rust_vec_len, data_len),
-34 => wire__crate__api__db__entities__NewsGroup_auto_accessor_get_uuid_impl(ptr, rust_vec_len, data_len),
-35 => wire__crate__api__db__entities__NewsGroup_auto_accessor_set_description_impl(ptr, rust_vec_len, data_len),
-36 => wire__crate__api__db__entities__NewsGroup_auto_accessor_set_group_name_impl(ptr, rust_vec_len, data_len),
-37 => wire__crate__api__db__entities__NewsGroup_auto_accessor_set_parent_impl(ptr, rust_vec_len, data_len),
-38 => wire__crate__api__db__entities__NewsGroup_auto_accessor_set_parent_hash_impl(ptr, rust_vec_len, data_len),
-39 => wire__crate__api__db__entities__NewsGroup_auto_accessor_set_sent_impl(ptr, rust_vec_len, data_len),
-40 => wire__crate__api__db__entities__NewsGroup_auto_accessor_set_uuid_impl(ptr, rust_vec_len, data_len),
-59 => wire__crate__api__PgpApp_generate_key_impl(ptr, rust_vec_len, data_len),
-61 => wire__crate__api__PgpApp_get_db_impl(ptr, rust_vec_len, data_len),
-66 => wire__crate__api__PgpApp_get_watcher_impl(ptr, rust_vec_len, data_len),
-78 => wire__crate__api__PgpApp_network_from_fingerprints_impl(ptr, rust_vec_len, data_len),
-82 => wire__crate__api__PgpApp_unrooted_network_impl(ptr, rust_vec_len, data_len),
-97 => wire__crate__api__pgp__import__PgpImportBytes_new_impl(ptr, rust_vec_len, data_len),
-99 => wire__crate__api__pgp__import__PgpImportFile_new_impl(ptr, rust_vec_len, data_len),
-114 => wire__crate__api__db__connection__SqliteDb_get_watcher_impl(ptr, rust_vec_len, data_len),
-123 => wire__crate__api__db__connection__SqliteDb_new_impl(ptr, rust_vec_len, data_len),
-124 => wire__crate__api__db__connection__SqliteDb_new_in_memory_impl(ptr, rust_vec_len, data_len),
-194 => wire__crate__api__pgp__UserHandle_composite_impl(ptr, rust_vec_len, data_len),
-195 => wire__crate__api__pgp__UserHandle_composite_lujvo_impl(ptr, rust_vec_len, data_len),
-196 => wire__crate__api__pgp__UserHandle_composite_lujvo_or_else_impl(ptr, rust_vec_len, data_len),
-197 => wire__crate__api__pgp__UserHandle_from_hex_impl(ptr, rust_vec_len, data_len),
-199 => wire__crate__api__pgp__UserHandle_len_impl(ptr, rust_vec_len, data_len),
-200 => wire__crate__api__pgp__UserHandle_name_impl(ptr, rust_vec_len, data_len),
-201 => wire__crate__api__pgp__UserHandle_separate_impl(ptr, rust_vec_len, data_len),
-202 => wire__crate__api__pgp__UserHandle_separate_lujvo_impl(ptr, rust_vec_len, data_len),
-203 => wire__crate__api__pgp__UserHandle_separate_lujvo_or_else_impl(ptr, rust_vec_len, data_len),
-204 => wire__crate__api__db__connection__Watcher_watch_impl(ptr, rust_vec_len, data_len),
-206 => wire__crate__api__config_new_impl(ptr, rust_vec_len, data_len),
-221 => wire__crate__api__pgp__cert__pgp_cert_stub_sigs_from_bytes_impl(ptr, rust_vec_len, data_len),
-223 => wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_impl(ptr, rust_vec_len, data_len),
-225 => wire__crate__api__pgp__cert__pgp_cert_with_ids_has_private_impl(ptr, rust_vec_len, data_len),
-227 => wire__crate__api__pgp__fingerprint__visual_key__visual_key_join_emoji_impl(ptr, rust_vec_len, data_len),
-228 => wire__crate__api__pgp__fingerprint__visual_key__visual_key_join_gismu_impl(ptr, rust_vec_len, data_len),
+                        13 => wire__crate__api__pgp__circles__circle__CircleAuthor_auto_accessor_get_author_impl(ptr, rust_vec_len, data_len),
+14 => wire__crate__api__pgp__circles__circle__CircleAuthor_auto_accessor_get_sig_impl(ptr, rust_vec_len, data_len),
+15 => wire__crate__api__pgp__circles__circle__CircleAuthor_auto_accessor_set_author_impl(ptr, rust_vec_len, data_len),
+16 => wire__crate__api__pgp__circles__circle__CircleAuthor_auto_accessor_set_sig_impl(ptr, rust_vec_len, data_len),
+23 => wire__crate__api__pgp__circles__CircleEntry_auto_accessor_get_content_impl(ptr, rust_vec_len, data_len),
+24 => wire__crate__api__pgp__circles__CircleEntry_auto_accessor_get_id_impl(ptr, rust_vec_len, data_len),
+25 => wire__crate__api__pgp__circles__CircleEntry_auto_accessor_get_tag_impl(ptr, rust_vec_len, data_len),
+26 => wire__crate__api__pgp__circles__CircleEntry_auto_accessor_set_content_impl(ptr, rust_vec_len, data_len),
+27 => wire__crate__api__pgp__circles__CircleEntry_auto_accessor_set_id_impl(ptr, rust_vec_len, data_len),
+28 => wire__crate__api__pgp__circles__CircleEntry_auto_accessor_set_tag_impl(ptr, rust_vec_len, data_len),
+55 => wire__crate__api__pgp__keys__GenerateCert_comment_impl(ptr, rust_vec_len, data_len),
+57 => wire__crate__api__pgp__keys__GenerateCert_name_impl(ptr, rust_vec_len, data_len),
+58 => wire__crate__api__pgp__keys__GenerateCert_online_impl(ptr, rust_vec_len, data_len),
+60 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_emoji_impl(ptr, rust_vec_len, data_len),
+61 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_from_handle_impl(ptr, rust_vec_len, data_len),
+63 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_identicon_impl(ptr, rust_vec_len, data_len),
+64 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_identicon_auto_end_impl(ptr, rust_vec_len, data_len),
+65 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_identicon_auto_size_impl(ptr, rust_vec_len, data_len),
+66 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_lujvo_impl(ptr, rust_vec_len, data_len),
+67 => wire__crate__api__pgp__fingerprint__visual_key__Lifetimeable_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVisualKeyBuilderstatic_phone_impl(ptr, rust_vec_len, data_len),
+68 => wire__crate__api__pgp__cert__MaybeCert_fingerprint_impl(ptr, rust_vec_len, data_len),
+69 => wire__crate__api__pgp__cert__MaybeCert_maybe_ids_impl(ptr, rust_vec_len, data_len),
+70 => wire__crate__api__db__entities__NewsGroup_auto_accessor_get_description_impl(ptr, rust_vec_len, data_len),
+71 => wire__crate__api__db__entities__NewsGroup_auto_accessor_get_group_name_impl(ptr, rust_vec_len, data_len),
+72 => wire__crate__api__db__entities__NewsGroup_auto_accessor_get_parent_impl(ptr, rust_vec_len, data_len),
+73 => wire__crate__api__db__entities__NewsGroup_auto_accessor_get_parent_hash_impl(ptr, rust_vec_len, data_len),
+74 => wire__crate__api__db__entities__NewsGroup_auto_accessor_get_sent_impl(ptr, rust_vec_len, data_len),
+75 => wire__crate__api__db__entities__NewsGroup_auto_accessor_get_uuid_impl(ptr, rust_vec_len, data_len),
+76 => wire__crate__api__db__entities__NewsGroup_auto_accessor_set_description_impl(ptr, rust_vec_len, data_len),
+77 => wire__crate__api__db__entities__NewsGroup_auto_accessor_set_group_name_impl(ptr, rust_vec_len, data_len),
+78 => wire__crate__api__db__entities__NewsGroup_auto_accessor_set_parent_impl(ptr, rust_vec_len, data_len),
+79 => wire__crate__api__db__entities__NewsGroup_auto_accessor_set_parent_hash_impl(ptr, rust_vec_len, data_len),
+80 => wire__crate__api__db__entities__NewsGroup_auto_accessor_set_sent_impl(ptr, rust_vec_len, data_len),
+81 => wire__crate__api__db__entities__NewsGroup_auto_accessor_set_uuid_impl(ptr, rust_vec_len, data_len),
+101 => wire__crate__api__PgpApp_generate_key_impl(ptr, rust_vec_len, data_len),
+103 => wire__crate__api__PgpApp_get_db_impl(ptr, rust_vec_len, data_len),
+108 => wire__crate__api__PgpApp_get_watcher_impl(ptr, rust_vec_len, data_len),
+120 => wire__crate__api__PgpApp_network_from_fingerprints_impl(ptr, rust_vec_len, data_len),
+124 => wire__crate__api__PgpApp_unrooted_network_impl(ptr, rust_vec_len, data_len),
+139 => wire__crate__api__pgp__import__PgpImportBytes_new_impl(ptr, rust_vec_len, data_len),
+141 => wire__crate__api__pgp__import__PgpImportFile_new_impl(ptr, rust_vec_len, data_len),
+158 => wire__crate__api__db__connection__SqliteDb_get_watcher_impl(ptr, rust_vec_len, data_len),
+167 => wire__crate__api__db__connection__SqliteDb_new_impl(ptr, rust_vec_len, data_len),
+168 => wire__crate__api__db__connection__SqliteDb_new_in_memory_impl(ptr, rust_vec_len, data_len),
+246 => wire__crate__api__pgp__UserHandle_composite_impl(ptr, rust_vec_len, data_len),
+247 => wire__crate__api__pgp__UserHandle_composite_lujvo_impl(ptr, rust_vec_len, data_len),
+248 => wire__crate__api__pgp__UserHandle_composite_lujvo_or_else_impl(ptr, rust_vec_len, data_len),
+249 => wire__crate__api__pgp__UserHandle_from_hex_impl(ptr, rust_vec_len, data_len),
+251 => wire__crate__api__pgp__UserHandle_len_impl(ptr, rust_vec_len, data_len),
+252 => wire__crate__api__pgp__UserHandle_name_impl(ptr, rust_vec_len, data_len),
+253 => wire__crate__api__pgp__UserHandle_separate_impl(ptr, rust_vec_len, data_len),
+254 => wire__crate__api__pgp__UserHandle_separate_lujvo_impl(ptr, rust_vec_len, data_len),
+255 => wire__crate__api__pgp__UserHandle_separate_lujvo_or_else_impl(ptr, rust_vec_len, data_len),
+257 => wire__crate__api__db__connection__Watcher_watch_impl(ptr, rust_vec_len, data_len),
+262 => wire__crate__api__config_new_impl(ptr, rust_vec_len, data_len),
+277 => wire__crate__api__pgp__cert__pgp_cert_stub_sigs_from_bytes_impl(ptr, rust_vec_len, data_len),
+279 => wire__crate__api__pgp__cert__pgp_cert_with_ids_from_bytes_impl(ptr, rust_vec_len, data_len),
+281 => wire__crate__api__pgp__cert__pgp_cert_with_ids_has_private_impl(ptr, rust_vec_len, data_len),
+283 => wire__crate__api__pgp__fingerprint__visual_key__visual_key_join_emoji_impl(ptr, rust_vec_len, data_len),
+284 => wire__crate__api__pgp__fingerprint__visual_key__visual_key_join_gismu_impl(ptr, rust_vec_len, data_len),
                         _ => unreachable!(),
                     }
 }
@@ -10098,6 +12829,81 @@ impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<
 
 impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<CircleAuthor>> for CircleAuthor {
     fn into_into_dart(self) -> FrbWrapper<CircleAuthor> {
+        self.into()
+    }
+}
+
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<CircleData> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
+            .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<CircleData> {}
+
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<CircleData>> for CircleData {
+    fn into_into_dart(self) -> FrbWrapper<CircleData> {
+        self.into()
+    }
+}
+
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<CircleEntry> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
+            .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<CircleEntry> {}
+
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<CircleEntry>> for CircleEntry {
+    fn into_into_dart(self) -> FrbWrapper<CircleEntry> {
+        self.into()
+    }
+}
+
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<CircleMembersData> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
+            .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<CircleMembersData> {}
+
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<CircleMembersData>> for CircleMembersData {
+    fn into_into_dart(self) -> FrbWrapper<CircleMembersData> {
+        self.into()
+    }
+}
+
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<CircleWithMembers> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
+            .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<CircleWithMembers> {}
+
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<CircleWithMembers>> for CircleWithMembers {
+    fn into_into_dart(self) -> FrbWrapper<CircleWithMembers> {
+        self.into()
+    }
+}
+
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<DbMembers> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
+            .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<DbMembers> {}
+
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<DbMembers>> for DbMembers {
+    fn into_into_dart(self) -> FrbWrapper<DbMembers> {
         self.into()
     }
 }
@@ -10312,27 +13118,6 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<Watcher>> for Watcher {
     }
 }
 
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::pgp::circles::app::AppMember {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.member.into_into_dart().into_dart(),
-            self.tag.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::pgp::circles::app::AppMember
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::api::pgp::circles::app::AppMember>
-    for crate::api::pgp::circles::app::AppMember
-{
-    fn into_into_dart(self) -> crate::api::pgp::circles::app::AppMember {
-        self
-    }
-}
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::db::CertSynopsis {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
@@ -10943,6 +13728,41 @@ impl SseEncode for CircleAuthor {
     }
 }
 
+impl SseEncode for CircleData {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleData>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
+    }
+}
+
+impl SseEncode for CircleEntry {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleEntry>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
+    }
+}
+
+impl SseEncode for CircleMembersData {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleMembersData>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
+    }
+}
+
+impl SseEncode for CircleWithMembers {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
+    }
+}
+
+impl SseEncode for DbMembers {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<DbMembers>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
+    }
+}
+
 impl SseEncode for GenerateCert {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -11093,6 +13913,61 @@ impl SseEncode
 
 impl SseEncode
     for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleAuthor>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        let (ptr, size) = self.sse_encode_raw();
+        <usize>::sse_encode(ptr, serializer);
+        <i32>::sse_encode(size, serializer);
+    }
+}
+
+impl SseEncode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleData>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        let (ptr, size) = self.sse_encode_raw();
+        <usize>::sse_encode(ptr, serializer);
+        <i32>::sse_encode(size, serializer);
+    }
+}
+
+impl SseEncode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleEntry>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        let (ptr, size) = self.sse_encode_raw();
+        <usize>::sse_encode(ptr, serializer);
+        <i32>::sse_encode(size, serializer);
+    }
+}
+
+impl SseEncode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleMembersData>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        let (ptr, size) = self.sse_encode_raw();
+        <usize>::sse_encode(ptr, serializer);
+        <i32>::sse_encode(size, serializer);
+    }
+}
+
+impl SseEncode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        let (ptr, size) = self.sse_encode_raw();
+        <usize>::sse_encode(ptr, serializer);
+        <i32>::sse_encode(size, serializer);
+    }
+}
+
+impl SseEncode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<DbMembers>>
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -11288,19 +14163,14 @@ impl SseEncode for std::collections::HashSet<crate::api::pgp::wot::path::GraphEd
     }
 }
 
-impl SseEncode for StreamSink<String, flutter_rust_bridge::for_generated::SseCodec> {
+impl SseEncode for StreamSink<CircleEntry, flutter_rust_bridge::for_generated::SseCodec> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         unimplemented!("")
     }
 }
 
-impl SseEncode
-    for StreamSink<
-        crate::api::pgp::circles::app::AppMember,
-        flutter_rust_bridge::for_generated::SseCodec,
-    >
-{
+impl SseEncode for StreamSink<String, flutter_rust_bridge::for_generated::SseCodec> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         unimplemented!("")
@@ -11330,14 +14200,6 @@ impl SseEncode for uuid::Uuid {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Vec<u8>>::sse_encode(self.as_bytes().to_vec(), serializer);
-    }
-}
-
-impl SseEncode for crate::api::pgp::circles::app::AppMember {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <Option<crate::api::pgp::circles::CircleOr>>::sse_encode(self.member, serializer);
-        <crate::api::pgp::circles::app::MemberTag>::sse_encode(self.tag, serializer);
     }
 }
 
@@ -11469,6 +14331,26 @@ impl SseEncode for crate::api::db::KeyHandle {
             _ => {
                 unimplemented!("");
             }
+        }
+    }
+}
+
+impl SseEncode for Vec<CircleEntry> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <CircleEntry>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<CircleWithMembers> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <CircleWithMembers>::sse_encode(item, serializer);
         }
     }
 }
@@ -11691,6 +14573,16 @@ impl SseEncode for Option<uuid::Uuid> {
     }
 }
 
+impl SseEncode for Option<CircleEntry> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <CircleEntry>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<NewsGroup> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -11701,12 +14593,32 @@ impl SseEncode for Option<NewsGroup> {
     }
 }
 
+impl SseEncode for Option<UserHandle> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <UserHandle>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<crate::api::pgp::circles::CircleOr> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::api::pgp::circles::CircleOr>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::pgp::circles::app::MemberTag> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::pgp::circles::app::MemberTag>::sse_encode(value, serializer);
         }
     }
 }
@@ -12019,6 +14931,8 @@ mod io {
     use crate::api::pgp::cert::*;
     use crate::api::pgp::circles::app::*;
     use crate::api::pgp::circles::circle::*;
+    use crate::api::pgp::circles::CircleLike;
+    use crate::api::pgp::circles::*;
     use crate::api::pgp::fingerprint::visual_key::*;
     use crate::api::pgp::import::PgpImport;
     use crate::api::pgp::import::*;
@@ -12093,6 +15007,76 @@ mod io {
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleAuthor>>::decrement_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_kata_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleData(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleData>>::increment_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_kata_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleData(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleData>>::decrement_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_kata_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleEntry(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleEntry>>::increment_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_kata_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleEntry(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleEntry>>::decrement_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_kata_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleMembersData(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleMembersData>>::increment_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_kata_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleMembersData(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleMembersData>>::decrement_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_kata_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleWithMembers(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>>::increment_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_kata_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleWithMembers(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>>::decrement_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_kata_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDbMembers(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<DbMembers>>::increment_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_kata_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDbMembers(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<DbMembers>>::decrement_strong_count(ptr as _);
     }
 
     #[unsafe(no_mangle)]
@@ -12361,6 +15345,8 @@ mod web {
     use crate::api::pgp::cert::*;
     use crate::api::pgp::circles::app::*;
     use crate::api::pgp::circles::circle::*;
+    use crate::api::pgp::circles::CircleLike;
+    use crate::api::pgp::circles::*;
     use crate::api::pgp::fingerprint::visual_key::*;
     use crate::api::pgp::import::PgpImport;
     use crate::api::pgp::import::*;
@@ -12437,6 +15423,76 @@ mod web {
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleAuthor>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleData(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleData>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleData(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleData>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleEntry(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleEntry>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleEntry(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleEntry>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleMembersData(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleMembersData>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleMembersData(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleMembersData>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleWithMembers(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleWithMembers(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleWithMembers>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDbMembers(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<DbMembers>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDbMembers(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<DbMembers>>::decrement_strong_count(ptr as _);
     }
 
     #[wasm_bindgen]

@@ -86,6 +86,30 @@ lazy_static! {
             r#"
             ALTER TABLE certs DROP COLUMN online;
             "#
+        ),
+        M::up(
+            r#"
+        CREATE TABLE circles (
+            id TEXT PRIMARY KEY,
+            circle_type TEXT NOT NULL,
+            author TEXT,
+            sig BLOB
+        );
+
+        CREATE TABLE circle_members (
+           circle_member_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+           member_id TEXT NOT NULL,
+           parent_id TEXT NOT NULL,
+           tag TEXT,
+           UNIQUE(parent_id, member_id)
+        );
+            "#
+        )
+        .down(
+            r#"
+            DROP TABLE circles;
+            DROP TABLE circle_members;
+            "#
         )
     ]);
 }

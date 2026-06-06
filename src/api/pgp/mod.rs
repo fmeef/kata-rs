@@ -13,6 +13,7 @@ use std::{str::FromStr, sync::Arc};
 use crate::api::Config;
 use crate::{
     api::{
+        db::{connection::Crud, store::CircleData},
         pgp::{cert::PgpCertWithIds, import::PgpImport, mut_store::MutStore},
         SqliteDb,
     },
@@ -143,6 +144,26 @@ impl UserHandle {
     pub(crate) fn as_bytes(&self) -> &'_ [u8] {
         match self {
             Self::KeyHandle(kh) => kh.as_bytes(),
+            Self::RawBytes(bytes) => bytes,
+        }
+    }
+
+    pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
+        let data = CircleData {
+            id: self.name(),
+            circle_type: "user".to_owned(),
+            author: None,
+            sig: None,
+        };
+
+        data.insert(db)?;
+
+        Ok(())
+    }
+
+    pub(crate) fn into_bytes(self) -> Vec<u8> {
+        match self {
+            Self::KeyHandle(kh) => kh.as_bytes().to_owned(),
             Self::RawBytes(bytes) => bytes,
         }
     }

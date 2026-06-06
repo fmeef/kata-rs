@@ -30,6 +30,12 @@ pub enum InternalErr {
     NotRepr(&'static str),
     #[error("Hex encode error")]
     Hex(#[from] hex::FromHexError),
+    #[error("Pgp app not set on this resource")]
+    MissingPgpApp,
+    #[error("Invalid circle type {0}")]
+    InvalidCircleType(String),
+    #[error("Invalid member tag")]
+    InvalidMemberTag,
 }
 
 impl From<InternalErr> for rusqlite::Error {

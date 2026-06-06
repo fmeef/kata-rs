@@ -1,10 +1,16 @@
+use std::collections::{BTreeMap, BTreeSet};
+
 use flutter_rust_bridge::frb;
 use sequoia_openpgp::serialize::{MarshalInto, TSK};
 use sequoia_openpgp::{parse::Parse, Cert};
 
+use super::utils::HexConvert;
 use crate::api::db::connection::SqliteDb;
 use crate::api::pgp::cert::PgpCert;
-use crate::error::Result;
+use crate::api::pgp::circles::app::MemberTag;
+use crate::api::pgp::circles::CircleOr;
+use crate::api::pgp::UserHandle;
+use crate::error::{InternalErr, Result};
 use macros::{dao, query, FromRow};
 
 #[dao]
@@ -95,6 +101,41 @@ pub trait CertDao {
 
     #[query("SELECT online FROM certs WHERE fingerprint = :fingerprint")]
     fn is_online(&self, fingerprint: &str) -> Result<Option<OnlyOnline>>;
+
+    #[query(
+        "SELECT id, member_id, parent_id, tag, circle_type, author, sig
+        FROM circles LEFT JOIN circle_members ON parent_id=id
+        GROUP By parent_id"
+    )]
+    fn get_circles_join(&self) -> Result<Vec<CircleWithMembers>>;
+
+    #[query(
+        "SELECT id, member_id, parent_id, tag, circle_type, author, sig
+        FROM circles LEFT JOIN circle_members ON parent_id=id
+        WHERE id = :id"
+    )]
+    fn get_circle_by_id(&self, id: &str) -> Result<Vec<CircleWithMembers>>;
+}
+
+#[frb(opaque)]
+pub(crate) struct DbMembers {
+    pub(crate) id: Vec<u8>,
+    pub(crate) circle: CircleOr,
+    pub(crate) members: BTreeSet<Vec<u8>>,
+}
+
+impl DbMembers {
+    pub(crate) fn new(id: CircleOr) -> Result<Self> {
+        Ok(Self {
+            id: id.as_bytes().to_owned(),
+            circle: id,
+            members: BTreeSet::new(),
+        })
+    }
+
+    pub fn id_hex(&self) -> String {
+        self.id.to_hex()
+    }
 }
 
 #[derive(Clone, FromRow)]
@@ -121,6 +162,100 @@ impl SqliteDb {
 }
 
 #[derive(FromRow, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[table("circles")]
+#[frb(opaque)]
+pub struct CircleData {
+    #[primary]
+    pub(crate) id: String,
+    pub(crate) circle_type: String,
+    pub(crate) author: Option<String>,
+    pub(crate) sig: Option<Vec<u8>>,
+}
+#[derive(FromRow, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[table("circle_members")]
+#[frb(opaque)]
+pub struct CircleMembersData {
+    #[primary]
+    pub(crate) circle_member_id: Option<i64>,
+    pub(crate) member_id: String,
+    pub(crate) parent_id: String,
+    pub(crate) tag: Option<String>,
+}
+
+#[derive(FromRow, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[table("circles")]
+#[frb(opaque)]
+pub struct CircleWithMembers {
+    #[primary]
+    id: String,
+    member_id: Option<String>,
+    parent_id: Option<String>,
+    pub(crate) tag: Option<String>,
+    pub(crate) circle_type: String,
+    author: Option<String>,
+    pub(crate) sig: Option<Vec<u8>>,
+}
+
+impl CircleWithMembers {
+    fn get_bytes(&self, value: &str) -> Result<Vec<u8>> {
+        match self.circle_type.as_str() {
+            "circle" => Ok(Vec::<u8>::from_hex(value)?),
+            "app" => Ok(UserHandle::from_hex(value)?.into_bytes()),
+            "user" => Ok(UserHandle::from_hex(value)?.into_bytes()),
+            v => Err(InternalErr::InvalidCircleType(v.to_owned())),
+        }
+    }
+
+    fn get_userhandle(&self, value: &str) -> Result<UserHandle> {
+        match self.circle_type.as_str() {
+            "circle" => Ok(UserHandle::RawBytes(Vec::<u8>::from_hex(value)?)),
+            "app" => Ok(UserHandle::from_hex(value)?),
+            "user" => Ok(UserHandle::from_hex(value)?),
+            v => Err(InternalErr::InvalidCircleType(v.to_owned())),
+        }
+    }
+
+    pub fn get_tag(&self) -> Result<Option<MemberTag>> {
+        match self.tag.as_deref() {
+            Some("delete") => Ok(Some(MemberTag::Delete)),
+            Some("merge") => Ok(Some(MemberTag::Merge)),
+            Some("overwrite") => Ok(Some(MemberTag::Overwrite)),
+            None => Ok(None),
+            _ => Err(InternalErr::InvalidMemberTag),
+        }
+    }
+
+    pub fn get_author(&self) -> Result<Option<UserHandle>> {
+        match self.author {
+            Some(ref author) => Ok(Some(UserHandle::from_hex(author)?)),
+            None => Ok(None),
+        }
+    }
+
+    pub fn get_member_id(&self) -> Result<Option<Vec<u8>>> {
+        match self.member_id {
+            Some(ref member) => Ok(Some(self.get_bytes(member)?)),
+            None => Ok(None),
+        }
+    }
+
+    pub fn get_parent_id(&self) -> Result<Option<Vec<u8>>> {
+        match self.parent_id {
+            Some(ref parent) => Ok(Some(self.get_bytes(parent)?)),
+            None => Ok(None),
+        }
+    }
+
+    pub fn get_id(&self) -> Result<Vec<u8>> {
+        self.get_bytes(&self.id)
+    }
+
+    pub fn get_id_userhandle(&self) -> Result<UserHandle> {
+        self.get_userhandle(&self.id)
+    }
+}
+
+#[derive(FromRow, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[table("certs")]
 #[frb(opaque)]
 pub struct PgpDataCert {
@@ -131,18 +266,6 @@ pub struct PgpDataCert {
     role: Option<String>,
     online: bool,
 }
-
-// impl StoreUpdate for SqliteDb {
-//     fn update(&self, cert: Arc<LazyCert<'a>>) -> sequoia_openpgp::Result<()> {
-
-//     }
-
-//     fn update_by(&self, cert: Arc<LazyCert<'a>>,
-//                      merge_strategy: &dyn sequoia_cert_store::store::MergeCerts<'a>)
-//             -> sequoia_openpgp::Result<Arc<LazyCert<'a>>> {
-
-//     }
-// }
 
 impl PgpDataCert {
     pub(crate) fn merge(&self, cert: Cert) -> anyhow::Result<Cert> {
@@ -163,181 +286,6 @@ impl PgpDataCert {
         Ok(out)
     }
 }
-
-// impl<'a> Store<'a> for SqliteDb {
-//     fn certs<'b>(
-//         &'b self,
-//     ) -> Box<dyn Iterator<Item = std::sync::Arc<sequoia_cert_store::LazyCert<'a>>> + 'b>
-//     where
-//         'a: 'b,
-//     {
-//         Box::new(
-//             self.all_certs()
-//                 .unwrap_or_default()
-//                 .into_iter()
-//                 .filter_map(|v| Cert::from_bytes(&v.data).ok())
-//                 .map(|v| Arc::new(LazyCert::from_cert(v))),
-//         )
-//     }
-
-//     fn fingerprints<'b>(&'b self) -> Box<dyn Iterator<Item = sequoia_openpgp::Fingerprint> + 'b> {
-//         Box::new(
-//             self.all_certs()
-//                 .unwrap_or_default()
-//                 .into_iter()
-//                 .filter_map(|v| Fingerprint::from_str(&v.fingerprint).ok()),
-//         )
-//     }
-
-//     fn grep_email(
-//         &self,
-//         pattern: &str,
-//     ) -> sequoia_openpgp::Result<Vec<std::sync::Arc<sequoia_cert_store::LazyCert<'a>>>> {
-//         let mut out = Vec::new();
-//         for cert in self.grep_by_email(pattern)? {
-//             let cert = Arc::new(LazyCert::from_cert(Cert::from_bytes(&cert.data)?));
-//             out.push(cert);
-//         }
-//         Ok(out)
-//     }
-
-//     fn grep_userid(
-//         &self,
-//         pattern: &str,
-//     ) -> sequoia_openpgp::Result<Vec<std::sync::Arc<sequoia_cert_store::LazyCert<'a>>>> {
-//         let mut out = Vec::new();
-//         for cert in self.grep_by_userid(pattern)? {
-//             let cert = Arc::new(LazyCert::from_cert(Cert::from_bytes(&cert.data)?));
-//             out.push(cert);
-//         }
-//         Ok(out)
-//     }
-
-//     fn lookup_by_cert(
-//         &self,
-//         kh: &sequoia_openpgp::KeyHandle,
-//     ) -> sequoia_openpgp::Result<Vec<std::sync::Arc<sequoia_cert_store::LazyCert<'a>>>> {
-//         let mut out = Vec::new();
-//         match kh {
-//             KeyHandle::Fingerprint(f) => {
-//                 let cert = self.get_by_fingerprint(&f.to_hex())?;
-//                 out.push(Arc::new(LazyCert::from_cert(Cert::from_bytes(&cert.data)?)));
-//             }
-//             KeyHandle::KeyID(id) => {
-//                 for cert in self.get_by_id(&id.to_hex())? {
-//                     out.push(Arc::new(LazyCert::from_cert(Cert::from_bytes(&cert.data)?)));
-//                 }
-//             }
-//         };
-
-//         Ok(out)
-//     }
-
-//     fn lookup_by_cert_fpr(
-//         &self,
-//         fingerprint: &sequoia_openpgp::Fingerprint,
-//     ) -> sequoia_openpgp::Result<std::sync::Arc<sequoia_cert_store::LazyCert<'a>>> {
-//         let cert = self.get_by_fingerprint(&fingerprint.to_hex())?;
-//         let cert = Arc::new(LazyCert::from_cert(Cert::from_bytes(&cert.data)?));
-//         Ok(cert)
-//     }
-
-//     fn lookup_by_cert_or_subkey(
-//         &self,
-//         kh: &sequoia_openpgp::KeyHandle,
-//     ) -> sequoia_openpgp::Result<Vec<std::sync::Arc<sequoia_cert_store::LazyCert<'a>>>> {
-//         // TODO: what is this difference here?
-//         self.lookup_by_cert(kh)
-//     }
-
-//     fn lookup_by_email(
-//         &self,
-//         email: &str,
-//     ) -> sequoia_openpgp::Result<Vec<std::sync::Arc<sequoia_cert_store::LazyCert<'a>>>> {
-//         let mut out = Vec::new();
-//         for cert in self.get_by_email(email)? {
-//             let cert = Arc::new(LazyCert::from_cert(Cert::from_bytes(&cert.data)?));
-//             out.push(cert);
-//         }
-//         Ok(out)
-//     }
-
-//     fn lookup_by_email_domain(
-//         &self,
-//         domain: &str,
-//     ) -> sequoia_openpgp::Result<Vec<std::sync::Arc<sequoia_cert_store::LazyCert<'a>>>> {
-//         let mut out = Vec::new();
-//         for cert in self.get_by_domain(domain)? {
-//             let cert = Arc::new(LazyCert::from_cert(Cert::from_bytes(&cert.data)?));
-//             out.push(cert);
-//         }
-//         Ok(out)
-//     }
-
-//     fn lookup_by_userid(
-//         &self,
-//         userid: &sequoia_openpgp::packet::UserID,
-//     ) -> sequoia_openpgp::Result<Vec<std::sync::Arc<sequoia_cert_store::LazyCert<'a>>>> {
-//         let mut out = BTreeSet::new();
-//         if let Some(name) = userid.name()? {
-//             for cert in self.get_by_userid(name)? {
-//                 out.insert(cert);
-//             }
-//         }
-
-//         if let Some(email) = userid.email()? {
-//             for cert in self.get_by_email(email)? {
-//                 out.insert(cert);
-//             }
-//         }
-
-//         Ok(out
-//             .into_iter()
-//             .filter_map(|v| Cert::from_bytes(&v.data).ok())
-//             .map(|v| Arc::new(LazyCert::from_cert(v)))
-//             .collect())
-//     }
-
-//     fn prefetch_all(&self) {
-//         //TODO: does this make any sense
-//     }
-
-//     fn prefetch_some(&self, _: &[sequoia_openpgp::KeyHandle]) {
-//         //TODO: does this make any sense
-//     }
-
-//     fn select_userid(
-//         &self,
-//         query: &sequoia_cert_store::store::UserIDQueryParams,
-//         pattern: &str,
-//     ) -> sequoia_openpgp::Result<Vec<std::sync::Arc<sequoia_cert_store::LazyCert<'a>>>> {
-//         let mut out = Vec::new();
-//         let res = if query.email() {
-//             if query.anchor_end() {
-//                 self.grep_by_email_anchor_end(pattern)?
-//             } else if query.anchor_start() {
-//                 self.grep_by_email_anchor_start(pattern)?
-//             } else {
-//                 self.grep_by_email(pattern)?
-//             }
-//         } else {
-//             if query.anchor_end() {
-//                 self.grep_by_userid_anchor_end(pattern)?
-//             } else if query.anchor_start() {
-//                 self.grep_by_userid_anchor_start(pattern)?
-//             } else {
-//                 self.grep_by_userid(pattern)?
-//             }
-//         };
-
-//         for cert in res {
-//             let cert = Arc::new(LazyCert::from_cert(Cert::from_bytes(&cert.data)?));
-//             out.push(cert);
-//         }
-
-//         Ok(out)
-//     }
-// }
 
 #[cfg(test)]
 mod test {
@@ -365,5 +313,15 @@ mod test {
         let v = db.get_fingerprint_for_role("test").unwrap();
 
         assert!(v.is_none());
+    }
+
+    #[test]
+    fn get_all_circles_join() {
+        let db = rusqlite::Connection::open_in_memory().unwrap();
+        let db = SqliteDb::from_conn(db);
+        run_migrations(&db).unwrap();
+
+        db.get_circles_join().unwrap();
+        db.get_circle_by_id("test").unwrap();
     }
 }

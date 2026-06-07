@@ -103,13 +103,13 @@ pub trait CertDao {
     fn is_online(&self, fingerprint: &str) -> Result<Option<OnlyOnline>>;
 
     #[query(
-        "SELECT id, member_id, parent_id, tag, circle_type, author, sig
+        "SELECT id, member_id, parent_id, tag, deleted, circle_type, author, sig
         FROM circles LEFT JOIN circle_members ON member_id=id"
     )]
     fn get_circles_join(&self) -> Result<Vec<CircleWithMembers>>;
 
     #[query(
-        "SELECT id, member_id, parent_id, tag, circle_type, author, sig
+        "SELECT id, member_id, parent_id, tag, deleted, circle_type, author, sig
         FROM circles LEFT JOIN circle_members ON member_id=id
         WHERE id = :id OR parent_id = :id"
     )]
@@ -165,6 +165,7 @@ pub struct CircleMembersData {
     pub(crate) member_id: String,
     pub(crate) parent_id: String,
     pub(crate) tag: Option<String>,
+    pub(crate) deleted: Option<bool>,
 }
 
 #[derive(FromRow, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -176,6 +177,7 @@ pub struct CircleWithMembers {
     member_id: Option<String>,
     parent_id: Option<String>,
     pub(crate) tag: Option<String>,
+    pub(crate) deleted: Option<bool>,
     pub(crate) circle_type: String,
     author: Option<String>,
     pub(crate) sig: Option<Vec<u8>>,

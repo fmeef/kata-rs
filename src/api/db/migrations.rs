@@ -101,6 +101,7 @@ lazy_static! {
            member_id TEXT NOT NULL,
            parent_id TEXT NOT NULL,
            tag TEXT,
+           deleted BOOLEAN NOT NULL DEFAULT '0',
            UNIQUE(parent_id, member_id)
         );
             "#

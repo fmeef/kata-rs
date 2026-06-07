@@ -57,16 +57,52 @@ impl MemberTag {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+pub enum MaybeDeleted {
+    Member(CircleOr),
+    Deleted(UserHandle),
+}
+
+impl MaybeDeleted {
+    fn option(&self) -> Option<&'_ CircleOr> {
+        match self {
+            Self::Member(v) => Some(v),
+            Self::Deleted(_) => None,
+        }
+    }
+
+    pub(crate) fn into_option(self) -> Option<CircleOr> {
+        match self {
+            Self::Member(member) => Some(member),
+            Self::Deleted(_) => None,
+        }
+    }
+
+    fn option_mut(&mut self) -> Option<&'_ mut CircleOr> {
+        match self {
+            Self::Member(v) => Some(v),
+            Self::Deleted(_) => None,
+        }
+    }
+
+    fn is_none(&self) -> bool {
+        match self {
+            Self::Deleted(_) => true,
+            Self::Member(_) => false,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[frb(non_opaque)]
 pub struct AppMember {
-    pub member: Option<CircleOr>,
+    pub member: MaybeDeleted,
     pub tag: MemberTag,
 }
 
 impl AppMember {
     fn as_read<'a>(&'a self) -> impl std::io::Read + Send + Sync + 'a {
         self.member
-            .as_ref()
+            .option()
             .map(|v| v.as_bytes())
             .unwrap_or(&[])
             .chain(self.tag.as_bytes())
@@ -155,7 +191,7 @@ impl CircleLike for CircleApp {
 }
 
 impl CircleApp {
-    pub fn to_db(&mut self, db: &SqliteDb) -> anyhow::Result<()> {
+    pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
         let entity = CircleData {
             id: self.inner.owner.name(),
             circle_type: "app".to_owned(),
@@ -163,17 +199,31 @@ impl CircleApp {
             sig: Some(self.inner.sig.clone()),
         };
         entity.insert(db)?;
-        for member in self.inner.children.values_mut() {
-            if let Some(m) = member.member.as_mut() {
-                m.to_db(db)?;
-                let entity = CircleMembersData {
-                    circle_member_id: None,
-                    member_id: m.id_hex(),
-                    parent_id: self.inner.owner.name(),
-                    tag: Some(member.tag.as_str().to_owned()),
-                };
+        for member in self.inner.children.values() {
+            match member.member {
+                MaybeDeleted::Member(ref m) => {
+                    m.to_db(db)?;
+                    let entity = CircleMembersData {
+                        circle_member_id: None,
+                        member_id: m.id_hex(),
+                        deleted: Some(false),
+                        parent_id: self.inner.owner.name(),
+                        tag: Some(member.tag.as_str().to_owned()),
+                    };
 
-                entity.insert(db)?
+                    entity.insert(db)?
+                }
+                MaybeDeleted::Deleted(ref d) => {
+                    let entity = CircleMembersData {
+                        circle_member_id: None,
+                        member_id: d.name(),
+                        deleted: Some(true),
+                        parent_id: self.inner.owner.name(),
+                        tag: Some(member.tag.as_str().to_owned()),
+                    };
+
+                    entity.insert(db)?
+                }
             }
         }
         Ok(())
@@ -212,7 +262,7 @@ impl CircleApp {
         self.inner
             .children
             .values()
-            .flat_map(|v| v.member.as_ref())
+            .flat_map(|v| v.member.option())
             .any(|v| v.is_member(user))
     }
 
@@ -250,8 +300,8 @@ impl CircleApp {
             circle.inner.id.as_bytes().to_owned(),
             AppMember {
                 member: match tag {
-                    MemberTag::Delete => None,
-                    _ => Some(CircleOr::Circle(circle)),
+                    MemberTag::Delete => MaybeDeleted::Deleted(circle.get_id_userhandle()),
+                    _ => MaybeDeleted::Member(CircleOr::Circle(circle)),
                 },
                 tag,
             },
@@ -264,8 +314,8 @@ impl CircleApp {
             app.inner.owner.as_bytes().to_owned(),
             AppMember {
                 member: match tag {
-                    MemberTag::Delete => None,
-                    _ => Some(CircleOr::App(app)),
+                    MemberTag::Delete => MaybeDeleted::Deleted(app.get_id_userhandle()),
+                    _ => MaybeDeleted::Member(CircleOr::App(app)),
                 },
                 tag,
             },
@@ -278,8 +328,8 @@ impl CircleApp {
             user.as_bytes().to_owned(),
             AppMember {
                 member: match tag {
-                    MemberTag::Delete => None,
-                    _ => Some(CircleOr::User(user)),
+                    MemberTag::Delete => MaybeDeleted::Deleted(user),
+                    _ => MaybeDeleted::Member(CircleOr::User(user)),
                 },
                 tag,
             },
@@ -299,12 +349,12 @@ impl CircleApp {
                     (MemberTag::Delete, _) => {
                         let ours = ours.get_mut();
                         ours.tag = MemberTag::Delete;
-                        ours.member = None;
+                        ours.member = MaybeDeleted::Deleted(self.inner.owner.clone());
                     }
                     (_, MemberTag::Delete) => {
                         let ours = ours.get_mut();
                         ours.tag = MemberTag::Delete;
-                        ours.member = None;
+                        ours.member = MaybeDeleted::Deleted(self.inner.owner.clone());
                     }
                     (MemberTag::Overwrite, MemberTag::Overwrite) => {
                         // TODO: how to handle this
@@ -316,8 +366,10 @@ impl CircleApp {
                     (MemberTag::Merge, MemberTag::Merge) => {
                         // if the id is the same, we have the same user or the same circle,
                         // but apps must be merged
-                        if let (Some(CircleOr::App(ours)), Some(CircleOr::App(theirs))) =
-                            (&mut ours.get_mut().member, &entry.member)
+                        if let (
+                            MaybeDeleted::Member(CircleOr::App(ours)),
+                            MaybeDeleted::Member(CircleOr::App(theirs)),
+                        ) = (&mut ours.get_mut().member, &entry.member)
                         {
                             ours.merge(theirs)?;
                         }

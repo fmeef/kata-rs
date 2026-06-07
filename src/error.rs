@@ -39,7 +39,8 @@ pub enum InternalErr {
 }
 
 impl From<InternalErr> for rusqlite::Error {
-    fn from(_: InternalErr) -> Self {
+    fn from(err: InternalErr) -> Self {
+        panic!("error {err:?}");
         rusqlite::Error::InvalidQuery
     }
 }

@@ -8,7 +8,7 @@ use crate::{
         db::store::CircleWithMembers,
         pgp::{
             circles::{
-                app::{AppMember, CircleApp, MemberTag},
+                app::{AppMember, CircleApp, MaybeDeleted, MemberTag},
                 circle::{Circle, CircleInner},
             },
             UserHandle,
@@ -33,7 +33,7 @@ pub enum CircleOr {
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct TagOr {
-    content: Option<CircleOr>,
+    content: MaybeDeleted,
     tag: Option<MemberTag>,
 }
 
@@ -73,7 +73,7 @@ fn get_children_parent(
                 out.insert(
                     handle.get_id().to_owned(),
                     TagOr {
-                        content: Some(handle),
+                        content: MaybeDeleted::Member(handle),
                         tag: item.get_tag()?,
                     },
                 );
@@ -86,14 +86,14 @@ fn get_children_parent(
                     children.get(parent).map(|v| v.as_slice()),
                 )?
                 .into_iter()
-                .flat_map(|(v, u)| u.content.map(|u| (v, u)))
+                .flat_map(|(v, u)| u.content.into_option().map(|u| (v, u)))
                 .collect();
                 circle.update_digest();
                 let circle = CircleOr::Circle(circle);
                 out.insert(
                     circle.get_id().to_owned(),
                     TagOr {
-                        content: Some(circle),
+                        content: MaybeDeleted::Member(circle),
                         tag: item.get_tag()?,
                     },
                 );
@@ -118,12 +118,17 @@ fn get_children_parent(
                     })
                 })
                 .collect();
-                let app = CircleOr::App(app);
+                let id = app.get_id().to_owned();
+                let app = if item.deleted.unwrap_or_default() {
+                    MaybeDeleted::Deleted(item.get_id_userhandle()?)
+                } else {
+                    MaybeDeleted::Member(CircleOr::App(app))
+                };
 
                 out.insert(
-                    app.get_id().to_owned(),
+                    id,
                     TagOr {
-                        content: Some(app),
+                        content: app,
                         tag: item.get_tag()?,
                     },
                 );
@@ -143,7 +148,7 @@ impl CircleOr {
         }
     }
 
-    pub fn to_db(&mut self, db: &SqliteDb) -> anyhow::Result<()> {
+    pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
         match self {
             CircleOr::App(app) => app.to_db(db),
             CircleOr::Circle(circle) => circle.to_db(db),
@@ -166,7 +171,10 @@ impl CircleOr {
 
         let res = get_children(&children, &out)?;
 
-        Ok(res.into_values().flat_map(|v| v.content).collect())
+        Ok(res
+            .into_values()
+            .flat_map(|v| v.content.into_option())
+            .collect())
     }
 }
 
@@ -181,7 +189,7 @@ impl CircleEntry {
     pub(crate) fn from_app_member(member: AppMember, id: UserHandle) -> Self {
         Self {
             id,
-            content: member.member,
+            content: member.member.into_option(),
             tag: Some(member.tag),
         }
     }
@@ -244,7 +252,7 @@ mod test {
 
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
         let id = v.name();
-        let mut user = CircleOr::User(v);
+        let user = CircleOr::User(v);
         user.to_db(&app.pgp.db).unwrap();
         let out = app.pgp.db.get_circle_by_id(&id).unwrap();
         assert!(!out.is_empty());
@@ -261,7 +269,7 @@ mod test {
         let user = CircleOr::User(v);
         let circle = app.create_circle(vec![user]).unwrap();
         let id = circle.inner.id.name();
-        let mut circle = CircleOr::Circle(circle);
+        let circle = CircleOr::Circle(circle);
         circle.to_db(&app.pgp.db).unwrap();
 
         let out = app.pgp.db.get_circles_join().unwrap();
@@ -287,9 +295,7 @@ mod test {
         let mut circle = app.create_app(key.cert.fingerprint).unwrap();
         let id = circle.inner.owner.name();
         circle.add_user(v.clone(), MemberTag::Merge).unwrap();
-        let user = CircleOr::User(v);
-
-        let mut circle = CircleOr::App(circle);
+        let circle = CircleOr::App(circle);
 
         circle.to_db(&app.pgp.db).unwrap();
 

@@ -137,7 +137,7 @@ impl CircleOr {
 }
 
 impl Circle {
-    pub fn to_db(&mut self, db: &SqliteDb) -> anyhow::Result<()> {
+    pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
         let entity = CircleData {
             id: self.inner.id.name(),
             circle_type: "circle".to_owned(),
@@ -147,12 +147,13 @@ impl Circle {
 
         entity.insert(db)?;
 
-        for m in self.inner.members.values_mut() {
+        for m in self.inner.members.values() {
             m.to_db(db)?;
             let entity = CircleMembersData {
                 circle_member_id: None,
                 member_id: m.id_hex(),
                 parent_id: self.inner.id.name(),
+                deleted: Some(false),
                 tag: None,
             };
 

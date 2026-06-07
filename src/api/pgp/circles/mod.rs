@@ -31,10 +31,16 @@ pub enum CircleOr {
     App(CircleApp),
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct TagOr {
+    content: Option<CircleOr>,
+    tag: Option<MemberTag>,
+}
+
 fn get_children(
     children: &BTreeMap<Vec<u8>, Vec<u8>>,
     members: &BTreeMap<Vec<u8>, CircleWithMembers>,
-) -> Result<BTreeMap<Vec<u8>, CircleOr>> {
+) -> Result<BTreeMap<Vec<u8>, TagOr>> {
     let mut out = BTreeMap::new();
     println!("get_children start members={members:?}");
     for (k, _) in members
@@ -51,7 +57,7 @@ fn get_children_parent(
     children: &BTreeMap<Vec<u8>, Vec<u8>>,
     members: &BTreeMap<Vec<u8>, CircleWithMembers>,
     parent: Option<&[u8]>,
-) -> Result<BTreeMap<Vec<u8>, CircleOr>> {
+) -> Result<BTreeMap<Vec<u8>, TagOr>> {
     let mut out = BTreeMap::new();
     let parent = match parent {
         Some(v) => v,
@@ -62,8 +68,15 @@ fn get_children_parent(
         match item.circle_type.as_ref() {
             "user" => {
                 let handle = item.get_id_userhandle()?;
+
                 let handle = CircleOr::User(handle);
-                out.insert(handle.get_id().to_owned(), handle);
+                out.insert(
+                    handle.get_id().to_owned(),
+                    TagOr {
+                        content: Some(handle),
+                        tag: item.get_tag()?,
+                    },
+                );
             }
             "circle" => {
                 let mut circle = Circle::new_mut(item.get_author()?, item.sig.clone())?;
@@ -71,15 +84,49 @@ fn get_children_parent(
                     children,
                     members,
                     children.get(parent).map(|v| v.as_slice()),
-                )?;
+                )?
+                .into_iter()
+                .flat_map(|(v, u)| u.content.map(|u| (v, u)))
+                .collect();
                 circle.update_digest();
                 let circle = CircleOr::Circle(circle);
-                out.insert(circle.get_id().to_owned(), circle);
+                out.insert(
+                    circle.get_id().to_owned(),
+                    TagOr {
+                        content: Some(circle),
+                        tag: item.get_tag()?,
+                    },
+                );
             }
             "app" => {
-                let app = CircleApp::new_empty(item.get_author()?, item.sig.clone())?;
+                let mut app = CircleApp::new_empty(item.get_author()?, item.sig.clone())?;
+                app.inner.children = get_children_parent(
+                    children,
+                    members,
+                    children.get(parent).map(|v| v.as_slice()),
+                )?
+                .into_iter()
+                .flat_map(|(v, u)| {
+                    u.tag.map(|tag| {
+                        (
+                            v,
+                            AppMember {
+                                member: u.content,
+                                tag,
+                            },
+                        )
+                    })
+                })
+                .collect();
                 let app = CircleOr::App(app);
-                out.insert(app.get_id().to_owned(), app);
+
+                out.insert(
+                    app.get_id().to_owned(),
+                    TagOr {
+                        content: Some(app),
+                        tag: item.get_tag()?,
+                    },
+                );
             }
             _ => return Err(InternalErr::InvalidCircleType(item.circle_type.clone())),
         }
@@ -119,7 +166,7 @@ impl CircleOr {
 
         let res = get_children(&children, &out)?;
 
-        Ok(res.into_values().collect())
+        Ok(res.into_values().flat_map(|v| v.content).collect())
     }
 }
 
@@ -184,8 +231,11 @@ impl CircleOr {
 mod test {
     use crate::api::{
         db::store::CertDao,
-        pgp::{circles::CircleOr, test_config, UserHandle},
-        PgpApp,
+        pgp::{
+            circles::{app::MemberTag, CircleOr},
+            test_config, UserHandle,
+        },
+        PgpApp, PgpAppTrait,
     };
 
     #[test]
@@ -212,6 +262,35 @@ mod test {
         let circle = app.create_circle(vec![user]).unwrap();
         let id = circle.inner.id.name();
         let mut circle = CircleOr::Circle(circle);
+        circle.to_db(&app.pgp.db).unwrap();
+
+        let out = app.pgp.db.get_circles_join().unwrap();
+        println!("{out:?}");
+        let out = app.pgp.db.get_circle_by_id(&id).unwrap();
+
+        assert_eq!(out.len(), 2);
+
+        let newcircle = CircleOr::from_db(out).unwrap();
+        assert!(!newcircle.is_empty());
+        assert_eq!(newcircle.len(), 1);
+        assert_eq!(circle, newcircle[0]);
+    }
+
+    #[test]
+    fn app_store_read() {
+        let app = PgpApp::create(test_config("app")).unwrap();
+        let key = app
+            .generate_key("test@example.com".to_owned())
+            .generate()
+            .unwrap();
+        let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
+        let mut circle = app.create_app(key.cert.fingerprint).unwrap();
+        let id = circle.inner.owner.name();
+        circle.add_user(v.clone(), MemberTag::Merge).unwrap();
+        let user = CircleOr::User(v);
+
+        let mut circle = CircleOr::App(circle);
+
         circle.to_db(&app.pgp.db).unwrap();
 
         let out = app.pgp.db.get_circles_join().unwrap();

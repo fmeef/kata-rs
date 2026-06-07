@@ -79,6 +79,14 @@ impl Ord for Circle {
 }
 
 impl CircleLike for Circle {
+    fn get_id(&self) -> Vec<u8> {
+        self.inner.id.as_bytes().to_owned()
+    }
+
+    fn get_id_userhandle(&self) -> UserHandle {
+        self.inner.id.clone()
+    }
+
     fn iter_members(&self, sink: StreamSink<CircleEntry>) {
         for member in self.inner.members.values() {
             sink.add(CircleEntry::from_circle_or(member.clone()))
@@ -129,7 +137,7 @@ impl CircleOr {
 }
 
 impl Circle {
-    pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
+    pub fn to_db(&mut self, db: &SqliteDb) -> anyhow::Result<()> {
         let entity = CircleData {
             id: self.inner.id.name(),
             circle_type: "circle".to_owned(),
@@ -139,7 +147,7 @@ impl Circle {
 
         entity.insert(db)?;
 
-        for m in self.inner.members.values() {
+        for m in self.inner.members.values_mut() {
             m.to_db(db)?;
             let entity = CircleMembersData {
                 circle_member_id: None,

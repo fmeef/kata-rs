@@ -104,15 +104,14 @@ pub trait CertDao {
 
     #[query(
         "SELECT id, member_id, parent_id, tag, circle_type, author, sig
-        FROM circles LEFT JOIN circle_members ON parent_id=id
-        GROUP By parent_id"
+        FROM circles LEFT JOIN circle_members ON member_id=id"
     )]
     fn get_circles_join(&self) -> Result<Vec<CircleWithMembers>>;
 
     #[query(
         "SELECT id, member_id, parent_id, tag, circle_type, author, sig
-        FROM circles LEFT JOIN circle_members ON parent_id=id
-        WHERE id = :id"
+        FROM circles LEFT JOIN circle_members ON member_id=id
+        WHERE id = :id OR parent_id = :id"
     )]
     fn get_circle_by_id(&self, id: &str) -> Result<Vec<CircleWithMembers>>;
 }
@@ -131,10 +130,6 @@ impl DbMembers {
             circle: id,
             members: BTreeSet::new(),
         })
-    }
-
-    pub fn id_hex(&self) -> String {
-        self.id.to_hex()
     }
 }
 

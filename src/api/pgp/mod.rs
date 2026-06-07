@@ -148,7 +148,7 @@ impl UserHandle {
         }
     }
 
-    pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
+    pub fn to_db(&mut self, db: &SqliteDb) -> anyhow::Result<()> {
         let data = CircleData {
             id: self.name(),
             circle_type: "user".to_owned(),

@@ -111,6 +111,14 @@ impl Ord for CircleApp {
 }
 
 impl CircleLike for CircleApp {
+    fn get_id(&self) -> Vec<u8> {
+        self.inner.owner.as_bytes().to_owned()
+    }
+
+    fn get_id_userhandle(&self) -> UserHandle {
+        self.inner.owner.clone()
+    }
+
     fn iter_members(&self, sink: StreamSink<CircleEntry>) {
         for (id, member) in self.inner.children.iter() {
             let id = UserHandle::RawBytes(id.clone());
@@ -147,7 +155,7 @@ impl CircleLike for CircleApp {
 }
 
 impl CircleApp {
-    pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
+    pub fn to_db(&mut self, db: &SqliteDb) -> anyhow::Result<()> {
         let entity = CircleData {
             id: self.inner.owner.name(),
             circle_type: "app".to_owned(),
@@ -155,8 +163,8 @@ impl CircleApp {
             sig: Some(self.inner.sig.clone()),
         };
         entity.insert(db)?;
-        for member in self.inner.children.values() {
-            if let Some(ref m) = member.member {
+        for member in self.inner.children.values_mut() {
+            if let Some(m) = member.member.as_mut() {
                 m.to_db(db)?;
                 let entity = CircleMembersData {
                     circle_member_id: None,

@@ -349,12 +349,14 @@ impl CircleApp {
                     (MemberTag::Delete, _) => {
                         let ours = ours.get_mut();
                         ours.tag = MemberTag::Delete;
-                        ours.member = MaybeDeleted::Deleted(self.inner.owner.clone());
+                        // TODO: maybe handle member type here, circles use differednt
+                        // userhandle types than apps?
+                        ours.member = MaybeDeleted::Deleted(UserHandle::RawBytes(id.clone()));
                     }
                     (_, MemberTag::Delete) => {
                         let ours = ours.get_mut();
                         ours.tag = MemberTag::Delete;
-                        ours.member = MaybeDeleted::Deleted(self.inner.owner.clone());
+                        ours.member = MaybeDeleted::Deleted(UserHandle::RawBytes(id.clone()));
                     }
                     (MemberTag::Overwrite, MemberTag::Overwrite) => {
                         // TODO: how to handle this

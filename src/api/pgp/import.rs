@@ -166,7 +166,7 @@ mod test {
 
     #[test]
     fn multiple_read() {
-        let mut i = PgpImportBytes::new();
+        let i = PgpImportBytes::new();
         for _ in 0..20 {
             let reference: Vec<u8> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
             let mut out = vec![0; reference.len() - 4];

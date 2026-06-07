@@ -1,5 +1,6 @@
 use crate::error::Result;
 
+#[allow(dead_code)]
 pub(crate) trait HexConvert {
     fn to_hex(&self) -> String;
     fn from_hex(hex: &str) -> Result<Self>

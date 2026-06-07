@@ -1,4 +1,4 @@
-use std::collections::{btree_map::Entry, BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
@@ -37,9 +37,9 @@ fn get_children(
 ) -> Result<BTreeMap<Vec<u8>, CircleOr>> {
     let mut out = BTreeMap::new();
     println!("get_children start members={members:?}");
-    for (k, m) in members
+    for (k, _) in members
         .iter()
-        .filter(|(k, p)| p.get_parent_id().map(|v| v.is_none()).unwrap_or_default())
+        .filter(|(_, p)| p.get_parent_id().map(|v| v.is_none()).unwrap_or_default())
     {
         let v = get_children_parent(children, members, Some(k.as_slice()))?;
         println!("get_children {v:?}");
@@ -88,14 +88,6 @@ fn get_children_parent(
 }
 
 impl CircleOr {
-    pub(crate) fn get_db_type(&self) -> &str {
-        match self {
-            Self::Circle(_) => "circle",
-            Self::User(_) => "user",
-            Self::App(_) => "app",
-        }
-    }
-
     pub fn id_hex(&self) -> String {
         match self {
             Self::App(a) => a.inner.owner.name(),
@@ -128,113 +120,6 @@ impl CircleOr {
         let res = get_children(&children, &out)?;
 
         Ok(res.into_values().collect())
-    }
-
-    pub fn from_db_fake(members: Vec<CircleWithMembers>) -> Result<Vec<CircleOr>> {
-        let mut result = BTreeMap::new();
-        let mut member_map = BTreeMap::new();
-        for member in members.iter() {
-            for parentcheck in members.iter() {
-                let tag = member.get_tag()?;
-                if let Some(parent) = parentcheck.get_parent_id()? {
-                    let memberid = member.get_id()?;
-                    println!("member_insert {parent:?} {memberid:?}");
-                    if parent == memberid {
-                        match member_map.entry(memberid) {
-                            Entry::Vacant(v) => {
-                                let mut m = BTreeSet::new();
-                                m.insert((parent, tag));
-                                v.insert(m);
-                            }
-                            Entry::Occupied(mut occupied) => {
-                                occupied.get_mut().insert((parent, tag));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        for member in members {
-            if member.get_parent_id()?.is_some() {
-                continue;
-            }
-            match result.entry(member.get_id()?) {
-                Entry::Vacant(v) => {
-                    match member.circle_type.as_ref() {
-                        "user" => {
-                            let handle = member.get_id_userhandle()?;
-                            let handle = CircleOr::User(handle);
-                            v.insert(handle);
-                        }
-                        "circle" => {
-                            let circle = Circle::new_mut(member.get_author()?, member.sig)?;
-                            // circle.inner.members.insert()
-                            let circle = CircleOr::Circle(circle);
-                            v.insert(circle);
-                        }
-                        "app" => {
-                            let app = CircleApp::new_empty(member.get_author()?, member.sig)?;
-
-                            let app = CircleOr::App(app);
-
-                            v.insert(app);
-                        }
-                        _ => return Err(InternalErr::InvalidCircleType(member.circle_type)),
-                    }
-                }
-                Entry::Occupied(v) => {
-                    // match member.circle_type.as_ref() {
-                    //     "circle" => todo!(),
-                    //     "user" => return Err(InternalErr::InvalidCircleType(member.circle_type)),
-                    //     "app" => todo!(),
-                    //     _ => return Err(InternalErr::InvalidCircleType(member.circle_type)),
-                    // };
-                }
-            }
-        }
-
-        println!("member_map={member_map:?}");
-
-        let res = result
-            .keys()
-            .cloned()
-            .map(|k| {
-                //TODO remove
-                let children = member_map.get(&k).cloned().unwrap_or_default();
-                match result.get(&k).cloned().unwrap() {
-                    CircleOr::App(mut app) => {
-                        app.inner.children = children
-                            .into_iter()
-                            .filter_map(|(v, tag)| tag.map(|tag| (v, tag)))
-                            .map(|(v, tag)| {
-                                (
-                                    v.clone(),
-                                    AppMember {
-                                        member: result.get(&v).cloned(),
-                                        tag,
-                                    },
-                                )
-                            })
-                            .collect();
-                        CircleOr::App(app)
-                    }
-                    CircleOr::Circle(mut circle) => {
-                        println!("test member {children:?} k={k:?}");
-                        circle.inner.members = children
-                            .into_iter()
-                            .filter(|(v, tag)| tag.is_none())
-                            .filter_map(|(v, _)| result.get(&v).cloned().map(|r| (v, r)))
-                            .collect();
-
-                        circle.update_digest();
-                        CircleOr::Circle(circle)
-                    }
-                    v => v,
-                }
-            })
-            .collect();
-
-        Ok(res)
     }
 }
 

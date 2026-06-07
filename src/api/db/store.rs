@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 
 use flutter_rust_bridge::frb;
 use sequoia_openpgp::serialize::{MarshalInto, TSK};
@@ -121,16 +121,6 @@ pub(crate) struct DbMembers {
     pub(crate) id: Vec<u8>,
     pub(crate) circle: CircleOr,
     pub(crate) members: BTreeSet<Vec<u8>>,
-}
-
-impl DbMembers {
-    pub(crate) fn new(id: CircleOr) -> Result<Self> {
-        Ok(Self {
-            id: id.as_bytes().to_owned(),
-            circle: id,
-            members: BTreeSet::new(),
-        })
-    }
 }
 
 #[derive(Clone, FromRow)]

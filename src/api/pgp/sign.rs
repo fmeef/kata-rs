@@ -180,16 +180,9 @@ impl VerificationHelper for &PgpApp {
 
 #[cfg(test)]
 mod test {
-    use std::str::FromStr;
-
     use sequoia_cert_store::Store;
-    use sequoia_openpgp::KeyHandle;
 
-    use crate::api::{
-        db::store::CertDao,
-        pgp::{test_config, UserHandle},
-        PgpApp, PgpAppTrait,
-    };
+    use crate::api::{db::store::CertDao, pgp::test_config, PgpApp, PgpAppTrait};
     #[test]
     fn sig_available_after_sign() {
         let app = PgpApp::create(test_config("app")).unwrap();

@@ -53,7 +53,7 @@ mod test {
     use sequoia_openpgp::{Fingerprint, Packet};
 
     use crate::api::{
-        pgp::{sign::TrustLevel, test_config, POLICY},
+        pgp::{sign::TrustLevel, test_config},
         PgpApp, PgpAppTrait,
     };
 

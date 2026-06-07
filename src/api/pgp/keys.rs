@@ -16,7 +16,7 @@ use std::{
 use sequoia_openpgp::{
     crypto::KeyPair,
     packet::{
-        key::{SecretParts, UnspecifiedParts, UnspecifiedRole},
+        key::{SecretParts, UnspecifiedRole},
         UserID,
     },
     KeyHandle,
@@ -333,7 +333,6 @@ impl PgpApp {
 #[cfg(test)]
 mod test {
     use sequoia_cert_store::Store;
-    use sequoia_openpgp::Fingerprint;
 
     use crate::api::{db::store::CertDao, pgp::test_config, PgpApp, PgpAppTrait};
 

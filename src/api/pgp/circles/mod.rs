@@ -223,6 +223,29 @@ impl CircleOr {
             CircleOr::User(user) => user.as_bytes(),
         }
     }
+
+    pub(crate) fn into_userhandle(self) -> UserHandle {
+        match self {
+            CircleOr::Circle(Circle {
+                inner: CircleInner { id, .. },
+                ..
+            }) => id,
+            CircleOr::App(CircleApp { inner, .. }) => inner.owner,
+            CircleOr::User(user) => user,
+        }
+    }
+
+    pub(crate) fn get_userhandle(&self) -> UserHandle {
+        match self {
+            CircleOr::Circle(Circle {
+                inner: CircleInner { id, .. },
+                ..
+            }) => id.clone(),
+            CircleOr::App(CircleApp { inner, .. }) => inner.owner.clone(),
+            CircleOr::User(user) => user.clone(),
+        }
+    }
+
     pub(crate) fn as_bytes(&self) -> &'_ [u8] {
         match self {
             Self::Circle(Circle {

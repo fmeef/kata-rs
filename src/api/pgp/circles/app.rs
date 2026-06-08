@@ -70,6 +70,13 @@ impl MaybeDeleted {
         }
     }
 
+    pub(crate) fn delete(&self) -> MaybeDeleted {
+        match self {
+            MaybeDeleted::Member(m) => MaybeDeleted::Deleted(m.clone().get_userhandle()),
+            v => v.clone(),
+        }
+    }
+
     pub(crate) fn into_option(self) -> Option<CircleOr> {
         match self {
             Self::Member(member) => Some(member),
@@ -351,12 +358,12 @@ impl CircleApp {
                         ours.tag = MemberTag::Delete;
                         // TODO: maybe handle member type here, circles use differednt
                         // userhandle types than apps?
-                        ours.member = MaybeDeleted::Deleted(UserHandle::RawBytes(id.clone()));
+                        ours.member = ours.member.delete();
                     }
                     (_, MemberTag::Delete) => {
                         let ours = ours.get_mut();
                         ours.tag = MemberTag::Delete;
-                        ours.member = MaybeDeleted::Deleted(UserHandle::RawBytes(id.clone()));
+                        ours.member = ours.member.delete();
                     }
                     (MemberTag::Overwrite, MemberTag::Overwrite) => {
                         // TODO: how to handle this

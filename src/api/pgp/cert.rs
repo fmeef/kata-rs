@@ -43,6 +43,11 @@ pub enum MaybeCert {
 
 impl MaybeCert {
     #[frb(sync)]
+    pub fn new(cert: PgpCertWithIds) -> Self {
+        MaybeCert::Full { cert }
+    }
+
+    #[frb(sync)]
     pub fn fingerprint(&self) -> anyhow::Result<UserHandle> {
         match self {
             Self::Fingerprint { fpr } => UserHandle::from_hex(&fpr),

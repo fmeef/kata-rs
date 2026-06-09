@@ -127,6 +127,11 @@ impl Circle {
 }
 
 impl CircleOr {
+    #[frb(sync)]
+    pub fn from_cert(user_handle: UserHandle) -> CircleOr {
+        CircleOr::User(user_handle)
+    }
+
     pub fn is_member(&self, user: &UserHandle) -> bool {
         match self {
             Self::Circle(c) => c.is_member(user),

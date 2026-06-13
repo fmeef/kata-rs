@@ -205,11 +205,98 @@ impl CircleEntry {
 
 pub trait CircleLike {
     fn iter_members(&self, sink: StreamSink<CircleEntry>);
-    fn consume_members(self) -> Vec<CircleEntry>;
+    #[frb(sync)]
     fn get_member(&self, id: UserHandle) -> Option<CircleEntry>;
     fn verify(&self) -> anyhow::Result<bool>;
+    #[frb(sync)]
     fn get_id(&self) -> Vec<u8>;
+    #[frb(sync)]
     fn get_id_userhandle(&self) -> UserHandle;
+    #[frb(sync)]
+    fn get_type(&self) -> CircleType;
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[frb(non_opaque)]
+pub enum CircleType {
+    User,
+    Circle,
+    App,
+}
+
+#[frb(opaque)]
+pub struct GenericCircle<'a>(Box<dyn CircleLike + Send + Sync + 'a>);
+
+impl<'a> GenericCircle<'a> {
+    pub fn new<T>(inner: T) -> GenericCircle<'a>
+    where
+        T: CircleLike + Send + Sync + 'a,
+    {
+        Self(Box::new(inner))
+    }
+}
+
+impl<'a, T> CircleLike for &'a T
+where
+    T: CircleLike,
+{
+    #[frb(sync)]
+    fn get_id(&self) -> Vec<u8> {
+        (*self).get_id()
+    }
+
+    #[frb(sync)]
+    fn get_id_userhandle(&self) -> UserHandle {
+        (*self).get_id_userhandle()
+    }
+
+    #[frb(sync)]
+    fn get_member(&self, id: UserHandle) -> Option<CircleEntry> {
+        (*self).get_member(id)
+    }
+
+    fn iter_members(&self, sink: StreamSink<CircleEntry>) {
+        (*self).iter_members(sink);
+    }
+
+    fn verify(&self) -> anyhow::Result<bool> {
+        (*self).verify()
+    }
+
+    #[frb(sync)]
+    fn get_type(&self) -> CircleType {
+        (*self).get_type()
+    }
+}
+
+impl<'a> CircleLike for GenericCircle<'a> {
+    #[frb(sync)]
+    fn get_id(&self) -> Vec<u8> {
+        self.0.get_id()
+    }
+
+    #[frb(sync)]
+    fn get_id_userhandle(&self) -> UserHandle {
+        self.0.get_id_userhandle()
+    }
+
+    #[frb(sync)]
+    fn get_member(&self, id: UserHandle) -> Option<CircleEntry> {
+        self.0.get_member(id)
+    }
+
+    fn iter_members(&self, sink: StreamSink<CircleEntry>) {
+        self.0.iter_members(sink);
+    }
+
+    fn verify(&self) -> anyhow::Result<bool> {
+        self.0.verify()
+    }
+
+    #[frb(sync)]
+    fn get_type(&self) -> CircleType {
+        self.0.get_type()
+    }
 }
 
 impl CircleOr {
@@ -224,16 +311,25 @@ impl CircleOr {
         }
     }
 
-    pub(crate) fn into_userhandle(self) -> UserHandle {
+    #[frb(sync)]
+    pub fn generic<'a>(&'a self) -> GenericCircle<'a> {
         match self {
-            CircleOr::Circle(Circle {
-                inner: CircleInner { id, .. },
-                ..
-            }) => id,
-            CircleOr::App(CircleApp { inner, .. }) => inner.owner,
-            CircleOr::User(user) => user,
+            Self::App(ref app) => GenericCircle::new(app),
+            Self::Circle(ref circle) => GenericCircle::new(circle),
+            Self::User(ref user) => GenericCircle::new(user),
         }
     }
+
+    // pub(crate) fn into_userhandle(self) -> UserHandle {
+    //     match self {
+    //         CircleOr::Circle(Circle {
+    //             inner: CircleInner { id, .. },
+    //             ..
+    //         }) => id,
+    //         CircleOr::App(CircleApp { inner, .. }) => inner.owner,
+    //         CircleOr::User(user) => user,
+    //     }
+    // }
 
     pub(crate) fn get_userhandle(&self) -> UserHandle {
         match self {

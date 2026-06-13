@@ -14,7 +14,12 @@ use crate::api::Config;
 use crate::{
     api::{
         db::{connection::Crud, store::CircleData},
-        pgp::{cert::PgpCertWithIds, import::PgpImport, mut_store::MutStore},
+        pgp::{
+            cert::PgpCertWithIds,
+            circles::{CircleLike, CircleType},
+            import::PgpImport,
+            mut_store::MutStore,
+        },
         SqliteDb,
     },
     error::InternalErr,
@@ -111,6 +116,49 @@ impl<'de> Deserialize<'de> for UserHandle {
         D: serde::Deserializer<'de>,
     {
         deserializer.deserialize_map(UserHandleVisitor)
+    }
+}
+
+impl CircleLike for UserHandle {
+    #[frb(sync)]
+    fn get_id(&self) -> Vec<u8> {
+        self.as_bytes().to_owned()
+    }
+
+    #[frb(sync)]
+    fn get_id_userhandle(&self) -> UserHandle {
+        self.clone()
+    }
+
+    #[frb(sync)]
+    fn get_member(&self, id: UserHandle) -> Option<circles::CircleEntry> {
+        if id == *self {
+            Some(circles::CircleEntry {
+                id,
+                content: None,
+                tag: None,
+            })
+        } else {
+            None
+        }
+    }
+
+    fn iter_members(&self, sink: StreamSink<circles::CircleEntry>) {
+        sink.add(circles::CircleEntry {
+            id: self.clone(),
+            content: None,
+            tag: None,
+        })
+        .unwrap();
+    }
+
+    fn verify(&self) -> anyhow::Result<bool> {
+        Ok(true)
+    }
+
+    #[frb(sync)]
+    fn get_type(&self) -> circles::CircleType {
+        CircleType::User
     }
 }
 

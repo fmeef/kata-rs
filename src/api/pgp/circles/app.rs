@@ -20,7 +20,7 @@ use crate::{
             store::{CircleData, CircleMembersData},
         },
         pgp::{
-            circles::{circle::Circle, CircleEntry, CircleLike, CircleOr},
+            circles::{circle::Circle, CircleEntry, CircleLike, CircleOr, CircleType},
             sign::PgpAppVerifier,
             UserHandle, POLICY,
         },
@@ -154,10 +154,12 @@ impl Ord for CircleApp {
 }
 
 impl CircleLike for CircleApp {
+    #[frb(sync)]
     fn get_id(&self) -> Vec<u8> {
         self.inner.owner.as_bytes().to_owned()
     }
 
+    #[frb(sync)]
     fn get_id_userhandle(&self) -> UserHandle {
         self.inner.owner.clone()
     }
@@ -170,14 +172,7 @@ impl CircleLike for CircleApp {
         }
     }
 
-    fn consume_members(self) -> Vec<CircleEntry> {
-        self.inner
-            .children
-            .into_iter()
-            .map(|(k, v)| CircleEntry::from_app_member(v, UserHandle::RawBytes(k)))
-            .collect()
-    }
-
+    #[frb(sync)]
     fn get_member(&self, id: UserHandle) -> Option<CircleEntry> {
         self.inner
             .children
@@ -194,6 +189,11 @@ impl CircleLike for CircleApp {
             .verify_app(self)
             .is_ok();
         Ok(res)
+    }
+
+    #[frb(sync)]
+    fn get_type(&self) -> super::CircleType {
+        CircleType::App
     }
 }
 

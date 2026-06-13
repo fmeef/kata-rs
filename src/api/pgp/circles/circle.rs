@@ -4,6 +4,7 @@ use crate::{
             connection::Crud,
             store::{CircleData, CircleMembersData},
         },
+        pgp::circles::CircleType,
         SqliteDb,
     },
     error::Result,
@@ -79,10 +80,12 @@ impl Ord for Circle {
 }
 
 impl CircleLike for Circle {
+    #[frb(sync)]
     fn get_id(&self) -> Vec<u8> {
         self.inner.id.as_bytes().to_owned()
     }
 
+    #[frb(sync)]
     fn get_id_userhandle(&self) -> UserHandle {
         self.inner.id.clone()
     }
@@ -93,15 +96,7 @@ impl CircleLike for Circle {
                 .unwrap();
         }
     }
-
-    fn consume_members(self) -> Vec<CircleEntry> {
-        self.inner
-            .members
-            .into_iter()
-            .map(|(_, v)| CircleEntry::from_circle_or(v))
-            .collect()
-    }
-
+    #[frb(sync)]
     fn get_member(&self, id: UserHandle) -> Option<CircleEntry> {
         self.inner
             .members
@@ -118,11 +113,24 @@ impl CircleLike for Circle {
             .is_ok();
         Ok(res)
     }
+
+    #[frb(sync)]
+    fn get_type(&self) -> super::CircleType {
+        CircleType::User
+    }
 }
 
 impl Circle {
     pub fn is_member(&self, user: &UserHandle) -> bool {
         self.inner.members.contains_key(user.as_bytes())
+    }
+
+    pub fn consume_members(self) -> Vec<CircleEntry> {
+        self.inner
+            .members
+            .into_iter()
+            .map(|(_, v)| CircleEntry::from_circle_or(v))
+            .collect()
     }
 }
 

@@ -41,7 +41,7 @@ sequoia-openpgp = { version = "2", default-features = false, features = [
     "compression-bzip2",
     "compression-deflate"
 ] }
-bzip2 = { version = "*", features = [ "static" ] }
+bzip2 = { version = "0.5.2", features = [ "static" ] }
 #libz-sys = { version = "*", features = [ "cmake", "zlib-ng" ] }
 openpgp-cert-d = { path = "./pgp-cert-d/openpgp-cert-d" }
 buffered-reader = { path = "./sequoia/buffered-reader" }

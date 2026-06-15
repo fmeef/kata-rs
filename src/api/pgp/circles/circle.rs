@@ -42,6 +42,43 @@ pub struct CircleAuthor {
     pub sig: Vec<u8>,
 }
 
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[frb(non_opaque)]
+pub struct NonOpaqueCircle {
+    pub id: UserHandle,
+    pub members: Vec<CircleEntry>,
+    pub author: Option<UserHandle>,
+    pub sig: Option<Vec<u8>>,
+}
+
+impl NonOpaqueCircle {
+    pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
+        let entity = CircleData {
+            id: self.id.name(),
+            circle_type: "circle".to_owned(),
+            author: self.author.as_ref().map(|v| v.name()),
+            sig: self.sig.clone(),
+        };
+
+        for m in self.members.iter() {
+            if let Some(ref content) = m.content {
+                content.to_db(db)?;
+            }
+
+            let entity = CircleMembersData {
+                circle_member_id: None,
+                member_id: m.id.name(),
+                parent_id: self.id.name(),
+                deleted: Some(false),
+                tag: None,
+            };
+
+            entity.insert(db)?;
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Eq, Ord)]
 #[frb(opaque)]
 pub(crate) struct CircleInner {
@@ -118,6 +155,10 @@ impl CircleLike for Circle {
     fn get_type(&self) -> super::CircleType {
         CircleType::User
     }
+
+    fn insert(&self, db: &SqliteDb) -> anyhow::Result<()> {
+        self.to_db(db)
+    }
 }
 
 impl Circle {
@@ -125,12 +166,31 @@ impl Circle {
         self.inner.members.contains_key(user.as_bytes())
     }
 
-    pub fn consume_members(self) -> Vec<CircleEntry> {
-        self.inner
-            .members
-            .into_iter()
-            .map(|(_, v)| CircleEntry::from_circle_or(v))
-            .collect()
+    pub fn consume_members(self) -> NonOpaqueCircle {
+        match self.inner.author {
+            Some(author) => NonOpaqueCircle {
+                members: self
+                    .inner
+                    .members
+                    .into_iter()
+                    .map(|(_, v)| CircleEntry::from_circle_or(v))
+                    .collect(),
+                id: self.inner.id,
+                author: Some(author.author),
+                sig: Some(author.sig),
+            },
+            None => NonOpaqueCircle {
+                members: self
+                    .inner
+                    .members
+                    .into_iter()
+                    .map(|(_, v)| CircleEntry::from_circle_or(v))
+                    .collect(),
+                id: self.inner.id,
+                author: None,
+                sig: None,
+            },
+        }
     }
 }
 

@@ -195,6 +195,10 @@ impl CircleLike for CircleApp {
     fn get_type(&self) -> super::CircleType {
         CircleType::App
     }
+
+    fn insert(&self, db: &SqliteDb) -> anyhow::Result<()> {
+        self.to_db(db)
+    }
 }
 
 impl CircleApp {

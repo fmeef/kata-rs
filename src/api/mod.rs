@@ -2,6 +2,7 @@ pub mod db;
 pub mod image;
 pub mod pgp;
 pub mod ser;
+pub mod sync;
 
 use crate::api::pgp::UserHandle;
 use flutter_rust_bridge::frb;

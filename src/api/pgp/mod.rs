@@ -160,6 +160,10 @@ impl CircleLike for UserHandle {
     fn get_type(&self) -> circles::CircleType {
         CircleType::User
     }
+
+    fn insert(&self, db: &SqliteDb) -> anyhow::Result<()> {
+        self.to_db(db)
+    }
 }
 
 impl UserHandle {

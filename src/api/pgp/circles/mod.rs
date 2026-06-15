@@ -214,6 +214,7 @@ pub trait CircleLike {
     fn get_id_userhandle(&self) -> UserHandle;
     #[frb(sync)]
     fn get_type(&self) -> CircleType;
+    fn insert(&self, db: &SqliteDb) -> anyhow::Result<()>;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -267,6 +268,10 @@ where
     fn get_type(&self) -> CircleType {
         (*self).get_type()
     }
+
+    fn insert(&self, db: &SqliteDb) -> anyhow::Result<()> {
+        (*self).insert(db)
+    }
 }
 
 impl<'a> CircleLike for GenericCircle<'a> {
@@ -296,6 +301,10 @@ impl<'a> CircleLike for GenericCircle<'a> {
     #[frb(sync)]
     fn get_type(&self) -> CircleType {
         self.0.get_type()
+    }
+
+    fn insert(&self, db: &SqliteDb) -> anyhow::Result<()> {
+        self.0.insert(db)
     }
 }
 

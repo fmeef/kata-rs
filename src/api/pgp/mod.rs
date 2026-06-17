@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use sequoia_cert_store::{store::Pep, LazyCert, Store, StoreUpdate};
 use sequoia_openpgp::{policy::StandardPolicy, Fingerprint, KeyHandle};
 use serde::de::Error;
-use std::{str::FromStr, sync::Arc};
+use std::{hash::Hash, str::FromStr, sync::Arc};
 
 #[cfg(test)]
 use crate::api::Config;
@@ -52,6 +52,15 @@ pub trait Verifier {
 pub enum UserHandle {
     KeyHandle(KeyHandle),
     RawBytes(Vec<u8>),
+}
+
+impl Hash for UserHandle {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        match self {
+            Self::KeyHandle(kh) => state.write(kh.as_bytes()),
+            Self::RawBytes(b) => state.write(&b),
+        }
+    }
 }
 
 impl Ord for UserHandle {

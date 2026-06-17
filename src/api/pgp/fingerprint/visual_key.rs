@@ -16,14 +16,14 @@ const COOL_RULES: [u8; 16] = [
     9, 11, 17, 18, 22, 28, 30, 41, 45, 57, 60, 61, 75, 73, 107, 110,
 ];
 
-#[derive(Clone)]
+#[derive(Clone, Hash)]
 pub struct VisualKey {
     pub gismu: Option<Vec<String>>,
     pub emoji: Option<Vec<String>>,
     pub phone: Option<String>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Hash)]
 #[frb(non_opaque)]
 pub enum VisualKeyOr {
     Gismu(VisualKey),
@@ -157,6 +157,11 @@ impl<'a> VisualKeyBuilder<'a> {
     }
 
     #[frb(sync)]
+    pub fn fingerprint(&self) -> UserHandle {
+        self.0.read().unwrap().data.clone()
+    }
+
+    #[frb(sync)]
     pub fn lujvo(&'a self, start: usize, end: usize) -> VisualKeyBuilder<'a> {
         self.0.write().unwrap().lujvo = Some(start..end);
         self.clone()
@@ -251,16 +256,25 @@ impl<'a> VisualKeyBuilder<'a> {
         self.clone()
     }
 
-    pub fn apply_or_else(&self) -> VisualKeyOr {
-        self.apply()
+    pub fn apply_or_else(&self, data: &UserHandle) -> VisualKeyOr {
+        self.apply(data)
             .map(VisualKeyOr::Gismu)
             .unwrap_or_else(|_| VisualKeyOr::Name(self.0.read().unwrap().data.name()))
     }
 
-    fn apply(&self) -> anyhow::Result<VisualKey> {
+    pub fn set_data(&'a self, data: &'a UserHandle) -> VisualKeyBuilder<'a> {
+        let mut s = self.0.write().unwrap();
+        s.data = data;
+        self.clone()
+    }
+
+    fn apply(&self, fp: &UserHandle) -> anyhow::Result<VisualKey> {
         let i = self.0.read().unwrap();
         i.validate_overlap()?;
-        let data = i.data.as_bytes();
+        if fp.len() != i.data.len() {
+            return Err(anyhow!(InternalErr::IdenticonSize));
+        }
+        let data = fp.as_bytes();
         let gismu = match i.lujvo {
             Some(ref v) => Some(lujvo_combined(
                 &data.get(v.clone()).ok_or(InternalErr::KeySlice)?,

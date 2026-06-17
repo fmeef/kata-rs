@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, hash::Hash};
 
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
@@ -29,6 +29,12 @@ pub enum CircleOr {
     Circle(Circle),
     User(UserHandle),
     App(CircleApp),
+}
+
+impl Hash for CircleOr {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        state.write(self.get_id());
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -178,7 +184,7 @@ impl CircleOr {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct CircleEntry {
     pub id: UserHandle,
     pub content: Option<CircleOr>,

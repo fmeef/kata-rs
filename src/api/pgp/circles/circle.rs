@@ -2,7 +2,7 @@ use crate::{
     api::{
         db::{
             connection::Crud,
-            store::{CircleData, CircleMembersData},
+            store::{CircleData, CircleMembersData, CircleWithMembers},
         },
         pgp::circles::CircleType,
         SqliteDb,
@@ -52,6 +52,21 @@ pub struct NonOpaqueCircle {
 }
 
 impl NonOpaqueCircle {
+    #[frb(sync)]
+    pub fn from_db(items: Vec<CircleWithMembers>) -> anyhow::Result<Vec<NonOpaqueCircle>> {
+        let circles = CircleOr::from_db(items)?;
+        // let out = circles.into_iter().map(|v| )
+        todo!()
+    }
+
+    // #[frb(sync)]
+    // pub fn from_circle_or(circle_or: CircleOr) -> anyhow::Result<NonOpaqueCircle> {
+    //     match circle_or {
+    //         CircleOr::Circle(circle) => Ok(circle.consume_members()),
+    //         CircleOr::App(app) =>
+    //     }
+    // }
+
     pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
         let entity = CircleData {
             id: self.id.name(),
@@ -59,6 +74,8 @@ impl NonOpaqueCircle {
             author: self.author.as_ref().map(|v| v.name()),
             sig: self.sig.clone(),
         };
+
+        entity.insert(db)?;
 
         for m in self.members.iter() {
             if let Some(ref content) = m.content {

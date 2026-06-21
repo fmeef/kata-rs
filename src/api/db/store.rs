@@ -6,6 +6,8 @@ use sequoia_openpgp::{parse::Parse, Cert};
 
 use super::utils::HexConvert;
 use crate::api::db::connection::SqliteDb;
+use crate::api::db::entities::FromRow;
+use crate::api::db::migrations::{self, rollback};
 use crate::api::pgp::cert::PgpCert;
 use crate::api::pgp::circles::app::MemberTag;
 use crate::api::pgp::circles::CircleOr;
@@ -114,6 +116,15 @@ pub trait CertDao {
         WHERE id = :id OR parent_id = :id"
     )]
     fn get_circle_by_id(&self, id: &str) -> Result<Vec<CircleWithMembers>>;
+
+    #[query("PRAGMA user_version")]
+    fn get_migration_version(&self) -> Result<usize>;
+}
+
+impl FromRow for usize {
+    fn from_row(row: &rusqlite::Row) -> Result<Self> {
+        Ok(row.get(0)?)
+    }
 }
 
 #[frb(opaque)]
@@ -143,6 +154,11 @@ impl SqliteDb {
             Ok(Some(v)) => v.online,
             _ => false,
         }
+    }
+
+    pub fn rollback(&self, version: usize) -> anyhow::Result<()> {
+        rollback(self, version)?;
+        Ok(())
     }
 }
 

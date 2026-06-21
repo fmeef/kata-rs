@@ -123,6 +123,12 @@ pub fn run_migrations(conn: &SqliteDb) -> Result<()> {
     Ok(())
 }
 
+pub fn rollback(conn: &SqliteDb, version: usize) -> Result<()> {
+    let mut conn = conn.0.conn.lock().unwrap();
+    MIGRATIONS.to_version(&mut conn, version)?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::MIGRATIONS;

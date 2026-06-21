@@ -1,7 +1,7 @@
 use crate::{
     api::{
         db::{
-            connection::Crud,
+            connection::{Crud, OnConflict},
             store::{CircleData, CircleMembersData, CircleWithMembers},
         },
         pgp::circles::CircleType,
@@ -75,7 +75,7 @@ impl NonOpaqueCircle {
             sig: self.sig.clone(),
         };
 
-        entity.insert(db)?;
+        entity.insert_on_conflict(db, OnConflict::Update)?;
 
         for m in self.members.iter() {
             if let Some(ref content) = m.content {
@@ -90,7 +90,7 @@ impl NonOpaqueCircle {
                 tag: None,
             };
 
-            entity.insert(db)?;
+            entity.insert_on_conflict(db, OnConflict::Update)?;
         }
         Ok(())
     }

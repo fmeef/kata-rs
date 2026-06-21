@@ -13,7 +13,10 @@ use std::{hash::Hash, str::FromStr, sync::Arc};
 use crate::api::Config;
 use crate::{
     api::{
-        db::{connection::Crud, store::CircleData},
+        db::{
+            connection::{Crud, OnConflict},
+            store::CircleData,
+        },
         pgp::{
             cert::PgpCertWithIds,
             circles::{CircleLike, CircleType},
@@ -217,7 +220,7 @@ impl UserHandle {
             sig: None,
         };
 
-        data.insert(db)?;
+        data.insert_on_conflict(db, OnConflict::Update)?;
 
         Ok(())
     }

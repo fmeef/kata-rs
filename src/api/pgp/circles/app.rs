@@ -16,7 +16,7 @@ use std::io::Read;
 use crate::{
     api::{
         db::{
-            connection::Crud,
+            connection::{Crud, OnConflict},
             store::{CircleData, CircleMembersData},
         },
         pgp::{
@@ -209,7 +209,7 @@ impl CircleApp {
             author: Some(self.inner.owner.name()),
             sig: Some(self.inner.sig.clone()),
         };
-        entity.insert(db)?;
+        entity.insert_on_conflict(db, OnConflict::Update)?;
         for member in self.inner.children.values() {
             match member.member {
                 MaybeDeleted::Member(ref m) => {
@@ -222,7 +222,7 @@ impl CircleApp {
                         tag: Some(member.tag.as_str().to_owned()),
                     };
 
-                    entity.insert(db)?
+                    entity.insert_on_conflict(db, OnConflict::Update)?
                 }
                 MaybeDeleted::Deleted(ref d) => {
                     let entity = CircleMembersData {
@@ -233,7 +233,7 @@ impl CircleApp {
                         tag: Some(member.tag.as_str().to_owned()),
                     };
 
-                    entity.insert(db)?
+                    entity.insert_on_conflict(db, OnConflict::Update)?
                 }
             }
         }

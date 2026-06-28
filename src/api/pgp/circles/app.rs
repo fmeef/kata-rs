@@ -17,7 +17,7 @@ use crate::{
     api::{
         db::{
             connection::{Crud, OnConflict},
-            store::{CircleData, CircleMembersData},
+            store::{CertDao, CircleData, CircleMembersData},
         },
         pgp::{
             circles::{circle::Circle, CircleEntry, CircleLike, CircleOr, CircleType},
@@ -36,6 +36,46 @@ pub enum MemberTag {
     Merge = 1,
     Overwrite = 2,
     Delete = 3,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[frb(non_opaque)]
+pub struct NonOpaqueApp {
+    pub members: Vec<AppMember>,
+    pub owner: UserHandle,
+    pub sig: Vec<u8>,
+}
+
+impl NonOpaqueApp {
+    pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
+        let entity = CircleData {
+            id: self.owner.name(),
+            circle_type: "app".to_owned(),
+            author: Some(self.owner.name()),
+            sig: Some(self.sig.clone()),
+        };
+
+        entity.insert_on_conflict(db, OnConflict::Update)?;
+
+        for m in self.members.iter() {
+            match m.member {
+                MaybeDeleted::Deleted(ref v) => db.delete_circle(&v.name())?,
+                MaybeDeleted::Member(ref v) => v.to_db(db)?,
+            }
+
+            let entity = CircleMembersData {
+                circle_member_id: None,
+                member_id: m.member.id_hex(),
+                parent_id: self.owner.name(),
+                deleted: Some(false),
+                tag: Some(m.tag.as_str().to_owned()),
+            };
+
+            entity.insert_on_conflict(db, OnConflict::Update)?;
+        }
+
+        Ok(())
+    }
 }
 
 impl MemberTag {
@@ -84,10 +124,22 @@ impl MaybeDeleted {
         }
     }
 
+    #[frb(sync)]
+    pub fn member(&self) -> Option<CircleOr> {
+        self.clone().into_option()
+    }
+
     fn option_mut(&mut self) -> Option<&'_ mut CircleOr> {
         match self {
             Self::Member(v) => Some(v),
             Self::Deleted(_) => None,
+        }
+    }
+
+    fn id_hex(&self) -> String {
+        match self {
+            Self::Member(m) => m.id_hex(),
+            Self::Deleted(m) => m.name(),
         }
     }
 
@@ -238,6 +290,14 @@ impl CircleApp {
             }
         }
         Ok(())
+    }
+
+    pub fn consume_members(self) -> NonOpaqueApp {
+        NonOpaqueApp {
+            members: self.inner.children.into_values().collect(),
+            owner: self.inner.owner,
+            sig: self.inner.sig,
+        }
     }
 
     pub(crate) fn new_empty(author: Option<UserHandle>, sig: Option<Vec<u8>>) -> Result<Self> {
@@ -423,7 +483,7 @@ impl PgpApp {
         Ok(true)
     }
 
-    pub fn create_app(&self, owner: UserHandle) -> anyhow::Result<CircleApp> {
+    pub fn create_app(&self, owner: &UserHandle) -> anyhow::Result<CircleApp> {
         let mut out = Vec::new();
         let children = BTreeMap::new();
         {
@@ -440,7 +500,7 @@ impl PgpApp {
 
         Ok(CircleApp {
             inner: CircleAppInner {
-                owner,
+                owner: owner.clone(),
                 children,
                 sig: out,
             },

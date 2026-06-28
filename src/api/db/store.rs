@@ -119,6 +119,12 @@ pub trait CertDao {
 
     #[query("PRAGMA user_version")]
     fn get_migration_version(&self) -> Result<usize>;
+
+    #[query("UPDATE circle_members SET deleted = '1' WHERE member_id = :id")]
+    fn delete_circle(&self, id: &str) -> Result<()>;
+
+    #[query("UPDATE circle_members SET tag = :tag WHERE member_id = :member")]
+    fn update_tag(&self, tag: &str, member: &str) -> Result<()>;
 }
 
 impl FromRow for usize {

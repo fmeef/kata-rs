@@ -300,6 +300,16 @@ impl CircleApp {
         }
     }
 
+    #[frb(sync)]
+    pub fn id_hex(&self) -> String {
+        self.inner.owner.name()
+    }
+
+    #[frb(sync)]
+    pub fn get_members(&self) -> Vec<AppMember> {
+        self.inner.children.values().cloned().collect()
+    }
+
     pub(crate) fn new_empty(author: Option<UserHandle>, sig: Option<Vec<u8>>) -> Result<Self> {
         let (owner, sig) = match (author, sig) {
             (Some(owner), Some(sig)) => (owner, sig),

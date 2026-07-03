@@ -536,7 +536,7 @@ mod test {
 
         let author = key.cert.fingerprint;
 
-        let app = app.create_app(author.clone()).unwrap();
+        let app = app.create_app(&author).unwrap();
         assert_eq!(author.name(), app.inner.owner.name())
     }
 
@@ -551,7 +551,7 @@ mod test {
 
         let author = key.cert.fingerprint;
 
-        let a = app.create_app(author.clone()).unwrap();
+        let a = app.create_app(&author).unwrap();
         let res = app.verify_app(&a).unwrap();
         assert!(res);
     }
@@ -567,8 +567,8 @@ mod test {
 
         let author = key.cert.fingerprint;
 
-        let mut a = service.create_app(author.clone()).unwrap();
-        let a2 = service.create_app(author.clone()).unwrap();
+        let mut a = service.create_app(&author).unwrap();
+        let a2 = service.create_app(&author).unwrap();
         a.merge(&a2).unwrap();
         let res = service.verify_app(&a).unwrap();
         assert!(res);
@@ -587,8 +587,8 @@ mod test {
 
         let author = key.cert.fingerprint;
 
-        let mut a = service.create_app(author.clone()).unwrap();
-        let mut a2 = service.create_app(author.clone()).unwrap();
+        let mut a = service.create_app(&author).unwrap();
+        let mut a2 = service.create_app(&author).unwrap();
         a.merge_both(&mut a2).unwrap();
         let res = service.verify_app(&a).unwrap();
         assert!(res);
@@ -607,8 +607,8 @@ mod test {
 
         let author = key.cert.fingerprint;
 
-        let mut a = service.create_app(author.clone()).unwrap();
-        let mut a2 = service.create_app(author.clone()).unwrap();
+        let mut a = service.create_app(&author).unwrap();
+        let mut a2 = service.create_app(&author).unwrap();
         let circ = service.create_circle(vec![]).unwrap();
         a2.add_circle(circ, MemberTag::Merge).unwrap();
         a.merge_both(&mut a2).unwrap();
@@ -633,9 +633,9 @@ mod test {
 
         let author = key.cert.fingerprint;
 
-        let mut a = service.create_app(author.clone()).unwrap();
+        let mut a = service.create_app(&author).unwrap();
         let circ = service.create_circle(vec![]).unwrap();
-        let mut a2 = service.create_app(author.clone()).unwrap();
+        let mut a2 = service.create_app(&author).unwrap();
         a2.add_circle(circ, MemberTag::Delete).unwrap();
         a.merge_both(&mut a2).unwrap();
         let res = service.verify_app(&a).unwrap();

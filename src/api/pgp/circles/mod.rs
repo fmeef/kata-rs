@@ -23,7 +23,7 @@ pub mod app;
 pub mod circle;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Eq, Ord)]
-#[frb(opaque)]
+#[frb(non_opaque)]
 #[serde(rename_all = "snake_case")]
 pub enum CircleOr {
     Circle(Circle),
@@ -31,9 +31,64 @@ pub enum CircleOr {
     App(CircleApp),
 }
 
+impl CircleLike for CircleOr {
+    #[frb(sync)]
+    fn get_id(&self) -> Vec<u8> {
+        match self {
+            Self::App(a) => a.get_id(),
+            Self::User(u) => u.get_id(),
+            Self::Circle(c) => c.get_id(),
+        }
+    }
+    #[frb(sync)]
+    fn get_id_userhandle(&self) -> UserHandle {
+        match self {
+            Self::App(a) => a.get_id_userhandle(),
+            Self::User(u) => u.get_id_userhandle(),
+            Self::Circle(c) => c.get_id_userhandle(),
+        }
+    }
+    #[frb(sync)]
+    fn get_member(&self, id: UserHandle) -> Option<CircleEntry> {
+        match self {
+            Self::App(a) => a.get_member(id),
+            Self::User(u) => u.get_member(id),
+            Self::Circle(c) => c.get_member(id),
+        }
+    }
+    #[frb(sync)]
+    fn get_type(&self) -> CircleType {
+        match self {
+            Self::App(a) => a.get_type(),
+            Self::User(u) => u.get_type(),
+            Self::Circle(c) => c.get_type(),
+        }
+    }
+
+    fn insert(&self, db: &SqliteDb) -> anyhow::Result<()> {
+        self.to_db(db)
+    }
+
+    fn iter_members(&self, sink: StreamSink<CircleEntry>) {
+        match self {
+            Self::App(a) => a.iter_members(sink),
+            Self::User(u) => u.iter_members(sink),
+            Self::Circle(c) => c.iter_members(sink),
+        }
+    }
+
+    fn verify(&self) -> anyhow::Result<bool> {
+        match self {
+            Self::App(a) => a.verify(),
+            Self::User(u) => u.verify(),
+            Self::Circle(c) => c.verify(),
+        }
+    }
+}
+
 impl Hash for CircleOr {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        state.write(self.get_id());
+        state.write(self.get_id_ref());
     }
 }
 
@@ -48,7 +103,6 @@ fn get_children(
     members: &BTreeMap<Vec<u8>, CircleWithMembers>,
 ) -> Result<BTreeMap<Vec<u8>, TagOr>> {
     let mut out = BTreeMap::new();
-    println!("get_children start members={members:?}");
     for (k, _) in members
         .iter()
         .filter(|(_, p)| p.get_parent_id().map(|v| v.is_none()).unwrap_or_default())
@@ -315,7 +369,7 @@ impl<'a> CircleLike for GenericCircle<'a> {
 }
 
 impl CircleOr {
-    pub(crate) fn get_id(&self) -> &'_ [u8] {
+    pub(crate) fn get_id_ref(&self) -> &'_ [u8] {
         match self {
             CircleOr::Circle(Circle {
                 inner: CircleInner { id, .. },
@@ -326,14 +380,14 @@ impl CircleOr {
         }
     }
 
-    #[frb(sync)]
-    pub fn generic<'a>(&'a self) -> GenericCircle<'a> {
-        match self {
-            Self::App(ref app) => GenericCircle::new(app),
-            Self::Circle(ref circle) => GenericCircle::new(circle),
-            Self::User(ref user) => GenericCircle::new(user),
-        }
-    }
+    // #[frb(sync)]
+    // pub fn generic<'a>(&'a self) -> GenericCircle<'a> {
+    //     match self {
+    //         Self::App(ref app) => GenericCircle::new(app),
+    //         Self::Circle(ref circle) => GenericCircle::new(circle),
+    //         Self::User(ref user) => GenericCircle::new(user),
+    //     }
+    // }
 
     // pub(crate) fn into_userhandle(self) -> UserHandle {
     //     match self {
@@ -426,7 +480,7 @@ mod test {
             .generate()
             .unwrap();
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
-        let mut circle = app.create_app(key.cert.fingerprint).unwrap();
+        let mut circle = app.create_app(&key.cert.fingerprint).unwrap();
         let id = circle.inner.owner.name();
         circle.add_user(v.clone(), MemberTag::Merge).unwrap();
         let circle = CircleOr::App(circle);

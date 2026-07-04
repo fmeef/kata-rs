@@ -185,6 +185,34 @@ impl Circle {
     }
 
     #[frb(sync)]
+    pub fn get_members(&self) -> NonOpaqueCircle {
+        match self.inner.author {
+            Some(ref author) => NonOpaqueCircle {
+                members: self
+                    .inner
+                    .members
+                    .iter()
+                    .map(|(_, v)| CircleEntry::from_circle_or(v.clone()))
+                    .collect(),
+                id: self.inner.id.clone(),
+                author: Some(author.author.clone()),
+                sig: Some(author.sig.clone()),
+            },
+            None => NonOpaqueCircle {
+                members: self
+                    .inner
+                    .members
+                    .iter()
+                    .map(|(_, v)| CircleEntry::from_circle_or(v.clone()))
+                    .collect(),
+                id: self.inner.id.clone(),
+                author: None,
+                sig: None,
+            },
+        }
+    }
+
+    #[frb(sync)]
     pub fn consume_members(self) -> NonOpaqueCircle {
         match self.inner.author {
             Some(author) => NonOpaqueCircle {

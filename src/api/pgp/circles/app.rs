@@ -292,6 +292,7 @@ impl CircleApp {
         Ok(())
     }
 
+    #[frb(sync)]
     pub fn consume_members(self) -> NonOpaqueApp {
         NonOpaqueApp {
             members: self.inner.children.into_values().collect(),

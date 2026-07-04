@@ -4,13 +4,16 @@ use sequoia_cert_store::LazyCert;
 use sequoia_openpgp::{parse::Parse, Cert};
 use sequoia_wot::{store::Store, Depth};
 
-use crate::api::{
-    pgp::{PgpServiceTrait, UserHandle},
-    PgpApp,
+use crate::{
+    api::{
+        pgp::{PgpServiceTrait, UserHandle},
+        PgpApp,
+    },
+    frb_generated::RustAutoOpaque,
 };
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-#[frb(non_opaque)]
+#[frb(opaque)]
 pub struct PgpCert {
     pub keyid: String,
     pub fingerprint: UserHandle,
@@ -27,6 +30,7 @@ pub struct PgpCertStubSigs {
 }
 
 #[derive(Debug, Clone)]
+#[frb(opaque)]
 pub struct PgpCertWithIds {
     pub cert: PgpCert,
     pub ids: Vec<String>,
@@ -35,23 +39,29 @@ pub struct PgpCertWithIds {
 }
 
 #[derive(Debug, Clone)]
-#[frb(opaque)]
+#[frb(non_opaque)]
 pub enum MaybeCert {
-    Full { cert: PgpCertWithIds },
-    Fingerprint { fpr: String },
+    Full {
+        cert: RustAutoOpaque<PgpCertWithIds>,
+    },
+    Fingerprint {
+        fpr: RustAutoOpaque<UserHandle>,
+    },
 }
 
 impl MaybeCert {
     #[frb(sync)]
-    pub fn new(cert: PgpCertWithIds) -> Self {
-        MaybeCert::Full { cert }
+    pub fn from_cert(cert: &PgpCertWithIds) -> MaybeCert {
+        MaybeCert::Full {
+            cert: RustAutoOpaque::new(cert.clone()),
+        }
     }
 
     #[frb(sync)]
     pub fn fingerprint(&self) -> anyhow::Result<UserHandle> {
         match self {
-            Self::Fingerprint { fpr } => UserHandle::from_hex(&fpr),
-            Self::Full { cert } => Ok(cert.cert.fingerprint.clone()),
+            Self::Fingerprint { fpr } => Ok(fpr.blocking_read().clone()),
+            Self::Full { cert } => Ok(cert.blocking_read().cert.fingerprint.clone()),
         }
     }
 
@@ -59,7 +69,7 @@ impl MaybeCert {
     pub fn maybe_ids(&self) -> Option<Vec<String>> {
         match self {
             Self::Fingerprint { .. } => None,
-            Self::Full { cert } => Some(cert.ids.clone()),
+            Self::Full { cert } => Some(cert.blocking_read().ids.clone()),
         }
     }
 }
@@ -138,6 +148,16 @@ impl PgpCertWithIds {
         })
     }
 
+    #[frb(sync)]
+    pub fn copy(&self) -> PgpCertWithIds {
+        self.clone()
+    }
+
+    #[frb(sync)]
+    pub fn id_hex(&self) -> String {
+        self.cert.fingerprint.name()
+    }
+
     pub fn from_bytes_sig(bytes: Vec<u8>, store: &PgpApp) -> anyhow::Result<Self> {
         let cert = Cert::from_bytes(&bytes)?;
 
@@ -163,12 +183,19 @@ impl PgpCertWithIds {
                     v.certifications()
                         .flat_map(|(_, v)| v.iter().map(|v| v.issuer().fingerprint().to_hex()))
                 })
-                .map(|v| {
+                .filter_map(|v| {
                     UserHandle::from_hex(&v)
-                        .map(|v| store.get_stub_from_fingerprint(&v))
-                        .flatten()
-                        .map(|v| MaybeCert::Full { cert: v })
-                        .unwrap_or_else(|_| MaybeCert::Fingerprint { fpr: v })
+                        .map(|v| {
+                            store
+                                .get_stub_from_fingerprint(&v)
+                                .map(|v| MaybeCert::Full {
+                                    cert: RustAutoOpaque::new(v),
+                                })
+                                .unwrap_or_else(|_| MaybeCert::Fingerprint {
+                                    fpr: RustAutoOpaque::new(v),
+                                })
+                        })
+                        .ok()
                 })
                 .collect(),
             certifications: cert
@@ -176,12 +203,19 @@ impl PgpCertWithIds {
                 .flat_map(|v| v.certifications())
                 .flat_map(|v| v.issuers())
                 .map(|v| v.to_hex())
-                .map(|v| {
+                .filter_map(|v| {
                     UserHandle::from_hex(&v)
-                        .map(|v| store.get_stub_from_fingerprint(&v))
-                        .flatten()
-                        .map(|v| MaybeCert::Full { cert: v })
-                        .unwrap_or_else(|_| MaybeCert::Fingerprint { fpr: v })
+                        .map(|v| {
+                            store
+                                .get_stub_from_fingerprint(&v)
+                                .map(|v| MaybeCert::Full {
+                                    cert: RustAutoOpaque::new(v),
+                                })
+                                .unwrap_or_else(|_| MaybeCert::Fingerprint {
+                                    fpr: RustAutoOpaque::new(v),
+                                })
+                        })
+                        .ok()
                 })
                 .collect(),
         })

@@ -266,6 +266,9 @@ pub trait PgpServiceTrait {
     fn export_armor(&self) -> anyhow::Result<String>;
     fn iter_certs(&self, sink: StreamSink<PgpCertWithIds>) -> anyhow::Result<()>;
     fn get_key_from_fingerprint(&self, fingerprint: &UserHandle) -> anyhow::Result<PgpCertWithIds>;
+    fn get_key_or(&self, fingerprint: &UserHandle) -> Option<PgpCertWithIds> {
+        self.get_key_from_fingerprint(fingerprint).ok()
+    }
     fn get_stub_from_fingerprint(&self, fingerprint: &UserHandle)
         -> anyhow::Result<PgpCertWithIds>;
     fn iter_fingerprints(&self, sink: StreamSink<String>) -> anyhow::Result<()>;

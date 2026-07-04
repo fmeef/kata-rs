@@ -32,7 +32,7 @@ use crate::{
         PgpApp, PgpAppTrait,
     },
     error::InternalErr,
-    frb_generated::StreamSink,
+    frb_generated::{RustAutoOpaque, StreamSink},
 };
 
 use sequoia_openpgp::cert::amalgamation::key::ValidKeyAmalgamationIter;
@@ -172,12 +172,18 @@ where
                 v.certifications()
                     .flat_map(|(_, v)| v.iter().map(|v| v.issuer().fingerprint().to_hex()))
             })
-            .map(|v| {
+            .filter_map(|v| {
                 UserHandle::from_hex(&v)
-                    .map(|v| self.get_stub_from_fingerprint(&v))
-                    .flatten()
-                    .map(|v| MaybeCert::Full { cert: v })
-                    .unwrap_or_else(|_| MaybeCert::Fingerprint { fpr: v })
+                    .map(|v| {
+                        self.get_stub_from_fingerprint(&v)
+                            .map(|v| MaybeCert::Full {
+                                cert: RustAutoOpaque::new(v),
+                            })
+                            .unwrap_or_else(|_| MaybeCert::Fingerprint {
+                                fpr: RustAutoOpaque::new(v),
+                            })
+                    })
+                    .ok()
             })
             .collect(),
             certifications: cert
@@ -185,12 +191,18 @@ where
                 .flat_map(|v| v.certifications())
                 .flat_map(|v| v.issuers())
                 .map(|v| v.to_hex())
-                .map(|v| {
+                .filter_map(|v| {
                     UserHandle::from_hex(&v)
-                        .map(|v| self.get_stub_from_fingerprint(&v))
-                        .flatten()
-                        .map(|v| MaybeCert::Full { cert: v })
-                        .unwrap_or_else(|_| MaybeCert::Fingerprint { fpr: v })
+                        .map(|v| {
+                            self.get_stub_from_fingerprint(&v)
+                                .map(|v| MaybeCert::Full {
+                                    cert: RustAutoOpaque::new(v),
+                                })
+                                .unwrap_or_else(|_| MaybeCert::Fingerprint {
+                                    fpr: RustAutoOpaque::new(v),
+                                })
+                        })
+                        .ok()
                 })
                 .collect(),
         })

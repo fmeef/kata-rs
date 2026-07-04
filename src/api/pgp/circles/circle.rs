@@ -183,6 +183,7 @@ impl Circle {
         self.inner.members.contains_key(user.as_bytes())
     }
 
+    #[frb(sync)]
     pub fn consume_members(self) -> NonOpaqueCircle {
         match self.inner.author {
             Some(author) => NonOpaqueCircle {

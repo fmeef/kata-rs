@@ -8,7 +8,6 @@ use crate::{
         SqliteDb,
     },
     error::Result,
-    frb_generated::RustAutoOpaque,
 };
 use anyhow::anyhow;
 use flutter_rust_bridge::frb;
@@ -244,14 +243,14 @@ impl Circle {
 impl CircleOr {
     #[frb(sync)]
     pub fn from_cert(user_handle: UserHandle) -> CircleOr {
-        CircleOr::User(RustAutoOpaque::new(user_handle))
+        CircleOr::User(user_handle)
     }
 
     pub fn is_member(&self, user: &UserHandle) -> bool {
         match self {
-            Self::Circle(c) => c.blocking_read().is_member(user),
-            Self::User(u) => *u.blocking_read() == *user,
-            Self::App(u) => u.blocking_read().is_member(user),
+            Self::Circle(c) => c.is_member(user),
+            Self::User(u) => u == user,
+            Self::App(u) => u.is_member(user),
         }
     }
 }
@@ -287,7 +286,7 @@ impl Circle {
         let mut digest = Sha256::new();
 
         for member in self.inner.members.values() {
-            digest.update(&member.as_bytes());
+            digest.update(member.as_bytes());
         }
 
         self.inner.id = UserHandle::RawBytes(digest.finalize().to_vec());
@@ -312,7 +311,7 @@ impl Circle {
     fn members_reader<'a>(&'a self) -> Box<dyn std::io::Read + Send + Sync + 'a> {
         let v: &[u8] = &[];
         for (i, (_, member)) in self.inner.members.iter().enumerate() {
-            let v = v.chain(member.as_read());
+            let v = v.chain(member.as_bytes());
             if i + 1 == self.inner.members.len() {
                 return Box::new(v);
             }
@@ -431,7 +430,7 @@ impl PgpApp {
             signer.write_all(author.as_bytes())?;
 
             for member in circle.inner.members.values() {
-                signer.write_all(&member.as_bytes())?;
+                signer.write_all(member.as_bytes())?;
             }
 
             signer.write_all(circle.inner.id.as_bytes())?;
@@ -446,20 +445,17 @@ impl PgpApp {
 
 #[cfg(test)]
 mod test {
-    use crate::{
-        api::{
-            pgp::{circles::circle::CircleOr, test_config, UserHandle},
-            PgpApp, PgpAppTrait,
-        },
-        frb_generated::RustAutoOpaque,
+    use crate::api::{
+        pgp::{circles::circle::CircleOr, test_config, UserHandle},
+        PgpApp, PgpAppTrait,
     };
 
     #[test]
     fn create_signed_circle() {
         let app = PgpApp::create(test_config("app")).unwrap();
-        let keys = vec![CircleOr::User(RustAutoOpaque::new(
+        let keys = vec![CircleOr::User(
             UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap(),
-        ))];
+        )];
 
         let key = app
             .generate_key("test@example.com".to_owned())
@@ -475,9 +471,9 @@ mod test {
     #[test]
     fn verify_signed_circle() {
         let app = PgpApp::create(test_config("app")).unwrap();
-        let keys = vec![CircleOr::User(RustAutoOpaque::new(
+        let keys = vec![CircleOr::User(
             UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap(),
-        ))];
+        )];
         let key = app
             .generate_key("test@example.com".to_owned())
             .generate()
@@ -493,9 +489,9 @@ mod test {
     #[test]
     fn verify_membership() {
         let app = PgpApp::create(test_config("app")).unwrap();
-        let keys = vec![CircleOr::User(RustAutoOpaque::new(
+        let keys = vec![CircleOr::User(
             UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap(),
-        ))];
+        )];
 
         let circle = app.create_circle(keys).unwrap();
 

@@ -251,6 +251,17 @@ impl CircleLike for CircleApp {
     fn insert(&self, db: &SqliteDb) -> anyhow::Result<()> {
         self.to_db(db)
     }
+
+    #[frb(sync)]
+    fn get_members(&self) -> Vec<CircleEntry> {
+        self.inner
+            .children
+            .iter()
+            .map(|(id, v)| {
+                CircleEntry::from_app_member(v.clone(), UserHandle::RawBytes(id.clone()))
+            })
+            .collect()
+    }
 }
 
 impl CircleApp {
@@ -306,10 +317,10 @@ impl CircleApp {
         self.inner.owner.name()
     }
 
-    #[frb(sync)]
-    pub fn get_members(&self) -> Vec<AppMember> {
-        self.inner.children.values().cloned().collect()
-    }
+    // #[frb(sync)]
+    // pub fn get_members(&self) -> Vec<AppMember> {
+    //     self.inner.children.values().cloned().collect()
+    // }
 
     pub(crate) fn new_empty(author: Option<UserHandle>, sig: Option<Vec<u8>>) -> Result<Self> {
         let (owner, sig) = match (author, sig) {

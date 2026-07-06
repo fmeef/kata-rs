@@ -19,7 +19,7 @@ use crate::{
         },
         pgp::{
             cert::PgpCertWithIds,
-            circles::{CircleLike, CircleType},
+            circles::{CircleEntry, CircleLike, CircleType},
             import::PgpImport,
             mut_store::MutStore,
         },
@@ -176,6 +176,13 @@ impl CircleLike for UserHandle {
     fn insert(&self, db: &SqliteDb) -> anyhow::Result<()> {
         self.to_db(db)
     }
+
+    #[frb(sync)]
+    fn get_members(&self) -> Vec<circles::CircleEntry> {
+        vec![CircleEntry::from_circle_or(circles::CircleOr::User(
+            self.clone(),
+        ))]
+    }
 }
 
 impl UserHandle {
@@ -216,7 +223,7 @@ impl UserHandle {
         let data = CircleData {
             id: self.name(),
             circle_type: "user".to_owned(),
-            author: None,
+            author: Some(self.name()),
             sig: None,
         };
 

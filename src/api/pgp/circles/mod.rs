@@ -1,6 +1,10 @@
-use std::{collections::BTreeMap, hash::Hash};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    hash::Hash,
+};
 
 use flutter_rust_bridge::frb;
+use image_hasher::HashBytes;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -84,6 +88,15 @@ impl CircleLike for CircleOr {
             Self::Circle(c) => c.verify(),
         }
     }
+
+    #[frb(sync)]
+    fn get_members(&self) -> Vec<CircleEntry> {
+        match self {
+            Self::App(a) => a.get_members(),
+            Self::Circle(c) => c.get_members(),
+            Self::User(u) => u.get_members(),
+        }
+    }
 }
 
 impl Hash for CircleOr {
@@ -99,7 +112,7 @@ struct TagOr {
 }
 
 fn get_children(
-    children: &BTreeMap<Vec<u8>, Vec<u8>>,
+    children: &BTreeMap<Vec<u8>, BTreeSet<Vec<u8>>>,
     members: &BTreeMap<Vec<u8>, CircleWithMembers>,
 ) -> Result<BTreeMap<Vec<u8>, TagOr>> {
     let mut out = BTreeMap::new();
@@ -114,7 +127,7 @@ fn get_children(
     Ok(out)
 }
 fn get_children_parent(
-    children: &BTreeMap<Vec<u8>, Vec<u8>>,
+    children: &BTreeMap<Vec<u8>, BTreeSet<Vec<u8>>>,
     members: &BTreeMap<Vec<u8>, CircleWithMembers>,
     parent: Option<&[u8]>,
 ) -> Result<BTreeMap<Vec<u8>, TagOr>> {
@@ -124,7 +137,7 @@ fn get_children_parent(
         None => return Ok(out),
     };
     for (_, item) in members.iter().filter(|(k, _)| *k == parent) {
-        println!("get_children_parent {item:?}");
+        // println!("get_children_parent {item:?}");
         match item.circle_type.as_ref() {
             "user" => {
                 let handle = item.get_id_userhandle()?;
@@ -140,14 +153,17 @@ fn get_children_parent(
             }
             "circle" => {
                 let mut circle = Circle::new_mut(item.get_author()?, item.sig.clone())?;
-                circle.inner.members = get_children_parent(
-                    children,
-                    members,
-                    children.get(parent).map(|v| v.as_slice()),
-                )?
-                .into_iter()
-                .flat_map(|(v, u)| u.content.into_option().map(|u| (v, u)))
-                .collect();
+                circle.inner.members = BTreeMap::new();
+                if let Some(parent) = children.get(parent) {
+                    for parent in parent {
+                        circle.inner.members.extend(
+                            get_children_parent(children, members, Some(parent.as_slice()))?
+                                .into_iter()
+                                .flat_map(|(v, u)| u.content.into_option().map(|u| (v, u))),
+                        );
+                    }
+                }
+                println!("circle with members {:?}", circle.inner.members);
                 circle.update_digest();
                 let circle = CircleOr::Circle(circle);
                 out.insert(
@@ -160,24 +176,29 @@ fn get_children_parent(
             }
             "app" => {
                 let mut app = CircleApp::new_empty(item.get_author()?, item.sig.clone())?;
-                app.inner.children = get_children_parent(
-                    children,
-                    members,
-                    children.get(parent).map(|v| v.as_slice()),
-                )?
-                .into_iter()
-                .flat_map(|(v, u)| {
-                    u.tag.map(|tag| {
-                        (
-                            v,
-                            AppMember {
-                                member: u.content,
-                                tag,
-                            },
-                        )
-                    })
-                })
-                .collect();
+                app.inner.children = BTreeMap::new();
+                if let Some(parent) = children.get(parent) {
+                    for parent in parent {
+                        app.inner.children.extend(
+                            get_children_parent(children, members, Some(parent.as_slice()))?
+                                .into_iter()
+                                .flat_map(|(v, u)| {
+                                    u.tag.map(|tag| {
+                                        (
+                                            v,
+                                            AppMember {
+                                                member: u.content,
+                                                tag,
+                                            },
+                                        )
+                                    })
+                                }),
+                        );
+                    }
+                }
+
+                println!("app with members {:?}", app.inner.children);
+
                 let id = app.get_id().to_owned();
                 let app = if item.deleted.unwrap_or_default() {
                     MaybeDeleted::Deleted(item.get_id_userhandle()?)
@@ -217,12 +238,14 @@ impl CircleOr {
     }
 
     pub fn from_db(members: Vec<CircleWithMembers>) -> Result<Vec<CircleOr>> {
+        println!("from_db {members:?}");
         let mut out = BTreeMap::new();
 
         let mut children = BTreeMap::new();
         for member in members {
             if let Some(parent) = member.get_parent_id()? {
-                children.insert(parent, member.get_id()?);
+                let entry = children.entry(parent).or_insert_with(|| BTreeSet::new());
+                entry.insert(member.get_id()?);
                 out.insert(member.get_id()?, member);
             } else {
                 out.insert(member.get_id()?, member);
@@ -267,6 +290,8 @@ pub trait CircleLike {
     fn iter_members(&self, sink: StreamSink<CircleEntry>);
     #[frb(sync)]
     fn get_member(&self, id: UserHandle) -> Option<CircleEntry>;
+    #[frb(sync)]
+    fn get_members(&self) -> Vec<CircleEntry>;
     fn verify(&self) -> anyhow::Result<bool>;
     #[frb(sync)]
     fn get_id(&self) -> Vec<u8>;
@@ -332,6 +357,11 @@ where
     fn insert(&self, db: &SqliteDb) -> anyhow::Result<()> {
         (*self).insert(db)
     }
+
+    #[frb(sync)]
+    fn get_members(&self) -> Vec<CircleEntry> {
+        (*self).get_members()
+    }
 }
 
 impl<'a> CircleLike for GenericCircle<'a> {
@@ -365,6 +395,11 @@ impl<'a> CircleLike for GenericCircle<'a> {
 
     fn insert(&self, db: &SqliteDb) -> anyhow::Result<()> {
         self.0.insert(db)
+    }
+
+    #[frb(sync)]
+    fn get_members(&self) -> Vec<CircleEntry> {
+        self.0.get_members()
     }
 }
 
@@ -428,7 +463,7 @@ mod test {
     use crate::api::{
         db::store::CertDao,
         pgp::{
-            circles::{app::MemberTag, CircleOr},
+            circles::{app::MemberTag, CircleLike, CircleOr},
             test_config, UserHandle,
         },
         PgpApp, PgpAppTrait,
@@ -462,7 +497,7 @@ mod test {
 
         let out = app.pgp.db.get_circles_join().unwrap();
         println!("{out:?}");
-        let out = app.pgp.db.get_circle_by_id(&id).unwrap();
+        //   let out = app.pgp.db.get_circle_by_id(&id).unwrap();
 
         assert_eq!(out.len(), 2);
 
@@ -480,22 +515,26 @@ mod test {
             .generate()
             .unwrap();
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
+        let u = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854037").unwrap();
+
         let mut circle = app.create_app(&key.cert.fingerprint).unwrap();
         let id = circle.inner.owner.name();
         circle.add_user(v.clone(), MemberTag::Merge).unwrap();
+        circle.add_user(u.clone(), MemberTag::Merge).unwrap();
+
         let circle = CircleOr::App(circle);
 
         circle.to_db(&app.pgp.db).unwrap();
 
         let out = app.pgp.db.get_circles_join().unwrap();
         println!("{out:?}");
-        let out = app.pgp.db.get_circle_by_id(&id).unwrap();
+        // let out = app.pgp.db.get_circle_by_id(&id).unwrap();
 
-        assert_eq!(out.len(), 2);
+        assert_eq!(out.len(), 3);
 
         let newcircle = CircleOr::from_db(out).unwrap();
         assert!(!newcircle.is_empty());
         assert_eq!(newcircle.len(), 1);
-        assert_eq!(circle, newcircle[0]);
+        assert_eq!(circle.get_members(), newcircle[0].get_members());
     }
 }

@@ -42,59 +42,59 @@ pub struct CircleAuthor {
     pub sig: Vec<u8>,
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
-#[frb(non_opaque)]
-pub struct NonOpaqueCircle {
-    pub id: UserHandle,
-    pub members: Vec<CircleEntry>,
-    pub author: Option<UserHandle>,
-    pub sig: Option<Vec<u8>>,
-}
+// #[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
+// #[frb(non_opaque)]
+// pub struct NonOpaqueCircle {
+//     pub id: UserHandle,
+//     pub members: Vec<CircleEntry>,
+//     pub author: Option<UserHandle>,
+//     pub sig: Option<Vec<u8>>,
+// }
 
-impl NonOpaqueCircle {
-    #[frb(sync)]
-    pub fn from_db(items: Vec<CircleWithMembers>) -> anyhow::Result<Vec<NonOpaqueCircle>> {
-        let circles = CircleOr::from_db(items)?;
-        // let out = circles.into_iter().map(|v| )
-        todo!()
-    }
+// impl NonOpaqueCircle {
+//     #[frb(sync)]
+//     pub fn from_db(items: Vec<CircleWithMembers>) -> anyhow::Result<Vec<NonOpaqueCircle>> {
+//         let circles = CircleOr::from_db(items)?;
+//         // let out = circles.into_iter().map(|v| )
+//         todo!()
+//     }
 
-    // #[frb(sync)]
-    // pub fn from_circle_or(circle_or: CircleOr) -> anyhow::Result<NonOpaqueCircle> {
-    //     match circle_or {
-    //         CircleOr::Circle(circle) => Ok(circle.consume_members()),
-    //         CircleOr::App(app) =>
-    //     }
-    // }
+//     // #[frb(sync)]
+//     // pub fn from_circle_or(circle_or: CircleOr) -> anyhow::Result<NonOpaqueCircle> {
+//     //     match circle_or {
+//     //         CircleOr::Circle(circle) => Ok(circle.consume_members()),
+//     //         CircleOr::App(app) =>
+//     //     }
+//     // }
 
-    pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
-        let entity = CircleData {
-            id: self.id.name(),
-            circle_type: "circle".to_owned(),
-            author: self.author.as_ref().map(|v| v.name()),
-            sig: self.sig.clone(),
-        };
+//     pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
+//         let entity = CircleData {
+//             id: self.id.name(),
+//             circle_type: "circle".to_owned(),
+//             author: self.author.as_ref().map(|v| v.name()),
+//             sig: self.sig.clone(),
+//         };
 
-        entity.insert_on_conflict(db, OnConflict::Update)?;
+//         entity.insert_on_conflict(db, OnConflict::Update)?;
 
-        for m in self.members.iter() {
-            if let Some(ref content) = m.content {
-                content.to_db(db)?;
-            }
+//         for m in self.members.iter() {
+//             if let Some(ref content) = m.content {
+//                 content.to_db(db)?;
+//             }
 
-            let entity = CircleMembersData {
-                circle_member_id: None,
-                member_id: m.id.name(),
-                parent_id: self.id.name(),
-                deleted: Some(false),
-                tag: None,
-            };
+//             let entity = CircleMembersData {
+//                 circle_member_id: None,
+//                 member_id: m.id.name(),
+//                 parent_id: self.id.name(),
+//                 deleted: Some(false),
+//                 tag: None,
+//             };
 
-            entity.insert_on_conflict(db, OnConflict::Update)?;
-        }
-        Ok(())
-    }
-}
+//             entity.insert_on_conflict(db, OnConflict::Update)?;
+//         }
+//         Ok(())
+//     }
+// }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Eq, Ord)]
 #[frb(opaque)]
@@ -176,6 +176,15 @@ impl CircleLike for Circle {
     fn insert(&self, db: &SqliteDb) -> anyhow::Result<()> {
         self.to_db(db)
     }
+
+    #[frb(sync)]
+    fn get_members(&self) -> Vec<CircleEntry> {
+        self.inner
+            .members
+            .values()
+            .map(|v| CircleEntry::from_circle_or(v.clone()))
+            .collect()
+    }
 }
 
 impl Circle {
@@ -183,61 +192,61 @@ impl Circle {
         self.inner.members.contains_key(user.as_bytes())
     }
 
-    #[frb(sync)]
-    pub fn get_members(&self) -> NonOpaqueCircle {
-        match self.inner.author {
-            Some(ref author) => NonOpaqueCircle {
-                members: self
-                    .inner
-                    .members
-                    .iter()
-                    .map(|(_, v)| CircleEntry::from_circle_or(v.clone()))
-                    .collect(),
-                id: self.inner.id.clone(),
-                author: Some(author.author.clone()),
-                sig: Some(author.sig.clone()),
-            },
-            None => NonOpaqueCircle {
-                members: self
-                    .inner
-                    .members
-                    .iter()
-                    .map(|(_, v)| CircleEntry::from_circle_or(v.clone()))
-                    .collect(),
-                id: self.inner.id.clone(),
-                author: None,
-                sig: None,
-            },
-        }
-    }
+    // #[frb(sync)]
+    // pub fn get_members(&self) -> NonOpaqueCircle {
+    //     match self.inner.author {
+    //         Some(ref author) => NonOpaqueCircle {
+    //             members: self
+    //                 .inner
+    //                 .members
+    //                 .iter()
+    //                 .map(|(_, v)| CircleEntry::from_circle_or(v.clone()))
+    //                 .collect(),
+    //             id: self.inner.id.clone(),
+    //             author: Some(author.author.clone()),
+    //             sig: Some(author.sig.clone()),
+    //         },
+    //         None => NonOpaqueCircle {
+    //             members: self
+    //                 .inner
+    //                 .members
+    //                 .iter()
+    //                 .map(|(_, v)| CircleEntry::from_circle_or(v.clone()))
+    //                 .collect(),
+    //             id: self.inner.id.clone(),
+    //             author: None,
+    //             sig: None,
+    //         },
+    //     }
+    // }
 
-    #[frb(sync)]
-    pub fn consume_members(self) -> NonOpaqueCircle {
-        match self.inner.author {
-            Some(author) => NonOpaqueCircle {
-                members: self
-                    .inner
-                    .members
-                    .into_iter()
-                    .map(|(_, v)| CircleEntry::from_circle_or(v))
-                    .collect(),
-                id: self.inner.id,
-                author: Some(author.author),
-                sig: Some(author.sig),
-            },
-            None => NonOpaqueCircle {
-                members: self
-                    .inner
-                    .members
-                    .into_iter()
-                    .map(|(_, v)| CircleEntry::from_circle_or(v))
-                    .collect(),
-                id: self.inner.id,
-                author: None,
-                sig: None,
-            },
-        }
-    }
+    // #[frb(sync)]
+    // pub fn consume_member(&self) -> NonOpaqueCircle {
+    //     match self.inner.author {
+    //         Some(author) => NonOpaqueCircle {
+    //             members: self
+    //                 .inner
+    //                 .members
+    //                 .into_iter()
+    //                 .map(|(_, v)| CircleEntry::from_circle_or(v))
+    //                 .collect(),
+    //             id: self.inner.id,
+    //             author: Some(author.author),
+    //             sig: Some(author.sig),
+    //         },
+    //         None => NonOpaqueCircle {
+    //             members: self
+    //                 .inner
+    //                 .members
+    //                 .into_iter()
+    //                 .map(|(_, v)| CircleEntry::from_circle_or(v))
+    //                 .collect(),
+    //             id: self.inner.id,
+    //             author: None,
+    //             sig: None,
+    //         },
+    //     }
+    // }
 }
 
 impl CircleOr {
@@ -264,7 +273,7 @@ impl Circle {
             sig: self.inner.author.as_ref().map(|v| v.sig.clone()),
         };
 
-        entity.insert(db)?;
+        entity.insert_on_conflict(db, OnConflict::Update)?;
 
         for m in self.inner.members.values() {
             m.to_db(db)?;
@@ -276,7 +285,7 @@ impl Circle {
                 tag: None,
             };
 
-            entity.insert(db)?
+            entity.insert_on_conflict(db, OnConflict::Update)?;
         }
 
         Ok(())

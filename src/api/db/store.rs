@@ -112,6 +112,12 @@ pub trait CertDao {
 
     #[query(
         "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
+        FROM circles LEFT JOIN circle_members ON member_id=id WHERE parent_id IS NULL"
+    )]
+    fn get_circles_without_parent(&self) -> Result<Vec<CircleWithMembers>>;
+
+    #[query(
+        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
         FROM circles LEFT JOIN circle_members ON member_id=id
         WHERE id = :id OR parent_id = :id"
     )]

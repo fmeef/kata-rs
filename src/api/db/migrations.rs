@@ -103,6 +103,8 @@ lazy_static! {
            parent_type TEXT NOT NULL,
            tag TEXT,
            deleted BOOLEAN NOT NULL DEFAULT '0',
+           FOREIGN KEY(member_id) REFERENCES circles(id) ON DELETE CASCADE,
+           FOREIGN KEY(parent_id) REFERENCES circles(id) ON DELETE CASCADE,
            UNIQUE(parent_id, member_id)
         );
             "#

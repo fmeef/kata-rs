@@ -243,8 +243,8 @@ struct TagOr {
 fn get_children(
     children: &BTreeMap<(String, Vec<u8>), BTreeSet<(String, Vec<u8>)>>,
     members: &BTreeMap<(String, Vec<u8>), CircleWithMembers>,
-) -> Result<Vec<(Vec<u8>, TagOr)>> {
-    let mut out = Vec::new();
+) -> Result<BTreeMap<Vec<u8>, TagOr>> {
+    let mut out = BTreeMap::new();
     for ((t, k), m) in members
         .iter()
         .filter(|(_, p)| p.get_parent_id().map(|v| v.is_none()).unwrap_or_default())
@@ -258,8 +258,8 @@ fn get_children_parent(
     children: &BTreeMap<(String, Vec<u8>), BTreeSet<(String, Vec<u8>)>>,
     members: &BTreeMap<(String, Vec<u8>), CircleWithMembers>,
     parent: Option<(&str, &[u8])>,
-) -> Result<Vec<(Vec<u8>, TagOr)>> {
-    let mut out = Vec::new();
+) -> Result<BTreeMap<Vec<u8>, TagOr>> {
+    let mut out = BTreeMap::new();
     let (tparent, parent) = match parent {
         Some(v) => v,
         None => return Ok(out),
@@ -271,13 +271,13 @@ fn get_children_parent(
             "user" => {
                 let handle = item.get_id_userhandle()?;
                 let handle = CircleOr::User(RustAutoOpaque::new(handle));
-                out.push((
+                out.insert(
                     handle.get_id().to_owned(),
                     TagOr {
                         content: MaybeDeleted::Member(handle),
                         tag: item.get_tag()?,
                     },
-                ));
+                );
             }
             "circle" => {
                 let mut circle = Circle::new_mut(item.get_author()?, item.sig.clone())?;
@@ -297,13 +297,13 @@ fn get_children_parent(
                 }
                 circle.update_digest();
                 let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
-                out.push((
+                out.insert(
                     circle.get_id().to_owned(),
                     TagOr {
                         content: MaybeDeleted::Member(circle),
                         tag: item.get_tag()?,
                     },
-                ));
+                );
             }
             "app" => {
                 let mut app = CircleApp::new_empty(item.get_author()?, item.sig.clone())?;
@@ -340,13 +340,13 @@ fn get_children_parent(
                     MaybeDeleted::Member(CircleOr::App(RustAutoOpaque::new(app)))
                 };
 
-                out.push((
+                out.insert(
                     id,
                     TagOr {
                         content: app,
                         tag: item.get_tag()?,
                     },
-                ));
+                );
             }
             _ => return Err(InternalErr::InvalidCircleType(item.circle_type.clone())),
         }
@@ -397,8 +397,7 @@ impl CircleOr {
         let res = get_children(&children, &out)?;
 
         let res = res
-            .into_iter()
-            .map(|(_, v)| v)
+            .into_values()
             .flat_map(|v| v.content.into_option())
             .filter(|p| match p {
                 CircleOr::User(_) => false,

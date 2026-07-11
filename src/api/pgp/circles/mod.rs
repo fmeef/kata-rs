@@ -241,22 +241,24 @@ struct TagOr {
 }
 
 fn get_children(
-    children: &BTreeMap<(String, Vec<u8>), BTreeSet<(String, Vec<u8>)>>,
-    members: &BTreeMap<(String, Vec<u8>), CircleWithMembers>,
+    children: &BTreeMap<BTreeSet<(String, Vec<u8>)>, BTreeSet<(String, Vec<u8>)>>,
+    members: &BTreeMap<BTreeSet<(String, Vec<u8>)>, BTreeSet<CircleWithMembers>>,
 ) -> Result<BTreeMap<Vec<u8>, TagOr>> {
     let mut out = BTreeMap::new();
-    for ((t, k), m) in members
-        .iter()
-        .filter(|(_, p)| p.get_parent_id().map(|v| v.is_none()).unwrap_or_default())
-    {
-        let v = get_children_parent(children, members, Some((t, k.as_slice())))?;
-        out.extend(v.into_iter());
+    for (key, _) in members.iter().filter(|(_, p)| {
+        p.iter()
+            .any(|p| p.get_parent_id().map(|v| v.is_none()).unwrap_or_default())
+    }) {
+        for (t, k) in key {
+            let v = get_children_parent(children, members, Some((t, k.as_slice())))?;
+            out.extend(v.into_iter());
+        }
     }
     Ok(out)
 }
 fn get_children_parent(
-    children: &BTreeMap<(String, Vec<u8>), BTreeSet<(String, Vec<u8>)>>,
-    members: &BTreeMap<(String, Vec<u8>), CircleWithMembers>,
+    children: &BTreeMap<BTreeSet<(String, Vec<u8>)>, BTreeSet<(String, Vec<u8>)>>,
+    members: &BTreeMap<BTreeSet<(String, Vec<u8>)>, BTreeSet<CircleWithMembers>>,
     parent: Option<(&str, &[u8])>,
 ) -> Result<BTreeMap<Vec<u8>, TagOr>> {
     let mut out = BTreeMap::new();
@@ -264,7 +266,13 @@ fn get_children_parent(
         Some(v) => v,
         None => return Ok(out),
     };
-    for (_, item) in members.iter().filter(|((t, k), _)| *k == parent) {
+    for item in members
+        .keys()
+        .flat_map(|v| v.iter())
+        .filter(|(t, k)| *k == parent)
+        .flat_map(|k| members.iter().find(|(p, _)| p.contains(k)))
+        .flat_map(|(k, i)| i.iter())
+    {
         let parent = (tparent.to_owned(), parent.to_owned());
         // println!("get_children_parent {item:?}");
         match item.circle_type.as_ref() {
@@ -282,7 +290,7 @@ fn get_children_parent(
             "circle" => {
                 let mut circle = Circle::new_mut(item.get_author()?, item.sig.clone())?;
                 circle.inner.members = BTreeMap::new();
-                if let Some(parent) = children.get(&parent) {
+                if let Some((_, parent)) = children.iter().find(|(p, _)| p.contains(&parent)) {
                     for (tparent, parent) in parent {
                         circle.inner.members.extend(
                             get_children_parent(
@@ -308,7 +316,7 @@ fn get_children_parent(
             "app" => {
                 let mut app = CircleApp::new_empty(item.get_author()?, item.sig.clone())?;
                 app.inner.children = BTreeMap::new();
-                if let Some(parent) = children.get(&parent) {
+                if let Some((_, parent)) = children.iter().find(|(p, _)| p.contains(&parent)) {
                     for (tparent, parent) in parent {
                         app.inner.children.extend(
                             get_children_parent(
@@ -377,20 +385,49 @@ impl CircleOr {
 
     pub fn from_db(members: Vec<CircleWithMembers>) -> Result<Vec<CircleOr>> {
         // println!("from_db {members:?}");
-        let mut out = BTreeMap::new();
+        let mut out = BTreeMap::<BTreeSet<(String, Vec<u8>)>, BTreeSet<CircleWithMembers>>::new();
 
-        let mut children = BTreeMap::new();
+        let mut children =
+            BTreeMap::<BTreeSet<(String, Vec<u8>)>, BTreeSet<(String, Vec<u8>)>>::new();
 
         for member in members {
             if let (Some(pty), Some(parent)) = (member.parent_type.clone(), member.get_parent_id()?)
             {
-                let entry = children
-                    .entry((pty, parent))
-                    .or_insert_with(|| BTreeSet::new());
-                entry.insert((member.circle_type.clone(), member.get_id()?));
-                out.insert((member.circle_type.clone(), member.get_id()?), member);
+                let key = (pty, parent);
+                if let Some((k, v)) = children.iter_mut().find(|(k, _)| k.contains(&key)) {
+                    v.insert((member.circle_type.clone(), member.get_id()?));
+                } else {
+                    let mut k = BTreeSet::new();
+                    k.insert(key);
+                    let mut v = BTreeSet::new();
+                    v.insert((member.circle_type.clone(), member.get_id()?));
+                    children.insert(k, v);
+                }
+                // let entry = children
+                //     .entry((pty, parent))
+                //     .or_insert_with(|| BTreeSet::new());
+                let key = (member.circle_type.clone(), member.get_id()?);
+                if let Some((k, v)) = out.iter_mut().find(|(k, _)| k.contains(&key)) {
+                    v.insert(member);
+                } else {
+                    let mut k = BTreeSet::new();
+                    k.insert(key);
+                    let mut v = BTreeSet::new();
+                    v.insert(member);
+                    out.insert(k, v);
+                }
             } else {
-                out.insert((member.circle_type.clone(), member.get_id()?), member);
+                let key = (member.circle_type.clone(), member.get_id()?);
+
+                if let Some((k, v)) = out.iter_mut().find(|(k, _)| k.contains(&key)) {
+                    v.insert(member);
+                } else {
+                    let mut k = BTreeSet::new();
+                    k.insert(key);
+                    let mut v = BTreeSet::new();
+                    v.insert(member);
+                    out.insert(k, v);
+                }
             }
         }
 

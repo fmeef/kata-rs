@@ -5,6 +5,7 @@ use std::{
 
 use anyhow::anyhow;
 use flutter_rust_bridge::frb;
+use lazy_static::lazy_static;
 use sequoia_openpgp::{
     parse::{stream::DetachedVerifierBuilder, Parse},
     serialize::stream::{Message, Signer},
@@ -27,7 +28,7 @@ use crate::{
         PgpApp, SqliteDb,
     },
     error::{InternalErr, Result},
-    frb_generated::StreamSink,
+    frb_generated::{RustAutoOpaque, StreamSink},
 };
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -159,12 +160,21 @@ pub struct AppMember {
     pub tag: MemberTag,
 }
 
+fn generic_read() -> impl std::io::Read + 'static {
+    let v = &[];
+    v.as_slice()
+}
+
+lazy_static! {
+    static ref EMPTY: CircleOr = CircleOr::empty();
+}
+
 impl AppMember {
     fn as_read<'a>(&'a self) -> impl std::io::Read + Send + Sync + 'a {
         self.member
             .option()
-            .map(|v| v.as_bytes())
-            .unwrap_or(&[])
+            .unwrap_or(&EMPTY)
+            .as_read()
             .chain(self.tag.as_bytes())
     }
 }
@@ -392,12 +402,13 @@ impl CircleApp {
     }
 
     pub fn add_circle(&mut self, circle: Circle, tag: MemberTag) -> anyhow::Result<()> {
+        let id = circle.inner.id.as_bytes().to_owned();
         self.inner.children.insert(
-            circle.inner.id.as_bytes().to_owned(),
+            id.clone(),
             AppMember {
                 member: match tag {
                     MemberTag::Delete => MaybeDeleted::Deleted(circle.get_id_userhandle()),
-                    _ => MaybeDeleted::Member(CircleOr::Circle(circle)),
+                    _ => MaybeDeleted::Member(CircleOr::Circle(RustAutoOpaque::new(circle))),
                 },
                 tag,
             },
@@ -406,12 +417,13 @@ impl CircleApp {
     }
 
     pub fn add_app(&mut self, app: CircleApp, tag: MemberTag) -> anyhow::Result<()> {
+        let id = app.inner.owner.as_bytes().to_owned();
         self.inner.children.insert(
-            app.inner.owner.as_bytes().to_owned(),
+            id.clone(),
             AppMember {
                 member: match tag {
                     MemberTag::Delete => MaybeDeleted::Deleted(app.get_id_userhandle()),
-                    _ => MaybeDeleted::Member(CircleOr::App(app)),
+                    _ => MaybeDeleted::Member(CircleOr::App(RustAutoOpaque::new(app))),
                 },
                 tag,
             },
@@ -425,7 +437,7 @@ impl CircleApp {
             AppMember {
                 member: match tag {
                     MemberTag::Delete => MaybeDeleted::Deleted(user),
-                    _ => MaybeDeleted::Member(CircleOr::User(user)),
+                    _ => MaybeDeleted::Member(CircleOr::User(RustAutoOpaque::new(user))),
                 },
                 tag,
             },
@@ -469,7 +481,7 @@ impl CircleApp {
                             MaybeDeleted::Member(CircleOr::App(theirs)),
                         ) = (&mut ours.get_mut().member, &entry.member)
                         {
-                            ours.merge(theirs)?;
+                            ours.blocking_write().merge(&theirs.blocking_read())?;
                         }
                     }
                 },
@@ -503,6 +515,7 @@ impl PgpApp {
         }?;
 
         let read = app.to_read();
+
         verifier.verify_reader(read)?;
 
         Ok(true)

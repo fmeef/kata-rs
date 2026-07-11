@@ -1,10 +1,8 @@
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    hash::Hash,
-};
-
 use flutter_rust_bridge::frb;
-use serde::{Deserialize, Serialize};
+use serde::de::Error;
+use serde::{de::Visitor, ser::SerializeMap, Deserialize, Serialize};
+use std::collections::BTreeSet;
+use std::{collections::BTreeMap, hash::Hash};
 
 use crate::{
     api::{
@@ -12,59 +10,191 @@ use crate::{
         pgp::{
             circles::{
                 app::{AppMember, CircleApp, MaybeDeleted, MemberTag},
-                circle::{Circle, CircleInner},
+                circle::Circle,
             },
             UserHandle,
         },
         SqliteDb,
     },
     error::{InternalErr, Result},
-    frb_generated::StreamSink,
+    frb_generated::{RustAutoOpaque, StreamSink},
 };
 
 pub mod app;
 pub mod circle;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
 #[frb(non_opaque)]
-#[serde(rename_all = "snake_case")]
+enum CircleOrRef<'a> {
+    Circle(&'a Circle),
+    User(&'a UserHandle),
+    App(&'a CircleApp),
+}
+
+#[derive(Debug, Clone)]
+#[frb(non_opaque)]
 pub enum CircleOr {
-    Circle(Circle),
-    User(UserHandle),
-    App(CircleApp),
+    Circle(RustAutoOpaque<Circle>),
+    User(RustAutoOpaque<UserHandle>),
+    App(RustAutoOpaque<CircleApp>),
+}
+
+impl Serialize for CircleOr {
+    fn serialize<S>(&self, serializer: S) -> std::prelude::v1::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(Some(1))?;
+        match self {
+            Self::Circle(circle) => {
+                map.serialize_key("circle")?;
+                map.serialize_value(&*circle.blocking_read())?;
+            }
+
+            Self::User(user) => {
+                map.serialize_key("user")?;
+                map.serialize_value(&*user.blocking_read())?;
+            }
+
+            Self::App(app) => {
+                map.serialize_key("app")?;
+                map.serialize_value(&*app.blocking_read())?;
+            }
+        }
+
+        map.end()
+    }
+}
+
+struct CircleOrVisitor;
+
+impl<'de> Visitor<'de> for CircleOrVisitor {
+    type Value = CircleOr;
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("expecting a CircleOr")
+    }
+
+    fn visit_map<A>(self, mut map: A) -> std::prelude::v1::Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        if let Some(key) = map.next_key::<String>()? {
+            match key.as_str() {
+                "circle" => {
+                    let v = map.next_value::<Circle>()?;
+                    return Ok(CircleOr::Circle(RustAutoOpaque::new(v)));
+                }
+                "app" => {
+                    let v = map.next_value::<CircleApp>()?;
+                    return Ok(CircleOr::App(RustAutoOpaque::new(v)));
+                }
+                "user" => {
+                    let v = map.next_value::<UserHandle>()?;
+                    return Ok(CircleOr::User(RustAutoOpaque::new(v)));
+                }
+                _ => (),
+            }
+        }
+
+        Err(A::Error::custom("no map key/value"))
+    }
+}
+
+impl<'de> Deserialize<'de> for CircleOr {
+    fn deserialize<D>(deserializer: D) -> std::prelude::v1::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_map(CircleOrVisitor)
+    }
+}
+
+impl PartialEq for CircleOr {
+    fn eq(&self, other: &Self) -> bool {
+        let me = match self {
+            CircleOr::App(app) => CircleOrRef::App(&app.blocking_read()),
+            CircleOr::User(user) => CircleOrRef::User(&user.blocking_read()),
+            CircleOr::Circle(circle) => CircleOrRef::Circle(&circle.blocking_read()),
+        };
+
+        let alt = match other {
+            CircleOr::App(app) => CircleOrRef::App(&app.blocking_read()),
+            CircleOr::User(user) => CircleOrRef::User(&user.blocking_read()),
+            CircleOr::Circle(circle) => CircleOrRef::Circle(&circle.blocking_read()),
+        };
+
+        alt.eq(&me)
+    }
+}
+
+impl PartialOrd for CircleOr {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        let me = match self {
+            CircleOr::App(app) => CircleOrRef::App(&app.blocking_read()),
+            CircleOr::User(user) => CircleOrRef::User(&user.blocking_read()),
+            CircleOr::Circle(circle) => CircleOrRef::Circle(&circle.blocking_read()),
+        };
+
+        let alt = match other {
+            CircleOr::App(app) => CircleOrRef::App(&app.blocking_read()),
+            CircleOr::User(user) => CircleOrRef::User(&user.blocking_read()),
+            CircleOr::Circle(circle) => CircleOrRef::Circle(&circle.blocking_read()),
+        };
+
+        me.partial_cmp(&alt)
+    }
+}
+
+impl Eq for CircleOr {}
+
+impl Ord for CircleOr {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        let me = match self {
+            CircleOr::App(app) => CircleOrRef::App(&app.blocking_read()),
+            CircleOr::User(user) => CircleOrRef::User(&user.blocking_read()),
+            CircleOr::Circle(circle) => CircleOrRef::Circle(&circle.blocking_read()),
+        };
+
+        let alt = match other {
+            CircleOr::App(app) => CircleOrRef::App(&app.blocking_read()),
+            CircleOr::User(user) => CircleOrRef::User(&user.blocking_read()),
+            CircleOr::Circle(circle) => CircleOrRef::Circle(&circle.blocking_read()),
+        };
+        me.cmp(&alt)
+    }
 }
 
 impl CircleLike for CircleOr {
     #[frb(sync)]
     fn get_id(&self) -> Vec<u8> {
         match self {
-            Self::App(a) => a.get_id(),
-            Self::User(u) => u.get_id(),
-            Self::Circle(c) => c.get_id(),
+            Self::App(a) => a.blocking_read().get_id(),
+            Self::User(u) => u.blocking_read().get_id(),
+            Self::Circle(c) => c.blocking_read().get_id(),
         }
     }
     #[frb(sync)]
     fn get_id_userhandle(&self) -> UserHandle {
         match self {
-            Self::App(a) => a.get_id_userhandle(),
-            Self::User(u) => u.get_id_userhandle(),
-            Self::Circle(c) => c.get_id_userhandle(),
+            Self::App(a) => a.blocking_read().get_id_userhandle(),
+            Self::User(u) => u.blocking_read().get_id_userhandle(),
+            Self::Circle(c) => c.blocking_read().get_id_userhandle(),
         }
     }
     #[frb(sync)]
     fn get_member(&self, id: UserHandle) -> Option<CircleEntry> {
         match self {
-            Self::App(a) => a.get_member(id),
-            Self::User(u) => u.get_member(id),
-            Self::Circle(c) => c.get_member(id),
+            Self::App(a) => a.blocking_read().get_member(id),
+            Self::User(u) => u.blocking_read().get_member(id),
+            Self::Circle(c) => c.blocking_read().get_member(id),
         }
     }
     #[frb(sync)]
     fn get_type(&self) -> CircleType {
         match self {
-            Self::App(a) => a.get_type(),
-            Self::User(u) => u.get_type(),
-            Self::Circle(c) => c.get_type(),
+            Self::App(a) => a.blocking_read().get_type(),
+            Self::User(u) => u.blocking_read().get_type(),
+            Self::Circle(c) => c.blocking_read().get_type(),
         }
     }
 
@@ -74,33 +204,33 @@ impl CircleLike for CircleOr {
 
     fn iter_members(&self, sink: StreamSink<CircleEntry>) {
         match self {
-            Self::App(a) => a.iter_members(sink),
-            Self::User(u) => u.iter_members(sink),
-            Self::Circle(c) => c.iter_members(sink),
+            Self::App(a) => a.blocking_read().iter_members(sink),
+            Self::User(u) => u.blocking_read().iter_members(sink),
+            Self::Circle(c) => c.blocking_read().iter_members(sink),
         }
     }
 
     fn verify(&self) -> anyhow::Result<bool> {
         match self {
-            Self::App(a) => a.verify(),
-            Self::User(u) => u.verify(),
-            Self::Circle(c) => c.verify(),
+            Self::App(a) => a.blocking_read().verify(),
+            Self::User(u) => u.blocking_read().verify(),
+            Self::Circle(c) => c.blocking_read().verify(),
         }
     }
 
     #[frb(sync)]
     fn get_members(&self) -> Vec<CircleEntry> {
         match self {
-            Self::App(a) => a.get_members(),
-            Self::Circle(c) => c.get_members(),
-            Self::User(u) => u.get_members(),
+            Self::App(a) => a.blocking_read().get_members(),
+            Self::Circle(c) => c.blocking_read().get_members(),
+            Self::User(u) => u.blocking_read().get_members(),
         }
     }
 }
 
 impl Hash for CircleOr {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        state.write(self.get_id_ref());
+        state.write(&self.get_id());
     }
 }
 
@@ -140,8 +270,7 @@ fn get_children_parent(
         match item.circle_type.as_ref() {
             "user" => {
                 let handle = item.get_id_userhandle()?;
-
-                let handle = CircleOr::User(handle);
+                let handle = CircleOr::User(RustAutoOpaque::new(handle));
                 out.insert(
                     handle.get_id().to_owned(),
                     TagOr {
@@ -167,7 +296,7 @@ fn get_children_parent(
                     }
                 }
                 circle.update_digest();
-                let circle = CircleOr::Circle(circle);
+                let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
                 out.insert(
                     circle.get_id().to_owned(),
                     TagOr {
@@ -208,7 +337,7 @@ fn get_children_parent(
                     println!("app with members {:?}", app.inner.children);
                     MaybeDeleted::Deleted(item.get_id_userhandle()?)
                 } else {
-                    MaybeDeleted::Member(CircleOr::App(app))
+                    MaybeDeleted::Member(CircleOr::App(RustAutoOpaque::new(app)))
                 };
 
                 out.insert(
@@ -226,19 +355,23 @@ fn get_children_parent(
 }
 
 impl CircleOr {
+    pub(crate) fn empty() -> Self {
+        Self::User(RustAutoOpaque::new(UserHandle::RawBytes(vec![])))
+    }
+
     pub fn id_hex(&self) -> String {
         match self {
-            Self::App(a) => a.inner.owner.name(),
-            Self::Circle(s) => s.inner.id.name(),
-            Self::User(u) => u.name(),
+            Self::App(a) => a.blocking_read().inner.owner.name(),
+            Self::Circle(s) => s.blocking_read().inner.id.name(),
+            Self::User(u) => u.blocking_read().name(),
         }
     }
 
     pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
         match self {
-            CircleOr::App(app) => app.to_db(db),
-            CircleOr::Circle(circle) => circle.to_db(db),
-            CircleOr::User(user) => user.to_db(db),
+            CircleOr::App(app) => app.blocking_read().to_db(db),
+            CircleOr::Circle(circle) => circle.blocking_read().to_db(db),
+            CircleOr::User(user) => user.blocking_read().to_db(db),
         }
     }
 
@@ -419,18 +552,32 @@ impl<'a> CircleLike for GenericCircle<'a> {
     }
 }
 
-impl CircleOr {
-    pub(crate) fn get_id_ref(&self) -> &'_ [u8] {
-        match self {
-            CircleOr::Circle(Circle {
-                inner: CircleInner { id, .. },
-                ..
-            }) => id.as_bytes(),
-            CircleOr::App(CircleApp { inner, .. }) => inner.owner.as_bytes(),
-            CircleOr::User(user) => user.as_bytes(),
+impl std::io::Read for &CircleOr {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        match *self {
+            CircleOr::Circle(v) => {
+                let n = v.blocking_read();
+                let n = n.inner.id.as_bytes();
+                buf[0..n.len()].copy_from_slice(n);
+                Ok(0)
+            }
+            CircleOr::User(v) => {
+                let n = v.blocking_read();
+                let n = n.as_bytes();
+                buf[0..n.len()].copy_from_slice(n);
+                Ok(0)
+            }
+            CircleOr::App(v) => {
+                let n = v.blocking_read();
+                let n = n.inner.owner.as_bytes();
+                buf[0..n.len()].copy_from_slice(n);
+                Ok(0)
+            }
         }
     }
+}
 
+impl CircleOr {
     // #[frb(sync)]
     // pub fn generic<'a>(&'a self) -> GenericCircle<'a> {
     //     match self {
@@ -453,36 +600,38 @@ impl CircleOr {
 
     pub(crate) fn get_userhandle(&self) -> UserHandle {
         match self {
-            CircleOr::Circle(Circle {
-                inner: CircleInner { id, .. },
-                ..
-            }) => id.clone(),
-            CircleOr::App(CircleApp { inner, .. }) => inner.owner.clone(),
-            CircleOr::User(user) => user.clone(),
+            CircleOr::Circle(circle) => circle.blocking_read().inner.id.clone(),
+            CircleOr::App(app) => app.blocking_read().inner.owner.clone(),
+            CircleOr::User(user) => user.blocking_read().clone(),
         }
     }
 
-    pub(crate) fn as_bytes(&self) -> &'_ [u8] {
+    pub(crate) fn as_read<'a>(&'a self) -> impl std::io::Read + 'a {
+        self
+    }
+
+    pub(crate) fn as_bytes(&self) -> Vec<u8> {
         match self {
-            Self::Circle(Circle {
-                inner: CircleInner { id, .. },
-                ..
-            }) => id.as_bytes(),
-            Self::User(user) => user.as_bytes(),
-            Self::App(app) => app.inner.owner.as_bytes(),
+            Self::Circle(v) => v.blocking_read().inner.id.as_bytes().to_owned(),
+            Self::User(v) => v.blocking_read().as_bytes().to_owned(),
+            Self::App(v) => v.blocking_read().inner.owner.as_bytes().to_owned(),
         }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::api::{
-        db::store::CertDao,
-        pgp::{
-            circles::{app::MemberTag, CircleLike, CircleOr},
-            test_config, UserHandle,
+    use crate::api::pgp::circles::CircleLike;
+    use crate::{
+        api::{
+            db::store::CertDao,
+            pgp::{
+                circles::{app::MemberTag, CircleOr},
+                test_config, UserHandle,
+            },
+            PgpApp, PgpAppTrait,
         },
-        PgpApp, PgpAppTrait,
+        frb_generated::RustAutoOpaque,
     };
 
     #[test]
@@ -491,7 +640,7 @@ mod test {
 
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
         let id = v.name();
-        let user = CircleOr::User(v);
+        let user = CircleOr::User(RustAutoOpaque::new(v));
         user.to_db(&app.pgp.db).unwrap();
         let out = app.pgp.db.get_circle_by_id(&id).unwrap();
         assert!(!out.is_empty());
@@ -505,9 +654,11 @@ mod test {
         let app = PgpApp::create(test_config("app")).unwrap();
 
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
-        let user = CircleOr::User(v);
+        let user = CircleOr::User(RustAutoOpaque::new(v));
         let circle = app.create_circle(vec![user]).unwrap();
-        let circle = CircleOr::Circle(circle);
+
+        let id = circle.inner.id.name();
+        let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
         circle.to_db(&app.pgp.db).unwrap();
 
         let out = app.pgp.db.get_circles_join().unwrap();
@@ -536,8 +687,7 @@ mod test {
         let id = circle.inner.owner.name();
         circle.add_user(v.clone(), MemberTag::Merge).unwrap();
         circle.add_user(u.clone(), MemberTag::Merge).unwrap();
-
-        let circle = CircleOr::App(circle);
+        let circle = CircleOr::App(RustAutoOpaque::new(circle));
 
         circle.to_db(&app.pgp.db).unwrap();
 

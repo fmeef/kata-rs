@@ -14330,6 +14330,26 @@ impl SseDecode for flutter_rust_bridge::for_generated::anyhow::Error {
     }
 }
 
+impl SseDecode for RustAutoOpaqueMoi<Circle> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <RustOpaqueMoi<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Circle>,
+        >>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::rust_auto_opaque_explicit_decode(inner);
+    }
+}
+
+impl SseDecode for RustAutoOpaqueMoi<CircleApp> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <RustOpaqueMoi<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleApp>,
+        >>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::rust_auto_opaque_explicit_decode(inner);
+    }
+}
+
 impl SseDecode for RustAutoOpaqueMoi<Lifetimeable<GenericCircle<'static>>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -15073,15 +15093,15 @@ impl SseDecode for crate::api::pgp::circles::CircleOr {
         let mut tag_ = <i32>::sse_decode(deserializer);
         match tag_ {
             0 => {
-                let mut var_field0 = <Circle>::sse_decode(deserializer);
+                let mut var_field0 = <RustAutoOpaqueMoi<Circle>>::sse_decode(deserializer);
                 return crate::api::pgp::circles::CircleOr::Circle(var_field0);
             }
             1 => {
-                let mut var_field0 = <UserHandle>::sse_decode(deserializer);
+                let mut var_field0 = <RustAutoOpaqueMoi<UserHandle>>::sse_decode(deserializer);
                 return crate::api::pgp::circles::CircleOr::User(var_field0);
             }
             2 => {
-                let mut var_field0 = <CircleApp>::sse_decode(deserializer);
+                let mut var_field0 = <RustAutoOpaqueMoi<CircleApp>>::sse_decode(deserializer);
                 return crate::api::pgp::circles::CircleOr::App(var_field0);
             }
             _ => {
@@ -17130,6 +17150,20 @@ impl SseEncode for flutter_rust_bridge::for_generated::anyhow::Error {
     }
 }
 
+impl SseEncode for RustAutoOpaqueMoi<Circle> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Circle>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_explicit_encode(self), serializer);
+    }
+}
+
+impl SseEncode for RustAutoOpaqueMoi<CircleApp> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleApp>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_explicit_encode(self), serializer);
+    }
+}
+
 impl SseEncode for RustAutoOpaqueMoi<Lifetimeable<GenericCircle<'static>>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -17804,15 +17838,15 @@ impl SseEncode for crate::api::pgp::circles::CircleOr {
         match self {
             crate::api::pgp::circles::CircleOr::Circle(field0) => {
                 <i32>::sse_encode(0, serializer);
-                <Circle>::sse_encode(field0, serializer);
+                <RustAutoOpaqueMoi<Circle>>::sse_encode(field0, serializer);
             }
             crate::api::pgp::circles::CircleOr::User(field0) => {
                 <i32>::sse_encode(1, serializer);
-                <UserHandle>::sse_encode(field0, serializer);
+                <RustAutoOpaqueMoi<UserHandle>>::sse_encode(field0, serializer);
             }
             crate::api::pgp::circles::CircleOr::App(field0) => {
                 <i32>::sse_encode(2, serializer);
-                <CircleApp>::sse_encode(field0, serializer);
+                <RustAutoOpaqueMoi<CircleApp>>::sse_encode(field0, serializer);
             }
             _ => {
                 unimplemented!("");

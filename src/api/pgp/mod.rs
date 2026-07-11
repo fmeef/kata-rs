@@ -26,7 +26,7 @@ use crate::{
         SqliteDb,
     },
     error::InternalErr,
-    frb_generated::StreamSink,
+    frb_generated::{RustAutoOpaque, StreamSink},
 };
 
 #[cfg(test)]
@@ -180,7 +180,7 @@ impl CircleLike for UserHandle {
     #[frb(sync)]
     fn get_members(&self) -> Vec<circles::CircleEntry> {
         vec![CircleEntry::from_circle_or(circles::CircleOr::User(
-            self.clone(),
+            RustAutoOpaque::new(self.clone()),
         ))]
     }
 }

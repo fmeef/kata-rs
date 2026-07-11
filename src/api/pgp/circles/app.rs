@@ -314,7 +314,11 @@ impl CircleApp {
                         tag: Some(member.tag.as_str().to_owned()),
                     };
 
-                    entity.insert_on_conflict(db, OnConflict::Update)?
+                    entity.insert_on_conflict_custom(
+                        db,
+                        OnConflict::Update,
+                        vec!["member_id", "parent_id", "member_type", "parent_type"],
+                    )?;
                 }
                 MaybeDeleted::Deleted(ref d) => {
                     let entity = CircleMembersData {

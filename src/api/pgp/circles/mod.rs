@@ -359,6 +359,14 @@ impl CircleOr {
         Self::User(RustAutoOpaque::new(UserHandle::RawBytes(vec![])))
     }
 
+    pub(crate) fn db_type(&self) -> String {
+        match self {
+            CircleOr::App(_) => "app".to_owned(),
+            CircleOr::User(_) => "user".to_owned(),
+            CircleOr::Circle(_) => "circle".to_owned(),
+        }
+    }
+
     pub fn id_hex(&self) -> String {
         match self {
             Self::App(a) => a.blocking_read().inner.owner.name(),

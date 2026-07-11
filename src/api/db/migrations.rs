@@ -90,10 +90,11 @@ lazy_static! {
         M::up(
             r#"
         CREATE TABLE circles (
-            id TEXT PRIMARY KEY,
+            id TEXT NOT NULL,
             circle_type TEXT NOT NULL,
             author TEXT,
-            sig BLOB
+            sig BLOB,
+            PRIMARY KEY(id, circle_type)
         );
 
         CREATE TABLE circle_members (
@@ -101,10 +102,11 @@ lazy_static! {
            member_id TEXT NOT NULL,
            parent_id TEXT NOT NULL,
            parent_type TEXT NOT NULL,
+           member_type TEXT NOT NULL,
            tag TEXT,
            deleted BOOLEAN NOT NULL DEFAULT '0',
-           FOREIGN KEY(member_id) REFERENCES circles(id) ON DELETE CASCADE,
-           FOREIGN KEY(parent_id) REFERENCES circles(id) ON DELETE CASCADE,
+           FOREIGN KEY(member_id, member_type) REFERENCES circles(id, circle_type) ON DELETE CASCADE,
+           FOREIGN KEY(parent_id, parent_type) REFERENCES circles(id, circle_type) ON DELETE CASCADE,
            UNIQUE(parent_id, member_id)
         );
             "#

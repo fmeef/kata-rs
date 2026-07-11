@@ -196,6 +196,7 @@ pub struct CircleMembersData {
     pub(crate) member_id: String,
     pub(crate) parent_id: String,
     pub(crate) parent_type: String,
+    pub(crate) member_type: String,
     pub(crate) tag: Option<String>,
     pub(crate) deleted: Option<bool>,
 }

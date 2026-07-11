@@ -70,6 +70,7 @@ impl NonOpaqueApp {
                 parent_id: self.owner.name(),
                 deleted: Some(false),
                 parent_type: "app".to_owned(),
+                member_type: m.member.member_type(),
                 tag: Some(m.tag.as_str().to_owned()),
             };
 
@@ -105,6 +106,16 @@ pub enum MaybeDeleted {
 }
 
 impl MaybeDeleted {
+    pub(crate) fn member_type(&self) -> String {
+        match self {
+            Self::Member(m) => match m {
+                CircleOr::App(_) => "app".to_owned(),
+                CircleOr::User(_) => "user".to_owned(),
+                CircleOr::Circle(_) => "circle".to_owned(),
+            },
+            Self::Deleted(_) => "TODO DELETED".to_owned(),
+        }
+    }
     fn option(&self) -> Option<&'_ CircleOr> {
         match self {
             Self::Member(v) => Some(v),
@@ -294,6 +305,7 @@ impl CircleApp {
                         deleted: Some(false),
                         parent_type: "app".to_owned(),
                         parent_id: self.inner.owner.name(),
+                        member_type: m.db_type(),
                         tag: Some(member.tag.as_str().to_owned()),
                     };
 
@@ -306,6 +318,7 @@ impl CircleApp {
                         deleted: Some(true),
                         parent_type: "app".to_owned(),
                         parent_id: self.inner.owner.name(),
+                        member_type: "TODO DELETED".to_owned(),
                         tag: Some(member.tag.as_str().to_owned()),
                     };
 

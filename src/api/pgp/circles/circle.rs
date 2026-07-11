@@ -284,6 +284,7 @@ impl Circle {
                 parent_id: self.inner.id.name(),
                 deleted: Some(false),
                 parent_type: "circle".to_owned(),
+                member_type: m.db_type(),
                 tag: None,
             };
 

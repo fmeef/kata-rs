@@ -282,6 +282,7 @@ impl Circle {
                 member_id: m.id_hex(),
                 parent_id: self.inner.id.name(),
                 deleted: Some(false),
+                parent_type: "circle".to_owned(),
                 tag: None,
             };
 
@@ -291,7 +292,7 @@ impl Circle {
         Ok(())
     }
 
-    pub(crate) fn update_digest(&mut self) {
+    pub fn update_digest(&mut self) {
         let mut digest = Sha256::new();
 
         for member in self.inner.members.values() {
@@ -401,16 +402,16 @@ impl PgpApp {
 
     pub fn create_circle(&self, keys: Vec<CircleOr>) -> anyhow::Result<Circle> {
         let mut digest = Sha256::new();
-
-        for member in &keys {
+        let members = keys
+            .into_iter()
+            .map(|v| (v.as_bytes().to_owned(), v))
+            .collect::<BTreeMap<Vec<u8>, CircleOr>>();
+        for member in members.values() {
             digest.update(member.as_bytes());
         }
 
         let inner = CircleInner {
-            members: keys
-                .into_iter()
-                .map(|v| (v.as_bytes().to_owned(), v))
-                .collect(),
+            members,
             author: None,
             id: UserHandle::RawBytes(digest.finalize().to_vec()),
         };
@@ -446,6 +447,8 @@ impl PgpApp {
             signer.finalize()?;
 
             circle.inner.author = Some(CircleAuthor { author, sig: out });
+
+            circle.update_digest();
 
             Ok(circle)
         }

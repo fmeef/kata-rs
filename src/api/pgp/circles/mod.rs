@@ -4,7 +4,6 @@ use std::{
 };
 
 use flutter_rust_bridge::frb;
-use image_hasher::HashBytes;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -112,31 +111,31 @@ struct TagOr {
 }
 
 fn get_children(
-    children: &BTreeMap<Vec<u8>, BTreeSet<Vec<u8>>>,
-    members: &BTreeMap<Vec<u8>, CircleWithMembers>,
+    children: &BTreeMap<(String, Vec<u8>), BTreeSet<(String, Vec<u8>)>>,
+    members: &BTreeMap<(String, Vec<u8>), CircleWithMembers>,
 ) -> Result<BTreeMap<Vec<u8>, TagOr>> {
     let mut out = BTreeMap::new();
-    for (k, _) in members
+    for ((t, k), m) in members
         .iter()
         .filter(|(_, p)| p.get_parent_id().map(|v| v.is_none()).unwrap_or_default())
     {
-        let v = get_children_parent(children, members, Some(k.as_slice()))?;
-        println!("get_children {v:?}");
+        let v = get_children_parent(children, members, Some((t, k.as_slice())))?;
         out.extend(v.into_iter());
     }
     Ok(out)
 }
 fn get_children_parent(
-    children: &BTreeMap<Vec<u8>, BTreeSet<Vec<u8>>>,
-    members: &BTreeMap<Vec<u8>, CircleWithMembers>,
-    parent: Option<&[u8]>,
+    children: &BTreeMap<(String, Vec<u8>), BTreeSet<(String, Vec<u8>)>>,
+    members: &BTreeMap<(String, Vec<u8>), CircleWithMembers>,
+    parent: Option<(&str, &[u8])>,
 ) -> Result<BTreeMap<Vec<u8>, TagOr>> {
     let mut out = BTreeMap::new();
-    let parent = match parent {
+    let (tparent, parent) = match parent {
         Some(v) => v,
         None => return Ok(out),
     };
-    for (_, item) in members.iter().filter(|(k, _)| *k == parent) {
+    for (_, item) in members.iter().filter(|((t, k), _)| *k == parent) {
+        let parent = (tparent.to_owned(), parent.to_owned());
         // println!("get_children_parent {item:?}");
         match item.circle_type.as_ref() {
             "user" => {
@@ -154,16 +153,19 @@ fn get_children_parent(
             "circle" => {
                 let mut circle = Circle::new_mut(item.get_author()?, item.sig.clone())?;
                 circle.inner.members = BTreeMap::new();
-                if let Some(parent) = children.get(parent) {
-                    for parent in parent {
+                if let Some(parent) = children.get(&parent) {
+                    for (tparent, parent) in parent {
                         circle.inner.members.extend(
-                            get_children_parent(children, members, Some(parent.as_slice()))?
-                                .into_iter()
-                                .flat_map(|(v, u)| u.content.into_option().map(|u| (v, u))),
+                            get_children_parent(
+                                children,
+                                members,
+                                Some((tparent, parent.as_slice())),
+                            )?
+                            .into_iter()
+                            .flat_map(|(v, u)| u.content.into_option().map(|u| (v, u))),
                         );
                     }
                 }
-                println!("circle with members {:?}", circle.inner.members);
                 circle.update_digest();
                 let circle = CircleOr::Circle(circle);
                 out.insert(
@@ -177,30 +179,33 @@ fn get_children_parent(
             "app" => {
                 let mut app = CircleApp::new_empty(item.get_author()?, item.sig.clone())?;
                 app.inner.children = BTreeMap::new();
-                if let Some(parent) = children.get(parent) {
-                    for parent in parent {
+                if let Some(parent) = children.get(&parent) {
+                    for (tparent, parent) in parent {
                         app.inner.children.extend(
-                            get_children_parent(children, members, Some(parent.as_slice()))?
-                                .into_iter()
-                                .flat_map(|(v, u)| {
-                                    u.tag.map(|tag| {
-                                        (
-                                            v,
-                                            AppMember {
-                                                member: u.content,
-                                                tag,
-                                            },
-                                        )
-                                    })
-                                }),
+                            get_children_parent(
+                                children,
+                                members,
+                                Some((tparent, parent.as_slice())),
+                            )?
+                            .into_iter()
+                            .flat_map(|(v, u)| {
+                                u.tag.map(|tag| {
+                                    (
+                                        v,
+                                        AppMember {
+                                            member: u.content,
+                                            tag,
+                                        },
+                                    )
+                                })
+                            }),
                         );
                     }
                 }
 
-                println!("app with members {:?}", app.inner.children);
-
                 let id = app.get_id().to_owned();
                 let app = if item.deleted.unwrap_or_default() {
+                    println!("app with members {:?}", app.inner.children);
                     MaybeDeleted::Deleted(item.get_id_userhandle()?)
                 } else {
                     MaybeDeleted::Member(CircleOr::App(app))
@@ -238,26 +243,37 @@ impl CircleOr {
     }
 
     pub fn from_db(members: Vec<CircleWithMembers>) -> Result<Vec<CircleOr>> {
-        println!("from_db {members:?}");
+        // println!("from_db {members:?}");
         let mut out = BTreeMap::new();
 
         let mut children = BTreeMap::new();
+
         for member in members {
-            if let Some(parent) = member.get_parent_id()? {
-                let entry = children.entry(parent).or_insert_with(|| BTreeSet::new());
-                entry.insert(member.get_id()?);
-                out.insert(member.get_id()?, member);
+            if let (Some(pty), Some(parent)) = (member.parent_type.clone(), member.get_parent_id()?)
+            {
+                let entry = children
+                    .entry((pty, parent))
+                    .or_insert_with(|| BTreeSet::new());
+                entry.insert((member.circle_type.clone(), member.get_id()?));
+                out.insert((member.circle_type.clone(), member.get_id()?), member);
             } else {
-                out.insert(member.get_id()?, member);
+                out.insert((member.circle_type.clone(), member.get_id()?), member);
             }
         }
 
         let res = get_children(&children, &out)?;
 
-        Ok(res
+        let res = res
             .into_values()
             .flat_map(|v| v.content.into_option())
-            .collect())
+            .filter(|p| match p {
+                CircleOr::User(_) => false,
+                _ => true,
+            })
+            .collect();
+
+        // println!("get! {res:#?}");
+        Ok(res)
     }
 }
 
@@ -480,8 +496,8 @@ mod test {
         let out = app.pgp.db.get_circle_by_id(&id).unwrap();
         assert!(!out.is_empty());
         let newcircle = CircleOr::from_db(out).unwrap();
-        assert!(!newcircle.is_empty());
-        assert_eq!(user, newcircle[0]);
+        assert!(newcircle.is_empty());
+        //assert_eq!(user, newcircle[0]);
     }
 
     #[test]
@@ -491,7 +507,6 @@ mod test {
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
         let user = CircleOr::User(v);
         let circle = app.create_circle(vec![user]).unwrap();
-        let id = circle.inner.id.name();
         let circle = CircleOr::Circle(circle);
         circle.to_db(&app.pgp.db).unwrap();
 

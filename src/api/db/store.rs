@@ -105,13 +105,13 @@ pub trait CertDao {
     fn is_online(&self, fingerprint: &str) -> Result<Option<OnlyOnline>>;
 
     #[query(
-        "SELECT id, member_id, parent_id, tag, deleted, circle_type, author, sig
+        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
         FROM circles LEFT JOIN circle_members ON member_id=id"
     )]
     fn get_circles_join(&self) -> Result<Vec<CircleWithMembers>>;
 
     #[query(
-        "SELECT id, member_id, parent_id, tag, deleted, circle_type, author, sig
+        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
         FROM circles LEFT JOIN circle_members ON member_id=id
         WHERE id = :id OR parent_id = :id"
     )]
@@ -121,10 +121,13 @@ pub trait CertDao {
     fn get_migration_version(&self) -> Result<usize>;
 
     #[query("UPDATE circle_members SET deleted = '1' WHERE member_id = :id")]
-    fn delete_circle(&self, id: &str) -> Result<()>;
+    fn delete_circle_member(&self, id: &str) -> Result<()>;
 
     #[query("UPDATE circle_members SET tag = :tag WHERE member_id = :member")]
     fn update_tag(&self, tag: &str, member: &str) -> Result<()>;
+
+    #[query("DELETE FROM circles WHERE id = :id AND circle_type = :ty")]
+    fn delete_circle(&self, id: &str, ty: &str) -> Result<()>;
 }
 
 impl FromRow for usize {
@@ -186,6 +189,7 @@ pub struct CircleMembersData {
     pub(crate) circle_member_id: Option<i64>,
     pub(crate) member_id: String,
     pub(crate) parent_id: String,
+    pub(crate) parent_type: String,
     pub(crate) tag: Option<String>,
     pub(crate) deleted: Option<bool>,
 }
@@ -198,6 +202,7 @@ pub struct CircleWithMembers {
     id: String,
     member_id: Option<String>,
     parent_id: Option<String>,
+    pub(crate) parent_type: Option<String>,
     pub(crate) tag: Option<String>,
     pub(crate) deleted: Option<bool>,
     pub(crate) circle_type: String,

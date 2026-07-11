@@ -59,7 +59,7 @@ impl NonOpaqueApp {
 
         for m in self.members.iter() {
             match m.member {
-                MaybeDeleted::Deleted(ref v) => db.delete_circle(&v.name())?,
+                MaybeDeleted::Deleted(ref v) => db.delete_circle_member(&v.name())?,
                 MaybeDeleted::Member(ref v) => v.to_db(db)?,
             }
 
@@ -68,6 +68,7 @@ impl NonOpaqueApp {
                 member_id: m.member.id_hex(),
                 parent_id: self.owner.name(),
                 deleted: Some(false),
+                parent_type: "app".to_owned(),
                 tag: Some(m.tag.as_str().to_owned()),
             };
 
@@ -281,6 +282,7 @@ impl CircleApp {
                         circle_member_id: None,
                         member_id: m.id_hex(),
                         deleted: Some(false),
+                        parent_type: "app".to_owned(),
                         parent_id: self.inner.owner.name(),
                         tag: Some(member.tag.as_str().to_owned()),
                     };
@@ -292,6 +294,7 @@ impl CircleApp {
                         circle_member_id: None,
                         member_id: d.name(),
                         deleted: Some(true),
+                        parent_type: "app".to_owned(),
                         parent_id: self.inner.owner.name(),
                         tag: Some(member.tag.as_str().to_owned()),
                     };

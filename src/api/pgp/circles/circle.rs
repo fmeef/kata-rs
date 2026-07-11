@@ -274,7 +274,7 @@ impl Circle {
             sig: self.inner.author.as_ref().map(|v| v.sig.clone()),
         };
 
-        entity.insert_on_conflict(db, OnConflict::Update)?;
+        entity.insert_on_conflict_custom(db, OnConflict::Update, vec!["id", "circle_type"])?;
 
         for m in self.inner.members.values() {
             m.to_db(db)?;
@@ -288,7 +288,11 @@ impl Circle {
                 tag: None,
             };
 
-            entity.insert_on_conflict(db, OnConflict::Update)?;
+            entity.insert_on_conflict_custom(
+                db,
+                OnConflict::Update,
+                vec!["member_id", "parent_id", "member_type", "parent_type"],
+            )?;
         }
 
         Ok(())

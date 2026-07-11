@@ -227,7 +227,7 @@ impl UserHandle {
             sig: None,
         };
 
-        data.insert_on_conflict(db, OnConflict::Update)?;
+        data.insert_on_conflict_custom(db, OnConflict::Update, vec!["id", "circle_type"])?;
 
         Ok(())
     }

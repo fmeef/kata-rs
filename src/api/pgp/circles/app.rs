@@ -56,7 +56,7 @@ impl NonOpaqueApp {
             sig: Some(self.sig.clone()),
         };
 
-        entity.insert_on_conflict(db, OnConflict::Update)?;
+        entity.insert_on_conflict_custom(db, OnConflict::Update, vec!["id", "circle_type"])?;
 
         for m in self.members.iter() {
             match m.member {
@@ -74,7 +74,11 @@ impl NonOpaqueApp {
                 tag: Some(m.tag.as_str().to_owned()),
             };
 
-            entity.insert_on_conflict(db, OnConflict::Update)?;
+            entity.insert_on_conflict_custom(
+                db,
+                OnConflict::Update,
+                vec!["member_id", "parent_id", "member_type", "parent_type"],
+            )?;
         }
 
         Ok(())
@@ -294,7 +298,8 @@ impl CircleApp {
             author: Some(self.inner.owner.name()),
             sig: Some(self.inner.sig.clone()),
         };
-        entity.insert_on_conflict(db, OnConflict::Update)?;
+        entity.insert_on_conflict_custom(db, OnConflict::Update, vec!["id", "circle_type"])?;
+
         for member in self.inner.children.values() {
             match member.member {
                 MaybeDeleted::Member(ref m) => {
@@ -322,7 +327,11 @@ impl CircleApp {
                         tag: Some(member.tag.as_str().to_owned()),
                     };
 
-                    entity.insert_on_conflict(db, OnConflict::Update)?
+                    entity.insert_on_conflict_custom(
+                        db,
+                        OnConflict::Update,
+                        vec!["member_id", "parent_id", "member_type", "parent_type"],
+                    )?;
                 }
             }
         }

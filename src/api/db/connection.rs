@@ -21,6 +21,12 @@ pub trait Crud {
     fn insert(&self, conn: &SqliteDb) -> anyhow::Result<()>;
     fn update(&self, conn: &SqliteDb) -> anyhow::Result<()>;
     fn delete(self, conn: &SqliteDb) -> anyhow::Result<()>;
+    fn insert_on_conflict_custom(
+        &self,
+        conn: &SqliteDb,
+        on_conflict: OnConflict,
+        cols: Vec<&str>,
+    ) -> anyhow::Result<()>;
     fn insert_on_conflict(&self, conn: &SqliteDb, on_conflict: OnConflict) -> anyhow::Result<()>;
 }
 
@@ -100,6 +106,7 @@ pub(crate) type DbConnection<'a> = MutexGuard<'a, Connection>;
 impl SqliteDb {
     #[cfg(test)]
     pub(crate) fn from_conn(conn: Connection) -> SqliteDb {
+        conn.execute("PRAGMA foreign_keys = ON;", []).unwrap();
         SqliteDb(Arc::new(SqliteDbInner {
             conn: Mutex::new(conn),
             watchers: RwLock::new(BTreeMap::new()),
@@ -148,6 +155,7 @@ impl SqliteDb {
     #[frb(sync)]
     pub fn new(path: &str) -> anyhow::Result<SqliteDb> {
         let conn = Connection::open(path)?;
+        conn.execute("PRAGMA foreign_keys = ON;", [])?;
         rusqlite::vtab::array::load_module(&conn)?;
         Ok(SqliteDb(Arc::new(SqliteDbInner {
             conn: Mutex::new(conn),
@@ -159,6 +167,7 @@ impl SqliteDb {
     #[frb(sync)]
     pub fn new_in_memory() -> anyhow::Result<SqliteDb> {
         let conn = Connection::open_in_memory()?;
+        conn.execute("PRAGMA foreign_keys = ON;", [])?;
         rusqlite::vtab::array::load_module(&conn)?;
         Ok(SqliteDb(Arc::new(SqliteDbInner {
             conn: Mutex::new(conn),

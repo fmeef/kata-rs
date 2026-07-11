@@ -92,6 +92,11 @@ fn generate_crud_impl(st: &[ColumnField], name: &Ident, table_attr: &str) -> imp
         table_attr, primary, primary
     );
 
+    let update_custom = format!(
+        "INSERT INTO {} ({}) values ({}) ON CONFLICT(",
+        table_attr, types, values
+    );
+
     // panic!("{}", insert);
     quote! {
         #[automatically_derived]
@@ -108,6 +113,26 @@ fn generate_crud_impl(st: &[ColumnField], name: &Ident, table_attr: &str) -> imp
                     crate::api::db::connection::OnConflict::Abort => conn.0.conn.lock().unwrap().execute(#insert, self.get_params().as_slice())?,
                     crate::api::db::connection::OnConflict::Ignore => conn.0.conn.lock().unwrap().execute(#insert_ignore, self.get_params().as_slice())?,
                     crate::api::db::connection::OnConflict::Update => conn.0.conn.lock().unwrap().execute(#insert_update, self.get_params().as_slice())?
+                };
+                Ok(())
+            }
+
+            fn insert_on_conflict_custom(&self, conn: &crate::api::db::connection::SqliteDb, on_conflict: crate::api::db::connection::OnConflict, cols: Vec<&str>) -> anyhow::Result<()> {
+                use crate::api::db::entities::GetParams;
+                let excluded = cols.iter().map(|v| format!("{v} = excluded.{v}")).collect::<Vec<String>>().join(", ");
+
+                let cols = cols.iter().map(|v| *v).collect::<Vec<&str>>().join(", ");
+
+
+
+                match on_conflict {
+                    crate::api::db::connection::OnConflict::Abort => conn.0.conn.lock().unwrap().execute(#insert, self.get_params().as_slice())?,
+                    crate::api::db::connection::OnConflict::Ignore => conn.0.conn.lock().unwrap().execute(#insert_ignore, self.get_params().as_slice())?,
+                    crate::api::db::connection::OnConflict::Update => {
+                        let update = format!("{} {}) DO UPDATE SET {}", #update_custom, cols, excluded);
+
+                        conn.0.conn.lock().unwrap().execute(&update, self.get_params().as_slice())?
+                    }
                 };
                 Ok(())
             }

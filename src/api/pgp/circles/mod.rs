@@ -264,7 +264,10 @@ fn get_children_parent(
         Some(v) => v,
         None => return Ok(out),
     };
-    for (_, item) in members.iter().filter(|((t, k), _)| *k == parent) {
+    for (_, item) in members
+        .iter()
+        .filter(|((t, k), _)| *k == parent && *t == tparent)
+    {
         let parent = (tparent.to_owned(), parent.to_owned());
         // println!("get_children_parent {item:?}");
         match item.circle_type.as_ref() {

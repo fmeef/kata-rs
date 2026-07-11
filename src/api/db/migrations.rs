@@ -89,6 +89,7 @@ lazy_static! {
         ),
         M::up(
             r#"
+        PRAGMA foreign_keys = ON;
         CREATE TABLE circles (
             id TEXT NOT NULL,
             circle_type TEXT NOT NULL,
@@ -105,9 +106,9 @@ lazy_static! {
            member_type TEXT NOT NULL,
            tag TEXT,
            deleted BOOLEAN NOT NULL DEFAULT '0',
-           FOREIGN KEY(member_id, member_type) REFERENCES circles(id, circle_type) ON DELETE CASCADE,
-           FOREIGN KEY(parent_id, parent_type) REFERENCES circles(id, circle_type) ON DELETE CASCADE,
-           UNIQUE(parent_id, member_id)
+           FOREIGN KEY(member_id, member_type) REFERENCES circles(id, circle_type) ON DELETE CASCADE ON UPDATE CASCADE,
+           FOREIGN KEY(parent_id, parent_type) REFERENCES circles(id, circle_type) ON DELETE CASCADE ON UPDATE CASCADE,
+           UNIQUE(member_id, parent_id, member_type, parent_type)
         );
             "#
         )

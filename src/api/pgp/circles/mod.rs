@@ -447,14 +447,6 @@ impl CircleEntry {
     }
 }
 
-#[derive(Debug, Clone)]
-#[frb(opaque)]
-pub struct CircleHandle {
-    pub circle_type: CircleType,
-    pub id: UserHandle,
-    pub(crate) db: SqliteDb,
-}
-
 impl CircleType {
     fn get_type_str(&self) -> &'_ str {
         match self {
@@ -471,16 +463,6 @@ impl CircleType {
             "circle" => Ok(CircleType::Circle),
             _ => Err(anyhow!(InternalErr::InvalidMemberTag)),
         }
-    }
-}
-
-impl CircleHandle {
-    pub(crate) fn get_type_str(&self) -> &'_ str {
-        self.circle_type.get_type_str()
-    }
-
-    pub fn get_type(&self) -> String {
-        self.get_type_str().to_owned()
     }
 }
 

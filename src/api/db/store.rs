@@ -10,7 +10,7 @@ use crate::api::db::entities::FromRow;
 use crate::api::db::migrations::rollback;
 use crate::api::pgp::cert::PgpCert;
 use crate::api::pgp::circles::app::MemberTag;
-use crate::api::pgp::circles::{CircleHandle, CircleOr, CircleType};
+use crate::api::pgp::circles::{CircleOr, CircleType};
 use crate::api::pgp::UserHandle;
 use crate::error::{InternalErr, Result};
 use macros::{dao, query, FromRow};
@@ -175,21 +175,6 @@ impl SqliteDb {
             Ok(Some(v)) => v.online,
             _ => false,
         }
-    }
-
-    pub fn get_root_handles(&self) -> anyhow::Result<Vec<CircleHandle>> {
-        let mut out = Vec::new();
-        let roots = self.get_circle_roots()?;
-
-        for root in roots {
-            out.push(CircleHandle {
-                db: self.clone(),
-                circle_type: CircleType::from_str(&root.circle_type)?,
-                id: UserHandle::from_hex(&root.id)?,
-            });
-        }
-
-        Ok(out)
     }
 
     pub fn rollback(&self, version: usize) -> anyhow::Result<()> {

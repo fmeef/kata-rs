@@ -7,7 +7,7 @@ use std::{
 use flutter_rust_bridge::{frb, BaseAsyncRuntime, DartFnFuture};
 use rusqlite::Connection;
 
-use crate::{api::pgp::circles::CircleHandle, frb_generated::FLUTTER_RUST_BRIDGE_HANDLER};
+use crate::frb_generated::FLUTTER_RUST_BRIDGE_HANDLER;
 
 use super::entities::NewsGroup;
 

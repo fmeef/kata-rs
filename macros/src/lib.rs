@@ -117,6 +117,7 @@ fn generate_crud_impl(st: &[ColumnField], name: &Ident, table_attr: &str) -> imp
                 Ok(())
             }
 
+            #[::flutter_rust_bridge::frb(ignore)]
             fn insert_on_conflict_custom(&self, conn: &crate::api::db::connection::SqliteDb, on_conflict: crate::api::db::connection::OnConflict, cols: Vec<&str>) -> anyhow::Result<()> {
                 use crate::api::db::entities::GetParams;
                 let excluded = cols.iter().map(|v| format!("{v} = excluded.{v}")).collect::<Vec<String>>().join(", ");

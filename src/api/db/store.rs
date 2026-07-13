@@ -7,10 +7,10 @@ use sequoia_openpgp::{parse::Parse, Cert};
 use super::utils::HexConvert;
 use crate::api::db::connection::SqliteDb;
 use crate::api::db::entities::FromRow;
-use crate::api::db::migrations::{self, rollback};
+use crate::api::db::migrations::rollback;
 use crate::api::pgp::cert::PgpCert;
 use crate::api::pgp::circles::app::MemberTag;
-use crate::api::pgp::circles::CircleOr;
+use crate::api::pgp::circles::{CircleHandle, CircleOr, CircleType};
 use crate::api::pgp::UserHandle;
 use crate::error::{InternalErr, Result};
 use macros::{dao, query, FromRow};
@@ -106,22 +106,29 @@ pub trait CertDao {
 
     #[query(
         "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
-        FROM circles LEFT JOIN circle_members ON member_id=id"
+        FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type"
     )]
     fn get_circles_join(&self) -> Result<Vec<CircleWithMembers>>;
 
     #[query(
         "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
-        FROM circles LEFT JOIN circle_members ON member_id=id WHERE parent_id IS NULL"
+        FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type WHERE parent_id IS NULL"
     )]
     fn get_circles_without_parent(&self) -> Result<Vec<CircleWithMembers>>;
 
     #[query(
         "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
-        FROM circles LEFT JOIN circle_members ON member_id=id
-        WHERE id = :id OR parent_id = :id"
+        FROM circles LEFT JOIN circle_members ON parent_id=id AND parent_type=circle_type
+        WHERE (id = :id AND circle_type = :ty)"
     )]
-    fn get_circle_by_id(&self, id: &str) -> Result<Vec<CircleWithMembers>>;
+    fn get_circle_by_id(&self, id: &str, ty: &str) -> Result<Vec<CircleWithMembers>>;
+
+    #[query(
+        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
+        FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type
+        WHERE parent_id IS NULL"
+    )]
+    fn get_circle_roots(&self) -> Result<Vec<CircleWithMembers>>;
 
     #[query("PRAGMA user_version")]
     fn get_migration_version(&self) -> Result<usize>;
@@ -162,13 +169,27 @@ pub struct OnlyOnline {
 }
 
 impl CertDao for SqliteDb {}
-
 impl SqliteDb {
     pub fn check_online(&self, fingerprint: &str) -> bool {
         match self.is_online(fingerprint) {
             Ok(Some(v)) => v.online,
             _ => false,
         }
+    }
+
+    pub fn get_root_handles(&self) -> anyhow::Result<Vec<CircleHandle>> {
+        let mut out = Vec::new();
+        let roots = self.get_circle_roots()?;
+
+        for root in roots {
+            out.push(CircleHandle {
+                db: self.clone(),
+                circle_type: CircleType::from_str(&root.circle_type)?,
+                id: UserHandle::from_hex(&root.id)?,
+            });
+        }
+
+        Ok(out)
     }
 
     pub fn rollback(&self, version: usize) -> anyhow::Result<()> {
@@ -267,6 +288,17 @@ impl CircleWithMembers {
         }
     }
 
+    pub fn get_id_tuple(&self) -> Result<(String, Vec<u8>)> {
+        Ok((self.circle_type.to_owned(), self.get_id()?))
+    }
+
+    pub fn get_parent_tuple(&self) -> Result<Option<(String, Vec<u8>)>> {
+        match (self.parent_type.as_ref(), self.parent_id.as_ref()) {
+            (Some(ty), Some(parent)) => Ok(Some((ty.to_owned(), self.get_bytes(parent)?))),
+            _ => Ok(None),
+        }
+    }
+
     pub fn get_id(&self) -> Result<Vec<u8>> {
         self.get_bytes(&self.id)
     }
@@ -343,6 +375,6 @@ mod test {
         run_migrations(&db).unwrap();
 
         db.get_circles_join().unwrap();
-        db.get_circle_by_id("test").unwrap();
+        db.get_circle_by_id("test", "circle").unwrap();
     }
 }

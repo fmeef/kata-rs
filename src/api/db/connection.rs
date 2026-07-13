@@ -1,12 +1,13 @@
 use std::{
     collections::{BTreeMap, HashMap},
+    fmt::Debug,
     sync::{Arc, Mutex, MutexGuard, RwLock},
 };
 
 use flutter_rust_bridge::{frb, BaseAsyncRuntime, DartFnFuture};
 use rusqlite::Connection;
 
-use crate::frb_generated::FLUTTER_RUST_BRIDGE_HANDLER;
+use crate::{api::pgp::circles::CircleHandle, frb_generated::FLUTTER_RUST_BRIDGE_HANDLER};
 
 use super::entities::NewsGroup;
 
@@ -21,12 +22,23 @@ pub trait Crud {
     fn insert(&self, conn: &SqliteDb) -> anyhow::Result<()>;
     fn update(&self, conn: &SqliteDb) -> anyhow::Result<()>;
     fn delete(self, conn: &SqliteDb) -> anyhow::Result<()>;
+    #[frb(ignore)]
     fn insert_on_conflict_custom(
         &self,
         conn: &SqliteDb,
         on_conflict: OnConflict,
         cols: Vec<&str>,
     ) -> anyhow::Result<()>;
+
+    fn insert_on_conflict_cols(
+        &self,
+        conn: &SqliteDb,
+        on_conflict: OnConflict,
+        cols: Vec<String>,
+    ) -> anyhow::Result<()> {
+        self.insert_on_conflict_custom(conn, on_conflict, cols.iter().map(|v| v.as_str()).collect())
+    }
+
     fn insert_on_conflict(&self, conn: &SqliteDb, on_conflict: OnConflict) -> anyhow::Result<()>;
 }
 
@@ -85,6 +97,12 @@ pub(crate) struct SqliteDbInner {
 }
 
 pub struct SqliteDb(pub(crate) Arc<SqliteDbInner>);
+
+impl std::fmt::Debug for SqliteDb {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("SqliteDb")
+    }
+}
 
 impl Clone for SqliteDb {
     fn clone(&self) -> Self {

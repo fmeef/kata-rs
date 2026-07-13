@@ -343,6 +343,13 @@ impl CircleApp {
     }
 
     #[frb(sync)]
+    pub fn update_tag(&mut self, id: &UserHandle, tag: MemberTag) {
+        if let Some(member) = self.inner.children.get_mut(id.as_bytes()) {
+            member.tag = tag;
+        }
+    }
+
+    #[frb(sync)]
     pub fn consume_members(self) -> NonOpaqueApp {
         NonOpaqueApp {
             members: self.inner.children.into_values().collect(),

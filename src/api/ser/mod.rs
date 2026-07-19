@@ -160,7 +160,7 @@ impl PgpApp {
 
             Some(
                 self.pgp
-                    .get_key_from_fingerprint(&UserHandle::KeyHandle(cert.key_handle()))?,
+                    .get_key_from_fingerprint(&UserHandle::KeyHandle(cert.key_handle(), None))?,
             )
         } else {
             None

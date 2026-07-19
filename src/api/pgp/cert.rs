@@ -80,7 +80,10 @@ impl PgpCertStubSigs {
         let cert = Cert::from_bytes(&bytes)?;
         let newcert = PgpCert {
             keyid: cert.keyid().to_hex(),
-            fingerprint: UserHandle::from_fingerprint(cert.fingerprint()),
+            fingerprint: UserHandle::from_fingerprint(
+                cert.fingerprint(),
+                cert.userids().map(|v| v.userid().to_string()).next(),
+            ),
             has_private: cert.is_tsk(),
             online: false,
         };
@@ -100,7 +103,10 @@ impl PgpCertStubSigs {
 
         let newcert = PgpCert {
             keyid: cert.keyid().to_hex(),
-            fingerprint: UserHandle::from_fingerprint(cert.fingerprint()),
+            fingerprint: UserHandle::from_fingerprint(
+                cert.fingerprint(),
+                cert.userids().map(|v| v.userid().to_string()).next(),
+            ),
             has_private: cert.is_tsk(),
             online: false,
         };
@@ -135,7 +141,10 @@ impl PgpCertWithIds {
         let cert = Cert::from_bytes(&bytes)?;
         let newcert = PgpCert {
             keyid: cert.keyid().to_hex(),
-            fingerprint: UserHandle::from_fingerprint(cert.fingerprint()),
+            fingerprint: UserHandle::from_fingerprint(
+                cert.fingerprint(),
+                cert.userids().map(|v| v.userid().to_string()).next(),
+            ),
             has_private: cert.is_tsk(),
             online: false,
         };
@@ -160,12 +169,12 @@ impl PgpCertWithIds {
 
     pub fn from_bytes_sig(bytes: Vec<u8>, store: &PgpApp) -> anyhow::Result<Self> {
         let cert = Cert::from_bytes(&bytes)?;
-
-        //     let valid = cert.with_policy(&POLICY, None)?;
-
         let newcert = PgpCert {
             keyid: cert.keyid().to_hex(),
-            fingerprint: UserHandle::from_fingerprint(cert.fingerprint()),
+            fingerprint: UserHandle::from_fingerprint(
+                cert.fingerprint(),
+                cert.userids().map(|v| v.userid().to_string()).next(),
+            ),
             has_private: cert.is_tsk(),
             online: false,
         };
@@ -241,10 +250,11 @@ impl PgpCert {
     #[allow(dead_code)]
     pub(crate) fn from_bytes(bytes: Vec<u8>) -> anyhow::Result<Self> {
         let cert = Cert::from_bytes(&bytes)?;
+        let comment = cert.userids().map(|v| v.userid().to_string()).next();
         let lazy = LazyCert::from_cert(cert);
         Ok(Self {
             keyid: lazy.keyid().to_hex(),
-            fingerprint: UserHandle::from_fingerprint(lazy.fingerprint()),
+            fingerprint: UserHandle::from_fingerprint(lazy.fingerprint(), comment),
             has_private: lazy.is_tsk(),
             online: false,
         })

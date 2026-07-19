@@ -117,7 +117,10 @@ impl GenerateCert {
 
         let newcert = PgpCert {
             keyid: cert.keyid().to_hex(),
-            fingerprint: UserHandle::from_fingerprint(cert.fingerprint()),
+            fingerprint: UserHandle::from_fingerprint(
+                cert.fingerprint(),
+                cert.userids().map(|v| v.userid().to_string()).next(),
+            ),
             has_private: cert.is_tsk(),
             online: inner.online,
         };
@@ -154,7 +157,10 @@ where
         let online = self.db.check_online(&fingerprint);
         let newcert = PgpCert {
             keyid: cert.keyid().to_hex(),
-            fingerprint: UserHandle::from_fingerprint(cert.fingerprint()),
+            fingerprint: UserHandle::from_fingerprint(
+                cert.fingerprint(),
+                cert.userids().map(|v| v.userid().to_string()).next(),
+            ),
             has_private: cert.is_tsk(),
             online,
         };
@@ -213,7 +219,10 @@ where
         let online = self.db.check_online(&fingerprint);
         let newcert = PgpCert {
             keyid: cert.keyid().to_hex(),
-            fingerprint: UserHandle::from_fingerprint(cert.fingerprint()),
+            fingerprint: UserHandle::from_fingerprint(
+                cert.fingerprint(),
+                cert.userids().map(|v| v.userid().to_string()).next(),
+            ),
             has_private: cert.is_tsk(),
             online,
         };

@@ -53,14 +53,17 @@ pub trait Verifier {
 #[frb(opaque)]
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum UserHandle {
-    KeyHandle(KeyHandle),
+    KeyHandle(KeyHandle, Option<String>),
     RawBytes(Vec<u8>),
 }
 
 impl Hash for UserHandle {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         match self {
-            Self::KeyHandle(kh) => state.write(kh.as_bytes()),
+            Self::KeyHandle(kh, name) => {
+                state.write(kh.as_bytes());
+                name.hash(state);
+            }
             Self::RawBytes(b) => state.write(&b),
         }
     }
@@ -81,7 +84,7 @@ impl Serialize for UserHandle {
     {
         let mut map = serializer.serialize_map(Some(1))?;
         let key = match self {
-            Self::KeyHandle(_) => "key_handle",
+            Self::KeyHandle(_, _) => "key_handle",
             Self::RawBytes(_) => "raw",
         };
         map.serialize_key(key)?;
@@ -188,16 +191,30 @@ impl CircleLike for UserHandle {
 impl UserHandle {
     #[frb(sync)]
     pub fn from_hex(hex: &str) -> anyhow::Result<Self> {
-        Ok(Self::KeyHandle(KeyHandle::from_str(hex)?))
+        Ok(Self::KeyHandle(KeyHandle::from_str(hex)?, None))
     }
 
-    pub(crate) fn from_fingerprint(fingerprint: Fingerprint) -> Self {
-        Self::KeyHandle(KeyHandle::Fingerprint(fingerprint))
+    #[frb(sync)]
+    pub fn comment(&self) -> Option<String> {
+        match self {
+            Self::RawBytes(_) => None,
+            Self::KeyHandle(_, comment) => comment.clone(),
+        }
+    }
+
+    pub(crate) fn from_fingerprint(fingerprint: Fingerprint, name: Option<String>) -> Self {
+        Self::KeyHandle(KeyHandle::Fingerprint(fingerprint), name)
     }
 
     #[frb(sync)]
     pub fn len(&self) -> usize {
         self.as_bytes().len()
+    }
+
+    pub fn set_name(&mut self, name: String) {
+        if let Self::KeyHandle(_, n) = self {
+            *n = Some(name);
+        }
     }
 
     fn from_raw_hex(hex: &str) -> crate::error::Result<Self> {
@@ -207,14 +224,14 @@ impl UserHandle {
     #[frb(sync)]
     pub fn name(&self) -> String {
         match self {
-            Self::KeyHandle(kh) => kh.to_hex(),
+            Self::KeyHandle(kh, _) => kh.to_hex(),
             Self::RawBytes(bytes) => hex::encode(bytes),
         }
     }
 
     pub(crate) fn as_bytes(&self) -> &'_ [u8] {
         match self {
-            Self::KeyHandle(kh) => kh.as_bytes(),
+            Self::KeyHandle(kh, _) => kh.as_bytes(),
             Self::RawBytes(bytes) => bytes,
         }
     }
@@ -234,21 +251,21 @@ impl UserHandle {
 
     pub(crate) fn into_bytes(self) -> Vec<u8> {
         match self {
-            Self::KeyHandle(kh) => kh.as_bytes().to_owned(),
+            Self::KeyHandle(kh, _) => kh.as_bytes().to_owned(),
             Self::RawBytes(bytes) => bytes,
         }
     }
 
     pub(crate) fn try_keyhandle(&self) -> anyhow::Result<&'_ KeyHandle> {
         match self {
-            Self::KeyHandle(kh) => Ok(kh),
+            Self::KeyHandle(kh, _) => Ok(kh),
             Self::RawBytes(_) => Err(anyhow!(InternalErr::NotRepr("KeyHandle"))),
         }
     }
 
     pub(crate) fn try_fingerprint(&self) -> anyhow::Result<&'_ Fingerprint> {
         match self {
-            Self::KeyHandle(kh) => match kh {
+            Self::KeyHandle(kh, _) => match kh {
                 KeyHandle::Fingerprint(fp) => Ok(fp),
                 KeyHandle::KeyID(_) => Err(anyhow!(InternalErr::FingerprintRequired)),
             },
@@ -258,7 +275,7 @@ impl UserHandle {
 
     pub(crate) fn try_fingerprint_owned(self) -> anyhow::Result<Fingerprint> {
         match self {
-            Self::KeyHandle(kh) => match kh {
+            Self::KeyHandle(kh, _) => match kh {
                 KeyHandle::Fingerprint(fp) => Ok(fp),
                 KeyHandle::KeyID(_) => Err(anyhow!(InternalErr::FingerprintRequired)),
             },

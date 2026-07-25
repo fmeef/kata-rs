@@ -4,6 +4,8 @@ use serde::de::Error;
 use serde::{de::Visitor, ser::SerializeMap, Deserialize, Serialize};
 use std::{collections::BTreeMap, hash::Hash};
 
+use crate::api::pgp::PgpServiceTrait;
+use crate::api::PgpApp;
 use crate::{
     api::{
         db::store::CircleWithMembers,
@@ -262,106 +264,135 @@ impl CircleWithMembers {
     }
 }
 
-fn get_children(
-    // children: &BTreeMap<Vec<(String, Vec<u8>)>, BTreeSet<(String, Vec<u8>)>>,
-    members: &ParentCache,
-    actual: &Vec<CircleWithMembers>,
-) -> Result<Vec<(Vec<u8>, TagOr)>> {
-    get_children_parent(members, actual, None)
-}
-fn get_children_parent(
-    // children: &BTreeMap<Vec<(String, Vec<u8>)>, BTreeSet<(String, Vec<u8>)>>,
-    members: &ParentCache,
-    actual: &Vec<CircleWithMembers>,
-    parent: Option<Vec<(String, Vec<u8>)>>,
-) -> Result<Vec<(Vec<u8>, TagOr)>> {
-    let mut out = Vec::new();
+impl PgpApp {
+    pub fn circles_from_db(&self, members: Vec<CircleWithMembers>) -> Result<Vec<CircleOr>> {
+        let out = CircleOr::get_parent_cache(&members)?;
+        let res = self.get_children(&out, &members)?;
 
-    for item in actual {
-        let pv = item.get_parent_vec(members)?;
-        if pv != parent {
-            continue;
-        }
+        let res = res
+            .into_iter()
+            .map(|(_, v)| v)
+            .flat_map(|v| v.content.into_option())
+            .filter(|p| match p {
+                CircleOr::User(_) => false,
+                _ => true,
+            })
+            .collect();
 
-        // println!("get_children_parent {item:?}");
-        match item.circle_type.as_ref() {
-            "user" => {
-                let handle = item.get_id_userhandle()?;
-                let handle = CircleOr::User(RustAutoOpaque::new(handle));
-                out.push((
-                    handle.get_id().to_owned(),
-                    TagOr {
-                        content: MaybeDeleted::Member(handle),
-                        tag: item.get_tag()?,
-                    },
-                ));
-            }
-            "circle" => {
-                let mut circle = Circle::new_mut(item.get_author()?, item.sig.clone())?;
-
-                let n = match parent {
-                    Some(ref parent) => [&parent[..], &[item.get_id_tuple()?]].concat(),
-                    None => vec![item.get_id_tuple()?],
-                };
-
-                circle.inner.members = get_children_parent(members, actual, Some(n))?
-                    .into_iter()
-                    .flat_map(|(v, u)| u.content.into_option().map(|u| (v, u)))
-                    .collect();
-
-                circle.update_digest();
-                let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
-                out.push((
-                    circle.get_id().to_owned(),
-                    TagOr {
-                        content: MaybeDeleted::Member(circle),
-                        tag: item.get_tag()?,
-                    },
-                ));
-            }
-            "app" => {
-                let mut app = CircleApp::new_empty(item.get_author()?, item.sig.clone())?;
-
-                let n = match parent {
-                    Some(ref parent) => [&parent[..], &[item.get_id_tuple()?]].concat(),
-                    None => vec![item.get_id_tuple()?],
-                };
-
-                app.inner.children = get_children_parent(members, actual, Some(n))?
-                    .into_iter()
-                    .flat_map(|(v, u)| {
-                        u.tag.map(|tag| {
-                            (
-                                v,
-                                AppMember {
-                                    member: u.content,
-                                    tag,
-                                },
-                            )
-                        })
-                    })
-                    .collect();
-
-                let id = app.get_id().to_owned();
-                let app = if item.deleted.unwrap_or_default() {
-                    println!("app with members {:?}", app.inner.children);
-                    MaybeDeleted::Deleted(item.get_id_userhandle()?)
-                } else {
-                    MaybeDeleted::Member(CircleOr::App(RustAutoOpaque::new(app)))
-                };
-
-                out.push((
-                    id,
-                    TagOr {
-                        content: app,
-                        tag: item.get_tag()?,
-                    },
-                ));
-            }
-            _ => return Err(InternalErr::InvalidCircleType(item.circle_type.clone())),
-        }
+        // println!("get! {res:#?}");
+        Ok(res)
     }
-    Ok(out)
+
+    fn get_children(
+        &self,
+        members: &ParentCache,
+        actual: &Vec<CircleWithMembers>,
+    ) -> Result<Vec<(Vec<u8>, TagOr)>> {
+        self.get_children_parent(members, actual, None)
+    }
+    fn get_children_parent(
+        &self,
+        members: &ParentCache,
+        actual: &Vec<CircleWithMembers>,
+        parent: Option<Vec<(String, Vec<u8>)>>,
+    ) -> Result<Vec<(Vec<u8>, TagOr)>> {
+        let mut out = Vec::new();
+
+        for item in actual {
+            let pv = item.get_parent_vec(members)?;
+            if pv != parent {
+                continue;
+            }
+            let mut handle = item.get_id_userhandle()?;
+
+            match self.get_key_from_fingerprint(&handle) {
+                Ok(key) => match key.ids.first() {
+                    Some(id) => handle.set_name(id.clone()),
+                    None => (),
+                },
+                Err(err) => log::error!("failed to fetch key {err}"),
+            }
+            // println!("get_children_parent {item:?}");
+            match item.circle_type.as_ref() {
+                "user" => {
+                    let handle = CircleOr::User(RustAutoOpaque::new(handle));
+                    out.push((
+                        handle.get_id().to_owned(),
+                        TagOr {
+                            content: MaybeDeleted::Member(handle),
+                            tag: item.get_tag()?,
+                        },
+                    ));
+                }
+                "circle" => {
+                    let mut circle = Circle::new_mut(item.get_author()?, item.sig.clone())?;
+
+                    let n = match parent {
+                        Some(ref parent) => [&parent[..], &[item.get_id_tuple()?]].concat(),
+                        None => vec![item.get_id_tuple()?],
+                    };
+
+                    circle.inner.members = self
+                        .get_children_parent(members, actual, Some(n))?
+                        .into_iter()
+                        .flat_map(|(v, u)| u.content.into_option().map(|u| (v, u)))
+                        .collect();
+
+                    circle.update_digest();
+                    let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
+                    out.push((
+                        circle.get_id().to_owned(),
+                        TagOr {
+                            content: MaybeDeleted::Member(circle),
+                            tag: item.get_tag()?,
+                        },
+                    ));
+                }
+                "app" => {
+                    let mut app = CircleApp::new_empty(item.get_author()?, item.sig.clone())?;
+
+                    let n = match parent {
+                        Some(ref parent) => [&parent[..], &[item.get_id_tuple()?]].concat(),
+                        None => vec![item.get_id_tuple()?],
+                    };
+
+                    app.inner.children = self
+                        .get_children_parent(members, actual, Some(n))?
+                        .into_iter()
+                        .flat_map(|(v, u)| {
+                            u.tag.map(|tag| {
+                                (
+                                    v,
+                                    AppMember {
+                                        member: u.content,
+                                        tag,
+                                    },
+                                )
+                            })
+                        })
+                        .collect();
+
+                    let id = app.get_id().to_owned();
+                    let app = if item.deleted.unwrap_or_default() {
+                        println!("app with members {:?}", app.inner.children);
+                        MaybeDeleted::Deleted(item.get_id_userhandle()?)
+                    } else {
+                        MaybeDeleted::Member(CircleOr::App(RustAutoOpaque::new(app)))
+                    };
+
+                    out.push((
+                        id,
+                        TagOr {
+                            content: app,
+                            tag: item.get_tag()?,
+                        },
+                    ));
+                }
+                _ => return Err(InternalErr::InvalidCircleType(item.circle_type.clone())),
+            }
+        }
+        Ok(out)
+    }
 }
 
 impl CircleOr {
@@ -401,24 +432,6 @@ impl CircleOr {
         }
 
         Ok(out)
-    }
-
-    pub fn from_db(members: Vec<CircleWithMembers>) -> Result<Vec<CircleOr>> {
-        let out = CircleOr::get_parent_cache(&members)?;
-        let res = get_children(&out, &members)?;
-
-        let res = res
-            .into_iter()
-            .map(|(_, v)| v)
-            .flat_map(|v| v.content.into_option())
-            .filter(|p| match p {
-                CircleOr::User(_) => false,
-                _ => true,
-            })
-            .collect();
-
-        // println!("get! {res:#?}");
-        Ok(res)
     }
 }
 
@@ -675,7 +688,7 @@ mod test {
         user.to_db(&app.pgp.db).unwrap();
         let out = app.pgp.db.get_circle_by_id(&id, "user").unwrap();
         assert!(!out.is_empty());
-        let newcircle = CircleOr::from_db(out).unwrap();
+        let newcircle = app.circles_from_db(out).unwrap();
         assert!(newcircle.is_empty());
         //assert_eq!(user, newcircle[0]);
     }
@@ -689,7 +702,7 @@ mod test {
         user.to_db(&app.pgp.db).unwrap();
         let out = app.pgp.db.get_circle_roots().unwrap();
         assert!(!out.is_empty());
-        let newcircle = CircleOr::from_db(out).unwrap();
+        let newcircle = app.circles_from_db(out).unwrap();
         assert!(newcircle.is_empty());
         //assert_eq!(user, newcircle[0]);
     }
@@ -710,7 +723,7 @@ mod test {
 
         assert_eq!(out.len(), 2);
 
-        let newcircle = CircleOr::from_db(out).unwrap();
+        let newcircle = app.circles_from_db(out).unwrap();
         assert!(!newcircle.is_empty());
         assert_eq!(newcircle.len(), 1);
         assert_eq!(circle, newcircle[0]);
@@ -739,7 +752,7 @@ mod test {
 
         assert_eq!(out.len(), 3);
 
-        let newcircle = CircleOr::from_db(out).unwrap();
+        let newcircle = app.circles_from_db(out).unwrap();
         assert!(!newcircle.is_empty());
         assert_eq!(newcircle.len(), 1);
         assert_eq!(circle.get_members(), newcircle[0].get_members());

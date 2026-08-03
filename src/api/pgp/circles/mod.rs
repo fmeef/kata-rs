@@ -820,7 +820,11 @@ mod test {
 
         parent.to_db(&app.pgp.db).unwrap();
 
-        let out = app.pgp.db.get_circles_for_parent(&parent.id_hex()).unwrap();
+        let out = app
+            .pgp
+            .db
+            .get_circles_for_parent(&parent.id_hex(), &parent.db_type())
+            .unwrap();
 
         let outcircle = app.circles_from_db(out).unwrap();
 

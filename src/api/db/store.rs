@@ -113,18 +113,27 @@ pub trait CertDao {
     #[query(
         "
         WITH RECURSIVE
-            reachable(node, path) AS (
-            SELECT parent_id, json_array(parent_id) FROM circle_members WHERE parent_id = :parent
-              UNION ALL
-              SELECT member_id, json_insert(reachable.path, '$[#]', member_id)
-              FROM circle_members
-              JOIN reachable ON parent_id = reachable.node
-              WHERE member_id NOT IN (SELECT value FROM json_each(reachable.path))
-            )
-            SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
-            FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type WHERE circles.id in (SELECT node FROM reachable)"
+                   reachable(node, node_type, path, type_path) AS (
+                   SELECT parent_id, parent_type, json_array(parent_id), json_array(parent_type)
+                   FROM circle_members WHERE parent_id = :parent
+                   AND parent_type = :parent_type
+                     UNION ALL
+                     SELECT member_id, member_type, json_insert(reachable.path, '$[#]', member_id), json_insert(reachable.type_path, '$[#]', member_type)
+                     FROM circle_members
+                     JOIN reachable ON parent_id = reachable.node AND parent_type = node_type
+                     WHERE member_id NOT IN (SELECT value FROM json_each(reachable.path))
+                     AND member_type NOT IN (SELECT value FROM json_each(reachable.type_path))
+                   )
+                    SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
+                   FROM circles LEFT JOIN circle_members ON member_id=id
+                   AND member_type=circle_type JOIN reachable on reachable.node = circles.id and reachable.node_type = circle_type
+"
     )]
-    fn get_circles_for_parent(&self, parent: &str) -> Result<Vec<CircleWithMembers>>;
+    fn get_circles_for_parent(
+        &self,
+        parent: &str,
+        parent_type: &str,
+    ) -> Result<Vec<CircleWithMembers>>;
 
     #[query(
         "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
@@ -384,6 +393,6 @@ mod test {
         let db = rusqlite::Connection::open_in_memory().unwrap();
         let db = SqliteDb::from_conn(db);
         run_migrations(&db).unwrap();
-        db.get_circles_for_parent("").unwrap();
+        db.get_circles_for_parent("", "").unwrap();
     }
 }

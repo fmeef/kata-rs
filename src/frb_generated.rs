@@ -10965,6 +10965,7 @@ fn wire__crate__api__db__connection__SqliteDb_get_circles_for_parent_impl(
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
             >>::sse_decode(&mut deserializer);
             let api_parent = <String>::sse_decode(&mut deserializer);
+            let api_parent_type = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -10987,6 +10988,7 @@ fn wire__crate__api__db__connection__SqliteDb_get_circles_for_parent_impl(
                             crate::api::db::connection::SqliteDb::get_circles_for_parent(
                                 &*api_that_guard,
                                 &api_parent,
+                                &api_parent_type,
                             )?;
                         Ok(output_ok)
                     })(),

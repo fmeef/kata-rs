@@ -4,8 +4,9 @@ use serde::de::Error;
 use serde::{de::Visitor, ser::SerializeMap, Deserialize, Serialize};
 use std::{collections::BTreeMap, hash::Hash};
 
+use crate::api::db::store::CertDao;
 use crate::api::pgp::PgpServiceTrait;
-use crate::api::PgpApp;
+use crate::api::{PgpApp, PgpAppTrait};
 use crate::{
     api::{
         db::store::CircleWithMembers,
@@ -24,6 +25,12 @@ use crate::{
 
 pub mod app;
 pub mod circle;
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct CircleHandle {
+    pub id: String,
+    pub circle_type: CircleType,
+}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
 #[frb(non_opaque)]
@@ -409,6 +416,14 @@ impl CircleOr {
         Self::User(RustAutoOpaque::new(UserHandle::RawBytes(vec![])))
     }
 
+    #[frb(sync)]
+    pub fn handle(&self) -> CircleHandle {
+        CircleHandle {
+            id: self.id_hex(),
+            circle_type: self.get_type(),
+        }
+    }
+
     pub(crate) fn db_type(&self) -> String {
         match self {
             CircleOr::App(_) => "app".to_owned(),
@@ -504,7 +519,7 @@ pub trait CircleLike {
     fn insert(&self, db: &SqliteDb) -> anyhow::Result<()>;
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[frb(non_opaque)]
 pub enum CircleType {
     User,
@@ -669,6 +684,16 @@ impl CircleOr {
             Self::User(v) => v.blocking_read().as_bytes().to_owned(),
             Self::App(v) => v.blocking_read().inner.owner.as_bytes().to_owned(),
         }
+    }
+}
+
+impl PgpApp {
+    pub fn get_circles_for_parent(&self, parent: &CircleHandle) -> Result<Vec<CircleOr>> {
+        let v = self
+            .get_db()
+            .get_circles_for_parent(&parent.id, parent.circle_type.get_type_str())?;
+
+        self.circles_from_db(v)
     }
 }
 

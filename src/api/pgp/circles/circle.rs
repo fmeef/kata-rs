@@ -2,7 +2,7 @@ use crate::{
     api::{
         db::{
             connection::{Crud, OnConflict},
-            store::{CircleData, CircleMembersData, CircleWithMembers},
+            store::{CircleData, CircleMembersData},
         },
         pgp::circles::CircleType,
         SqliteDb,

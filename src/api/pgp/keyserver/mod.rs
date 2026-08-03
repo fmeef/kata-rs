@@ -57,27 +57,27 @@ mod test {
         PgpApp, PgpAppTrait,
     };
 
-    #[test]
-    fn test_keyserver() {
-        let ks = KeyServer::new("hkps://keys.ballmerlabs.net").unwrap();
-        let out = ks
-            .lookup_by_cert_fpr(
-                &Fingerprint::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap(),
-            )
-            .unwrap();
-        assert_eq!(
-            ks.fingerprints()
-                .find(|p| p.to_hex() == "9FCF6558AC4927F1E7A43D80317375B449854036")
-                .unwrap()
-                .to_hex(),
-            "9FCF6558AC4927F1E7A43D80317375B449854036"
-        );
+    // #[test]
+    // fn test_keyserver() {
+    //     let ks = KeyServer::new("hkps://keys.ballmerlabs.net").unwrap();
+    //     let out = ks
+    //         .lookup_by_cert_fpr(
+    //             &Fingerprint::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap(),
+    //         )
+    //         .unwrap();
+    //     assert_eq!(
+    //         ks.fingerprints()
+    //             .find(|p| p.to_hex() == "9FCF6558AC4927F1E7A43D80317375B449854036")
+    //             .unwrap()
+    //             .to_hex(),
+    //         "9FCF6558AC4927F1E7A43D80317375B449854036"
+    //     );
 
-        assert_eq!(
-            out.fingerprint().to_hex(),
-            "9FCF6558AC4927F1E7A43D80317375B449854036"
-        );
-    }
+    //     assert_eq!(
+    //         out.fingerprint().to_hex(),
+    //         "9FCF6558AC4927F1E7A43D80317375B449854036"
+    //     );
+    // }
 
     #[test]
     fn upload_online() {

@@ -10,7 +10,7 @@ use crate::api::db::entities::FromRow;
 use crate::api::db::migrations::rollback;
 use crate::api::pgp::cert::PgpCert;
 use crate::api::pgp::circles::app::MemberTag;
-use crate::api::pgp::circles::{CircleOr, CircleType};
+use crate::api::pgp::circles::CircleOr;
 use crate::api::pgp::UserHandle;
 use crate::error::{InternalErr, Result};
 use macros::{dao, query, FromRow};
@@ -109,6 +109,22 @@ pub trait CertDao {
         FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type"
     )]
     fn get_circles_join(&self) -> Result<Vec<CircleWithMembers>>;
+
+    #[query(
+        "
+        WITH RECURSIVE
+            reachable(node, path) AS (
+            SELECT parent_id, json_array(parent_id) FROM circle_members WHERE parent_id = :parent
+              UNION ALL
+              SELECT member_id, json_insert(reachable.path, '$[#]', member_id)
+              FROM circle_members
+              JOIN reachable ON parent_id = reachable.node
+              WHERE member_id NOT IN (SELECT value FROM json_each(reachable.path))
+            )
+            SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
+            FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type WHERE circles.id in (SELECT node FROM reachable)"
+    )]
+    fn get_circles_for_parent(&self, parent: &str) -> Result<Vec<CircleWithMembers>>;
 
     #[query(
         "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
@@ -361,5 +377,13 @@ mod test {
 
         db.get_circles_join().unwrap();
         db.get_circle_by_id("test", "circle").unwrap();
+    }
+
+    #[test]
+    fn get_all_circles_parent() {
+        let db = rusqlite::Connection::open_in_memory().unwrap();
+        let db = SqliteDb::from_conn(db);
+        run_migrations(&db).unwrap();
+        db.get_circles_for_parent("").unwrap();
     }
 }

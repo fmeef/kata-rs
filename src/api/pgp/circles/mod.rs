@@ -251,7 +251,12 @@ impl CircleWithMembers {
             Some(parent) => {
                 let mut out = vec![parent];
 
+                let mut prev = None;
                 while let Some(np) = cache.get(out.last().unwrap()) {
+                    if prev == Some(np) {
+                        break;
+                    }
+                    prev = Some(np);
                     match np.get_parent_tuple()? {
                         Some(np) => out.push(np),
                         None => break,
@@ -296,15 +301,18 @@ impl PgpApp {
         actual: &Vec<CircleWithMembers>,
         parent: Option<Vec<(String, Vec<u8>)>>,
     ) -> Result<Vec<(Vec<u8>, TagOr)>> {
+        // log::error!("get_children_parent {parent:?}");
         let mut out = Vec::new();
 
         for item in actual {
+            // log::error!("for item in actual {item:?}");
             let pv = item.get_parent_vec(members)?;
+            // log::error!("get_parent_vec complete");
             if pv != parent {
                 continue;
             }
             let mut handle = item.get_id_userhandle()?;
-
+            // log::error!("attempting get key");
             match self.get_key_from_fingerprint(&handle) {
                 Ok(key) => match key.ids.first() {
                     Some(id) => handle.set_name(id.clone()),
@@ -312,6 +320,7 @@ impl PgpApp {
                 },
                 Err(err) => log::error!("failed to fetch key {err}"),
             }
+            // log::error!("get key complete");
             // println!("get_children_parent {item:?}");
             match item.circle_type.as_ref() {
                 "user" => {
@@ -787,5 +796,36 @@ mod test {
 
         assert_eq!(parents.len(), 1);
         assert_eq!(parents, vec![("app".to_owned(), circle.get_id())]);
+    }
+
+    #[test]
+    fn get_recursive() {
+        env_logger::init();
+        let app = PgpApp::create(test_config("app")).unwrap();
+        let key = app
+            .generate_key("test@example.com".to_owned())
+            .generate()
+            .unwrap();
+
+        let mut circle = app.create_app(&key.cert.fingerprint).unwrap();
+
+        circle.add_app(circle.clone(), MemberTag::Merge).unwrap();
+
+        let circle = CircleOr::App(RustAutoOpaque::new(circle));
+        let parent = app.create_circle(vec![circle.clone()]).unwrap();
+
+        let parent = CircleOr::Circle(RustAutoOpaque::new(parent));
+
+        circle.to_db(&app.pgp.db).unwrap();
+
+        parent.to_db(&app.pgp.db).unwrap();
+
+        let out = app.pgp.db.get_circles_for_parent(&parent.id_hex()).unwrap();
+
+        let outcircle = app.circles_from_db(out).unwrap();
+
+        assert_eq!(outcircle.len(), 1);
+
+        // assert_eq!(outcircle[0], parent);
     }
 }

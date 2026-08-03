@@ -10,7 +10,7 @@ crate-type = ["cdylib", "staticlib", "lib"]
 [dependencies]
 anyhow = { version = "1.0.98", features = ["backtrace"] }
 fallible-iterator = "0.3.0"
-flutter_rust_bridge = { version = "=2.13.0-beta.4", features = ["uuid", "chrono"] }
+flutter_rust_bridge = { version = "=2.13.0-beta.5", features = ["uuid", "chrono"] }
 rusqlite = { version = "0.32.1", features = [
     "wasm32-wasi-vfs",
     "uuid",

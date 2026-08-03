@@ -19,7 +19,7 @@ use crate::{
         },
         pgp::{
             cert::PgpCertWithIds,
-            circles::{CircleEntry, CircleLike, CircleType},
+            circles::{CircleEntry, CircleHandle, CircleLike, CircleType},
             import::PgpImport,
             mut_store::MutStore,
         },
@@ -192,6 +192,14 @@ impl UserHandle {
     #[frb(sync)]
     pub fn from_hex(hex: &str) -> anyhow::Result<Self> {
         Ok(Self::KeyHandle(KeyHandle::from_str(hex)?, None))
+    }
+
+    #[frb(sync)]
+    pub fn handle(&self) -> CircleHandle {
+        CircleHandle {
+            id: self.name(),
+            circle_type: CircleType::User,
+        }
     }
 
     #[frb(sync)]

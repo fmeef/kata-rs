@@ -153,6 +153,7 @@ impl MaybeDeleted {
         }
     }
 
+    #[frb(sync)]
     fn id_hex(&self) -> String {
         match self {
             Self::Member(m) => m.id_hex(),

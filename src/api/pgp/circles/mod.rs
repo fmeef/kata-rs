@@ -432,6 +432,7 @@ impl CircleOr {
         }
     }
 
+    #[frb(sync)]
     pub fn id_hex(&self) -> String {
         match self {
             Self::App(a) => a.blocking_read().inner.owner.name(),

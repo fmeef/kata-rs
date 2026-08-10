@@ -1,10 +1,8 @@
 use anyhow::anyhow;
 use flutter_rust_bridge::frb;
-use serde::de::Error;
-use serde::{de::Visitor, ser::SerializeMap, Deserialize, Serialize};
-use std::{collections::BTreeMap, hash::Hash};
 
 use crate::api::db::store::CertDao;
+use crate::api::db::utils::HexConvert;
 use crate::api::pgp::PgpServiceTrait;
 use crate::api::{PgpApp, PgpAppTrait};
 use crate::{
@@ -22,6 +20,9 @@ use crate::{
     error::{InternalErr, Result},
     frb_generated::{RustAutoOpaque, StreamSink},
 };
+use serde::de::Error;
+use serde::{de::Visitor, ser::SerializeMap, Deserialize, Serialize};
+use std::{collections::BTreeMap, hash::Hash};
 
 pub mod app;
 pub mod circle;
@@ -31,6 +32,16 @@ pub mod circle;
 pub struct CircleHandle {
     pub id: String,
     pub circle_type: CircleType,
+}
+
+impl CircleHandle {
+    fn get_bytes(&self) -> Result<Vec<u8>> {
+        match self.circle_type {
+            CircleType::Circle => Ok(Vec::<u8>::from_hex(&self.id)?),
+            CircleType::App => Ok(UserHandle::from_hex(&self.id)?.into_bytes()),
+            CircleType::User => Ok(UserHandle::from_hex(&self.id)?.into_bytes()),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
@@ -275,6 +286,26 @@ impl CircleWithMembers {
             }
         }
     }
+
+    fn get_id_vec(&self, cache: &ParentCache) -> Result<Option<Vec<(String, Vec<u8>)>>> {
+        let parent = self.get_id_tuple()?;
+
+        let mut out = vec![parent];
+
+        let mut prev = None;
+        while let Some(np) = cache.get(out.last().unwrap()) {
+            if prev == Some(np) {
+                break;
+            }
+            prev = Some(np);
+            match np.get_parent_tuple()? {
+                Some(np) => out.push(np),
+                None => break,
+            }
+        }
+
+        Ok(Some(out))
+    }
 }
 
 impl PgpApp {
@@ -289,13 +320,18 @@ impl PgpApp {
             Some(parent) => out
                 .get(&(
                     parent.circle_type.get_type_str().to_owned(),
-                    UserHandle::from_hex(&parent.id)?.as_bytes().to_owned(),
+                    parent.get_bytes()?,
                 ))
-                .map(|v| v.get_parent_vec(&out).unwrap())
+                .map(|v| {
+                    let out = v.get_parent_vec(&out).unwrap();
+                    println!("get_parent_vec={out:?}");
+                    out
+                })
                 .flatten(),
             None => None,
         };
         println!("parent = {parent:?}");
+
         let res = self.get_children(&out, &members, parent)?;
 
         let res = res
@@ -334,7 +370,6 @@ impl PgpApp {
             let pv = item.get_parent_vec(members)?;
             // log::error!("get_parent_vec complete");
             if pv != parent {
-                println!("skipping {pv:?} {parent:?}");
                 continue;
             }
             let mut handle = item.get_id_userhandle()?;
@@ -717,11 +752,12 @@ impl PgpApp {
     }
 
     pub fn get_circle_by_id(&self, id: &CircleHandle) -> Result<Option<CircleOr>> {
+        println!("get_circle_by_id id={}", id.id);
         let v = self
             .get_db()
-            .get_circles_by_id(&id.id, &id.circle_type.get_type_str())?;
+            .get_circles_for_parent(&id.id, &id.circle_type.get_type_str())?;
 
-        println!("{v:?}");
+        println!("v={v:?}");
         println!("id: {id:?} {}", id.circle_type.get_type_str());
 
         let out = self.circles_from_db(v, true, Some(id.clone()))?;
@@ -906,11 +942,6 @@ mod test {
     #[test]
     fn get_parent() {
         let app = PgpApp::create(test_config("app")).unwrap();
-        let key = app
-            .generate_key("test@example.com".to_owned())
-            .generate()
-            .unwrap();
-
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
         let u = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854037").unwrap();
 
@@ -925,10 +956,9 @@ mod test {
             .create_circle(vec![CircleOr::User(RustAutoOpaque::new(v.clone()))])
             .unwrap();
         let singledecoy = CircleOr::Circle(RustAutoOpaque::new(singledecoy));
-        singledecoy.to_db(&app.pgp.db).unwrap();
 
         let parent = app
-            .create_circle(vec![circle.clone(), singledecoy])
+            .create_circle(vec![circle.clone(), singledecoy.clone()])
             .unwrap();
         let decoy = app
             .create_circle(vec![
@@ -940,7 +970,7 @@ mod test {
         let decoy = CircleOr::Circle(RustAutoOpaque::new(decoy));
 
         let parent = CircleOr::Circle(RustAutoOpaque::new(parent));
-
+        singledecoy.to_db(&app.pgp.db).unwrap();
         circle.to_db(&app.pgp.db).unwrap();
 
         childcircle.to_db(&app.pgp.db).unwrap();

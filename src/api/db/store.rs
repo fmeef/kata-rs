@@ -333,10 +333,13 @@ impl CircleWithMembers {
     }
 
     pub fn get_parent_tuple(&self) -> Result<Option<(String, Vec<u8>)>> {
-        match (self.parent_type.as_ref(), self.parent_id.as_ref()) {
+        let out = match (self.parent_type.as_ref(), self.parent_id.as_ref()) {
             (Some(ty), Some(parent)) => Ok(Some((ty.to_owned(), self.get_bytes(parent)?))),
             _ => Ok(None),
-        }
+        };
+
+        println!("get_parent_tuple={out:?}");
+        out
     }
 
     pub fn get_id(&self) -> Result<Vec<u8>> {

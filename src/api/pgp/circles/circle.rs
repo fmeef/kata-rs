@@ -171,7 +171,7 @@ impl CircleLike for Circle {
 
     #[frb(sync)]
     fn get_type(&self) -> super::CircleType {
-        CircleType::User
+        CircleType::Circle
     }
 
     fn insert(&self, db: &SqliteDb) -> anyhow::Result<()> {

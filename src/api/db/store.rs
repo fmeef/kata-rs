@@ -142,9 +142,9 @@ pub trait CertDao {
         "
         WITH RECURSIVE
                    reachable(node, node_type, path, type_path) AS (
-                   SELECT parent_id, parent_type, json_array(parent_id), json_array(parent_type)
-                   FROM circle_members WHERE (parent_id = :id
-                   AND parent_type = :circle_type) OR (member_id = :id AND member_type = :circle_type)
+                   SELECT id, circle_type, json_array(id), json_array(circle_type)
+                   FROM circles WHERE id = :id
+                   AND circle_type = :circle_type
                      UNION ALL
                      SELECT member_id, member_type, json_insert(reachable.path, '$[#]', member_id), json_insert(reachable.type_path, '$[#]', member_type)
                      FROM circle_members

@@ -701,7 +701,7 @@ impl PgpApp {
     pub fn get_circle_by_id(&self, id: &CircleHandle) -> Result<Option<CircleOr>> {
         let v = self
             .get_db()
-            .get_circle_by_id(&id.id, &id.circle_type.get_type_str())?;
+            .get_circles_by_id(&id.id, &id.circle_type.get_type_str())?;
 
         let mut out = self.circles_from_db(v)?;
         Ok(out.pop())

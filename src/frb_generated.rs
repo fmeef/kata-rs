@@ -5769,6 +5769,7 @@ fn wire__crate__api__PgpApp_circles_from_db_impl(
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
             >>::sse_decode(&mut deserializer);
             let api_members = <Vec<CircleWithMembers>>::sse_decode(&mut deserializer);
+            let api_users = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -5787,8 +5788,11 @@ fn wire__crate__api__PgpApp_circles_from_db_impl(
                             }
                         }
                         let api_that_guard = api_that_guard.unwrap();
-                        let output_ok =
-                            crate::api::PgpApp::circles_from_db(&*api_that_guard, api_members)?;
+                        let output_ok = crate::api::PgpApp::circles_from_db(
+                            &*api_that_guard,
+                            api_members,
+                            api_users,
+                        )?;
                         Ok(output_ok)
                     })(),
                 )

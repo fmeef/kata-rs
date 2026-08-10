@@ -143,8 +143,8 @@ pub trait CertDao {
         WITH RECURSIVE
                    reachable(node, node_type, path, type_path) AS (
                    SELECT parent_id, parent_type, json_array(parent_id), json_array(parent_type)
-                   FROM circle_members WHERE member_id = :id
-                   AND circle_type = :circle_type
+                   FROM circle_members WHERE (parent_id = :id
+                   AND parent_type = :circle_type) OR (member_id = :id AND member_type = :circle_type)
                      UNION ALL
                      SELECT member_id, member_type, json_insert(reachable.path, '$[#]', member_id), json_insert(reachable.type_path, '$[#]', member_type)
                      FROM circle_members
@@ -153,8 +153,8 @@ pub trait CertDao {
                      AND member_type NOT IN (SELECT value FROM json_each(reachable.type_path))
                    )
                     SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
-                   FROM circles LEFT JOIN circle_members ON member_id=id
-                   AND member_type=circle_type JOIN reachable on reachable.node = circles.id and reachable.node_type = circle_type
+                   FROM circles LEFT JOIN circle_members ON (member_id=id
+                   AND member_type=circle_type) JOIN reachable on reachable.node = circles.id and reachable.node_type = circle_type
 "
     )]
     fn get_circles_by_id(&self, id: &str, circle_type: &str) -> Result<Vec<CircleWithMembers>>;

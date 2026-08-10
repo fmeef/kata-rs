@@ -901,13 +901,20 @@ mod test {
 
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
         let u = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854037").unwrap();
-        let circle = app.create_circle(vec![]).unwrap();
+
+        let childcircle = app.create_circle(vec![]).unwrap();
+
+        let childcircle = CircleOr::Circle(RustAutoOpaque::new(childcircle));
+
+        let circle = app.create_circle(vec![childcircle.clone()]).unwrap();
         let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
 
         let singledecoy = app
             .create_circle(vec![CircleOr::User(RustAutoOpaque::new(v.clone()))])
             .unwrap();
         let singledecoy = CircleOr::Circle(RustAutoOpaque::new(singledecoy));
+        singledecoy.to_db(&app.pgp.db).unwrap();
+
         let parent = app
             .create_circle(vec![circle.clone(), singledecoy])
             .unwrap();
@@ -924,16 +931,18 @@ mod test {
 
         circle.to_db(&app.pgp.db).unwrap();
 
-        parent.to_db(&app.pgp.db).unwrap();
+        childcircle.to_db(&app.pgp.db).unwrap();
 
+        parent.to_db(&app.pgp.db).unwrap();
         decoy.to_db(&app.pgp.db).unwrap();
 
         let out = app
             .pgp
             .db
-            .get_circle_by_id(&circle.id_hex(), &circle.db_type())
+            .get_circles_by_id(&circle.id_hex(), &circle.db_type())
             .unwrap();
 
+        println!("{out:?}");
         let outcircle = app.circles_from_db(out, None).unwrap();
 
         assert_eq!(outcircle.len(), 1);

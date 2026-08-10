@@ -110,6 +110,9 @@ pub trait CertDao {
     )]
     fn get_circles_join(&self) -> Result<Vec<CircleWithMembers>>;
 
+    #[query("SELECT id FROM circles")]
+    fn get_all_circle_ids(&self) -> Result<Vec<OnlyId>>;
+
     #[query(
         "
         WITH RECURSIVE
@@ -134,6 +137,27 @@ pub trait CertDao {
         parent: &str,
         parent_type: &str,
     ) -> Result<Vec<CircleWithMembers>>;
+
+    #[query(
+        "
+        WITH RECURSIVE
+                   reachable(node, node_type, path, type_path) AS (
+                   SELECT parent_id, parent_type, json_array(parent_id), json_array(parent_type)
+                   FROM circle_members WHERE member_id = :id
+                   AND circle_type = :circle_type
+                     UNION ALL
+                     SELECT member_id, member_type, json_insert(reachable.path, '$[#]', member_id), json_insert(reachable.type_path, '$[#]', member_type)
+                     FROM circle_members
+                     JOIN reachable ON parent_id = reachable.node AND parent_type = node_type
+                     WHERE member_id NOT IN (SELECT value FROM json_each(reachable.path))
+                     AND member_type NOT IN (SELECT value FROM json_each(reachable.type_path))
+                   )
+                    SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
+                   FROM circles LEFT JOIN circle_members ON member_id=id
+                   AND member_type=circle_type JOIN reachable on reachable.node = circles.id and reachable.node_type = circle_type
+"
+    )]
+    fn get_circles_by_id(&self, id: &str, circle_type: &str) -> Result<Vec<CircleWithMembers>>;
 
     #[query(
         "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
@@ -185,6 +209,12 @@ pub(crate) struct DbMembers {
 pub struct OnlyFingerprint {
     #[primary]
     pub fingerprint: String,
+}
+
+#[derive(Clone, FromRow)]
+pub struct OnlyId {
+    #[primary]
+    pub id: String,
 }
 
 #[derive(Clone, FromRow)]

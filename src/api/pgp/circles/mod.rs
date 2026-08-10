@@ -27,6 +27,7 @@ pub mod app;
 pub mod circle;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[frb(non_opaque)]
 pub struct CircleHandle {
     pub id: String,
     pub circle_type: CircleType,
@@ -277,9 +278,13 @@ impl CircleWithMembers {
 }
 
 impl PgpApp {
-    pub fn circles_from_db(&self, members: Vec<CircleWithMembers>) -> Result<Vec<CircleOr>> {
+    pub fn circles_from_db(
+        &self,
+        members: Vec<CircleWithMembers>,
+        parent: Option<CircleHandle>,
+    ) -> Result<Vec<CircleOr>> {
         let out = CircleOr::get_parent_cache(&members)?;
-        let res = self.get_children(&out, &members)?;
+        let res = self.get_children(&out, &members, parent)?;
 
         let res = res
             .into_iter()
@@ -299,8 +304,16 @@ impl PgpApp {
         &self,
         members: &ParentCache,
         actual: &Vec<CircleWithMembers>,
+        parent: Option<CircleHandle>,
     ) -> Result<Vec<(Vec<u8>, TagOr)>> {
-        self.get_children_parent(members, actual, None)
+        let parent = match parent {
+            Some(v) => Some(vec![(
+                v.circle_type.get_type_str().to_owned(),
+                UserHandle::from_hex(&v.id)?.get_id(),
+            )]),
+            None => None,
+        };
+        self.get_children_parent(members, actual, parent)
     }
     fn get_children_parent(
         &self,
@@ -694,7 +707,26 @@ impl PgpApp {
             .get_db()
             .get_circles_for_parent(&parent.id, parent.circle_type.get_type_str())?;
 
-        self.circles_from_db(v)
+        self.circles_from_db(v, None)
+    }
+
+    pub fn get_circle_by_id(&self, id: &CircleHandle) -> Result<CircleOr> {
+        let v = self
+            .get_db()
+            .get_circle_by_id(&id.id, &id.circle_type.get_type_str())?;
+
+        let out = self.circles_from_db(v, Some(id.clone()))?;
+        todo!()
+        // out.into_iter().filter(|p| p.)
+    }
+
+    pub fn get_all_circle_ids(&self) -> Result<Vec<String>> {
+        Ok(self
+            .get_db()
+            .get_all_circle_ids()?
+            .into_iter()
+            .map(|v| v.id)
+            .collect())
     }
 }
 
@@ -723,7 +755,7 @@ mod test {
         user.to_db(&app.pgp.db).unwrap();
         let out = app.pgp.db.get_circle_by_id(&id, "user").unwrap();
         assert!(!out.is_empty());
-        let newcircle = app.circles_from_db(out).unwrap();
+        let newcircle = app.circles_from_db(out, None).unwrap();
         assert!(newcircle.is_empty());
         //assert_eq!(user, newcircle[0]);
     }
@@ -737,7 +769,7 @@ mod test {
         user.to_db(&app.pgp.db).unwrap();
         let out = app.pgp.db.get_circle_roots().unwrap();
         assert!(!out.is_empty());
-        let newcircle = app.circles_from_db(out).unwrap();
+        let newcircle = app.circles_from_db(out, None).unwrap();
         assert!(newcircle.is_empty());
         //assert_eq!(user, newcircle[0]);
     }
@@ -758,7 +790,7 @@ mod test {
 
         assert_eq!(out.len(), 2);
 
-        let newcircle = app.circles_from_db(out).unwrap();
+        let newcircle = app.circles_from_db(out, None).unwrap();
         assert!(!newcircle.is_empty());
         assert_eq!(newcircle.len(), 1);
         assert_eq!(circle, newcircle[0]);
@@ -787,7 +819,7 @@ mod test {
 
         assert_eq!(out.len(), 3);
 
-        let newcircle = app.circles_from_db(out).unwrap();
+        let newcircle = app.circles_from_db(out, None).unwrap();
         assert!(!newcircle.is_empty());
         assert_eq!(newcircle.len(), 1);
         assert_eq!(circle.get_members(), newcircle[0].get_members());
@@ -852,10 +884,60 @@ mod test {
             .get_circles_for_parent(&parent.id_hex(), &parent.db_type())
             .unwrap();
 
-        let outcircle = app.circles_from_db(out).unwrap();
+        let outcircle = app.circles_from_db(out, None).unwrap();
 
         assert_eq!(outcircle.len(), 1);
 
         // assert_eq!(outcircle[0], parent);
+    }
+
+    #[test]
+    fn get_parent() {
+        let app = PgpApp::create(test_config("app")).unwrap();
+        let key = app
+            .generate_key("test@example.com".to_owned())
+            .generate()
+            .unwrap();
+
+        let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
+        let u = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854037").unwrap();
+        let circle = app.create_circle(vec![]).unwrap();
+        let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
+
+        let singledecoy = app
+            .create_circle(vec![CircleOr::User(RustAutoOpaque::new(v.clone()))])
+            .unwrap();
+        let singledecoy = CircleOr::Circle(RustAutoOpaque::new(singledecoy));
+        let parent = app
+            .create_circle(vec![circle.clone(), singledecoy])
+            .unwrap();
+        let decoy = app
+            .create_circle(vec![
+                CircleOr::User(RustAutoOpaque::new(v)),
+                CircleOr::User(RustAutoOpaque::new(u)),
+            ])
+            .unwrap();
+
+        let decoy = CircleOr::Circle(RustAutoOpaque::new(decoy));
+
+        let parent = CircleOr::Circle(RustAutoOpaque::new(parent));
+
+        circle.to_db(&app.pgp.db).unwrap();
+
+        parent.to_db(&app.pgp.db).unwrap();
+
+        decoy.to_db(&app.pgp.db).unwrap();
+
+        let out = app
+            .pgp
+            .db
+            .get_circle_by_id(&circle.id_hex(), &circle.db_type())
+            .unwrap();
+
+        let outcircle = app.circles_from_db(out, None).unwrap();
+
+        assert_eq!(outcircle.len(), 1);
+
+        assert_eq!(outcircle[0].id_hex(), circle.id_hex());
     }
 }

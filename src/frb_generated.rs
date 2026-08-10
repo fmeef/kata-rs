@@ -5769,8 +5769,6 @@ fn wire__crate__api__PgpApp_circles_from_db_impl(
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
             >>::sse_decode(&mut deserializer);
             let api_members = <Vec<CircleWithMembers>>::sse_decode(&mut deserializer);
-            let api_parent =
-                <Option<crate::api::pgp::circles::CircleHandle>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -5789,11 +5787,8 @@ fn wire__crate__api__PgpApp_circles_from_db_impl(
                             }
                         }
                         let api_that_guard = api_that_guard.unwrap();
-                        let output_ok = crate::api::PgpApp::circles_from_db(
-                            &*api_that_guard,
-                            api_members,
-                            api_parent,
-                        )?;
+                        let output_ok =
+                            crate::api::PgpApp::circles_from_db(&*api_that_guard, api_members)?;
                         Ok(output_ok)
                     })(),
                 )
@@ -17267,19 +17262,6 @@ impl SseDecode for Option<UserHandle> {
     }
 }
 
-impl SseDecode for Option<crate::api::pgp::circles::CircleHandle> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        if (<bool>::sse_decode(deserializer)) {
-            return Some(<crate::api::pgp::circles::CircleHandle>::sse_decode(
-                deserializer,
-            ));
-        } else {
-            return None;
-        }
-    }
-}
-
 impl SseDecode for Option<crate::api::pgp::circles::CircleOr> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -20065,16 +20047,6 @@ impl SseEncode for Option<UserHandle> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <UserHandle>::sse_encode(value, serializer);
-        }
-    }
-}
-
-impl SseEncode for Option<crate::api::pgp::circles::CircleHandle> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <bool>::sse_encode(self.is_some(), serializer);
-        if let Some(value) = self {
-            <crate::api::pgp::circles::CircleHandle>::sse_encode(value, serializer);
         }
     }
 }

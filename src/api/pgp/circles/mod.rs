@@ -495,6 +495,30 @@ impl CircleOr {
         Self::User(RustAutoOpaque::new(UserHandle::RawBytes(vec![])))
     }
 
+    pub fn add(&self, circle: &CircleOr, tag: MemberTag, db: &SqliteDb) -> anyhow::Result<()> {
+        match self {
+            CircleOr::Circle(c) => {
+                let mut inner = c.blocking_write();
+                inner.inner.members.insert(circle.get_id(), circle.clone());
+                inner.update_digest();
+                inner.to_db(db)?;
+            }
+            CircleOr::App(a) => {
+                let mut inner = a.blocking_write();
+
+                match circle {
+                    CircleOr::Circle(c) => inner.add_circle(c.blocking_read().clone(), tag)?,
+                    CircleOr::App(a) => inner.add_app(a.blocking_read().clone(), tag)?,
+                    CircleOr::User(u) => inner.add_user(u.blocking_read().clone(), tag)?,
+                };
+                circle.to_db(db)?;
+            }
+            CircleOr::User(_) => (),
+        }
+
+        Ok(())
+    }
+
     #[frb(sync)]
     pub fn handle(&self) -> CircleHandle {
         CircleHandle {

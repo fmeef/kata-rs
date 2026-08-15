@@ -209,7 +209,7 @@ pub struct CircleApp {
     #[serde(flatten)]
     pub(crate) inner: CircleAppInner,
     #[serde(deserialize_with = "none", skip)]
-    pgp: Option<PgpApp>,
+    pub(crate) pgp: Option<PgpApp>,
 }
 
 impl PartialEq for CircleApp {

@@ -506,14 +506,14 @@ impl CircleOr {
             }
             CircleOr::App(a) => {
                 let mut inner = a.blocking_write();
+                inner.set_pgp(db.clone());
 
                 match circle {
                     CircleOr::Circle(c) => inner.add_circle(c.blocking_read().clone(), tag)?,
                     CircleOr::App(a) => inner.add_app(a.blocking_read().clone(), tag)?,
                     CircleOr::User(u) => inner.add_user(u.blocking_read().clone(), tag)?,
                 };
-                inner.set_pgp(db.clone());
-                circle.to_db(&db.get_db())?;
+                inner.to_db(&db.get_db())?;
             }
             CircleOr::User(_) => (),
         }

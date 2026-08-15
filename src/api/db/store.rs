@@ -124,8 +124,8 @@ pub trait CertDao {
                      SELECT member_id, member_type, json_insert(reachable.path, '$[#]', member_id), json_insert(reachable.type_path, '$[#]', member_type)
                      FROM circle_members
                      JOIN reachable ON parent_id = reachable.node AND parent_type = node_type
-                     WHERE member_id NOT IN (SELECT value FROM json_each(reachable.path))
-                     AND member_type NOT IN (SELECT value FROM json_each(reachable.type_path))
+                     WHERE NOT (member_id IN (SELECT value FROM json_each(reachable.path))
+                     AND member_type  IN (SELECT value FROM json_each(reachable.type_path)))
                    )
                     SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
                    FROM circles LEFT JOIN circle_members ON member_id=id
@@ -149,12 +149,12 @@ pub trait CertDao {
                      SELECT member_id, member_type, json_insert(reachable.path, '$[#]', member_id), json_insert(reachable.type_path, '$[#]', member_type)
                      FROM circle_members
                      JOIN reachable ON parent_id = reachable.node AND parent_type = node_type
-                     WHERE member_id NOT IN (SELECT value FROM json_each(reachable.path))
-                     AND member_type NOT IN (SELECT value FROM json_each(reachable.type_path))
+                     WHERE NOT (member_id IN (SELECT value FROM json_each(reachable.path))
+                     AND member_type IN (SELECT value FROM json_each(reachable.type_path)))
                    )
                     SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
-                   FROM circles LEFT JOIN circle_members ON (member_id=id
-                   AND member_type=circle_type) JOIN reachable on reachable.node = circles.id and reachable.node_type = circle_type
+                   FROM circles JOIN reachable on reachable.node = circles.id and reachable.node_type = circle_type LEFT JOIN circle_members ON (member_id=id
+                   AND member_type=circle_type)
 "
     )]
     fn get_circles_by_id(&self, id: &str, circle_type: &str) -> Result<Vec<CircleWithMembers>>;
@@ -281,8 +281,8 @@ pub struct CircleWithMembers {
 impl CircleWithMembers {
     fn get_bytes(&self, value: &str) -> Result<Vec<u8>> {
         match self.circle_type.as_str() {
-            "circle" => Ok(Vec::<u8>::from_hex(value)?),
-            "app" => Ok(UserHandle::from_hex(value)?.into_bytes()),
+            "circle" => Ok(hex::decode(value)?),
+            "app" => Ok(hex::decode(value)?),
             "user" => Ok(UserHandle::from_hex(value)?.into_bytes()),
             v => Err(InternalErr::InvalidCircleType(v.to_owned())),
         }
@@ -328,17 +328,23 @@ impl CircleWithMembers {
         }
     }
 
-    pub fn get_id_tuple(&self) -> Result<(String, Vec<u8>)> {
-        Ok((self.circle_type.to_owned(), self.get_id()?))
+    pub fn get_id_tuple(&self) -> Result<(String, UserHandle)> {
+        Ok((
+            self.circle_type.to_owned(),
+            UserHandle::RawBytes(self.get_id()?),
+        ))
     }
 
-    pub fn get_parent_tuple(&self) -> Result<Option<(String, Vec<u8>)>> {
+    pub fn get_parent_tuple(&self) -> Result<Option<(String, UserHandle)>> {
         let out = match (self.parent_type.as_ref(), self.parent_id.as_ref()) {
-            (Some(ty), Some(parent)) => Ok(Some((ty.to_owned(), self.get_bytes(parent)?))),
+            (Some(ty), Some(parent)) => Ok(Some((
+                ty.to_owned(),
+                UserHandle::RawBytes(self.get_bytes(parent)?),
+            ))),
             _ => Ok(None),
         };
 
-        println!("get_parent_tuple={out:?}");
+        // println!("get_parent_tuple={out:?}");
         out
     }
 

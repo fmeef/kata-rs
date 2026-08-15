@@ -308,7 +308,11 @@ impl Circle {
         self.inner.id = UserHandle::RawBytes(digest.finalize().to_vec());
     }
 
-    pub(crate) fn new_mut(author: Option<UserHandle>, sig: Option<Vec<u8>>) -> Result<Self> {
+    pub(crate) fn new_mut(
+        id: Vec<u8>,
+        author: Option<UserHandle>,
+        sig: Option<Vec<u8>>,
+    ) -> Result<Self> {
         let author = match (author, sig) {
             (Some(author), Some(sig)) => Some(CircleAuthor { sig, author }),
             _ => None,
@@ -317,7 +321,7 @@ impl Circle {
             inner: CircleInner {
                 author,
                 members: BTreeMap::new(),
-                id: UserHandle::RawBytes(Vec::new()),
+                id: UserHandle::RawBytes(id),
             },
             app: None,
         };

@@ -261,10 +261,10 @@ struct TagOr {
     tag: Option<MemberTag>,
 }
 
-pub type ParentCache<'a> = BTreeMap<(String, Vec<u8>), &'a CircleWithMembers>;
+pub type ParentCache<'a> = BTreeMap<(String, UserHandle), &'a CircleWithMembers>;
 
 impl CircleWithMembers {
-    fn get_parent_vec(&self, cache: &ParentCache) -> Result<Option<Vec<(String, Vec<u8>)>>> {
+    fn get_parent_vec(&self, cache: &ParentCache) -> Result<Option<Vec<(String, UserHandle)>>> {
         match self.get_parent_tuple()? {
             None => return Ok(None),
             Some(parent) => {
@@ -287,9 +287,8 @@ impl CircleWithMembers {
         }
     }
 
-    fn get_id_vec(&self, cache: &ParentCache) -> Result<Option<Vec<(String, Vec<u8>)>>> {
+    fn get_id_vec(&self, cache: &ParentCache) -> Result<Option<Vec<(String, UserHandle)>>> {
         let parent = self.get_id_tuple()?;
-
         let mut out = vec![parent];
 
         let mut prev = None;
@@ -320,19 +319,19 @@ impl PgpApp {
             Some(parent) => out
                 .get(&(
                     parent.circle_type.get_type_str().to_owned(),
-                    parent.get_bytes()?,
+                    UserHandle::RawBytes(parent.get_bytes()?),
                 ))
                 .map(|v| {
-                    let out = v.get_parent_vec(&out).unwrap();
+                    let v = v.get_parent_vec(&out).unwrap();
                     println!("get_parent_vec={out:?}");
-                    out
+                    v
                 })
                 .flatten(),
             None => None,
         };
         println!("parent = {parent:?}");
 
-        let res = self.get_children(&out, &members, parent)?;
+        let res = self.get_children(&out, &members, parent, &None)?;
 
         let res = res
             .into_iter()
@@ -352,15 +351,17 @@ impl PgpApp {
         &self,
         members: &ParentCache,
         actual: &Vec<CircleWithMembers>,
-        parent: Option<Vec<(String, Vec<u8>)>>,
+        parent: Option<Vec<(String, UserHandle)>>,
+        start: &Option<CircleHandle>,
     ) -> Result<Vec<(Vec<u8>, TagOr)>> {
-        self.get_children_parent(members, actual, parent)
+        self.get_children_parent(members, actual, parent, start)
     }
     fn get_children_parent(
         &self,
         members: &ParentCache,
         actual: &Vec<CircleWithMembers>,
-        parent: Option<Vec<(String, Vec<u8>)>>,
+        parent: Option<Vec<(String, UserHandle)>>,
+        start: &Option<CircleHandle>,
     ) -> Result<Vec<(Vec<u8>, TagOr)>> {
         // log::error!("get_children_parent {parent:?}");
         let mut out = Vec::new();
@@ -368,10 +369,17 @@ impl PgpApp {
         for item in actual {
             // log::error!("for item in actual {item:?}");
             let pv = item.get_parent_vec(members)?;
-            // log::error!("get_parent_vec complete");
+            // log::error!("get_parent_vec {}", pv.is_none());
             if pv != parent {
+                // println!("skipping pv={pv:?} parent={parent:?}");
                 continue;
             }
+            println!(
+                "not skipping parent={parent:?} child={} type={}",
+                UserHandle::RawBytes(item.get_id()?.to_owned()).name(),
+                item.circle_type
+            );
+
             let mut handle = item.get_id_userhandle()?;
             // log::error!("attempting get key");
             match self.get_key_from_fingerprint(&handle) {
@@ -395,7 +403,7 @@ impl PgpApp {
                     ));
                 }
                 "circle" => {
-                    let mut circle = Circle::new_mut(item.get_author()?, item.sig.clone())?;
+                    let mut circle = Circle::new_mut(item.get_id()?, item.get_author()?, None)?;
 
                     let n = match parent {
                         Some(ref parent) => [&parent[..], &[item.get_id_tuple()?]].concat(),
@@ -403,13 +411,20 @@ impl PgpApp {
                     };
 
                     circle.inner.members = self
-                        .get_children_parent(members, actual, Some(n))?
+                        .get_children_parent(members, actual, Some(n), start)?
                         .into_iter()
                         .flat_map(|(v, u)| u.content.into_option().map(|u| (v, u)))
                         .collect();
 
-                    circle.update_digest();
+                    // circle.update_digest();
+                    println!(
+                        "pushing circle id={} actual={} members={}",
+                        UserHandle::RawBytes(circle.get_id().to_owned()).name(),
+                        UserHandle::RawBytes(item.get_id()?.to_owned()).name(),
+                        circle.get_members().len()
+                    );
                     let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
+
                     out.push((
                         circle.get_id().to_owned(),
                         TagOr {
@@ -427,7 +442,7 @@ impl PgpApp {
                     };
 
                     app.inner.children = self
-                        .get_children_parent(members, actual, Some(n))?
+                        .get_children_parent(members, actual, Some(n), start)?
                         .into_iter()
                         .flat_map(|(v, u)| {
                             u.tag.map(|tag| {
@@ -507,7 +522,13 @@ impl CircleOr {
         let mut out = BTreeMap::new();
 
         for member in members {
-            out.insert((member.circle_type.clone(), member.get_id()?), member);
+            out.insert(
+                (
+                    member.circle_type.clone(),
+                    UserHandle::RawBytes(member.get_id()?),
+                ),
+                member,
+            );
         }
 
         Ok(out)
@@ -755,12 +776,12 @@ impl PgpApp {
         println!("get_circle_by_id id={}", id.id);
         let v = self
             .get_db()
-            .get_circles_for_parent(&id.id, &id.circle_type.get_type_str())?;
+            .get_circles_by_id(&id.id, &id.circle_type.get_type_str())?;
 
         println!("v={v:?}");
         println!("id: {id:?} {}", id.circle_type.get_type_str());
 
-        let out = self.circles_from_db(v, true, Some(id.clone()))?;
+        let out = self.circles_from_db(v, false, Some(id.clone()))?;
         println!("out={out:?}");
         Ok(out.into_iter().find(|p| {
             println!("checking {:?}", p.id_hex());
@@ -901,7 +922,10 @@ mod test {
         let parents = child.get_parent_vec(&cache).unwrap().unwrap();
 
         assert_eq!(parents.len(), 1);
-        assert_eq!(parents, vec![("app".to_owned(), circle.get_id())]);
+        assert_eq!(
+            parents,
+            vec![("app".to_owned(), UserHandle::RawBytes(circle.get_id()))]
+        );
     }
 
     #[test]
@@ -970,6 +994,7 @@ mod test {
         let decoy = CircleOr::Circle(RustAutoOpaque::new(decoy));
 
         let parent = CircleOr::Circle(RustAutoOpaque::new(parent));
+
         singledecoy.to_db(&app.pgp.db).unwrap();
         circle.to_db(&app.pgp.db).unwrap();
 

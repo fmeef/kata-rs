@@ -51,10 +51,18 @@ pub trait Verifier {
 }
 
 #[frb(opaque)]
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Clone, PartialEq, PartialOrd)]
 pub enum UserHandle {
     KeyHandle(KeyHandle, Option<String>),
     RawBytes(Vec<u8>),
+}
+
+impl std::fmt::Debug for UserHandle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("UserHandle(")?;
+        f.write_str(&self.name())?;
+        f.write_str(")")
+    }
 }
 
 impl Hash for UserHandle {

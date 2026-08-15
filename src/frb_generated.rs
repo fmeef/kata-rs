@@ -17345,11 +17345,11 @@ impl SseDecode for Option<crate::api::ser::QrCodeContent> {
     }
 }
 
-impl SseDecode for Option<(String, Vec<u8>)> {
+impl SseDecode for Option<(String, UserHandle)> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
-            return Some(<(String, Vec<u8>)>::sse_decode(deserializer));
+            return Some(<(String, UserHandle)>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -17457,6 +17457,15 @@ impl SseDecode for (Option<String>, Vec<crate::api::db::Certification>) {
     }
 }
 
+impl SseDecode for (String, UserHandle) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_field0 = <String>::sse_decode(deserializer);
+        let mut var_field1 = <UserHandle>::sse_decode(deserializer);
+        return (var_field0, var_field1);
+    }
+}
+
 impl SseDecode for (String, UserID) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -17471,15 +17480,6 @@ impl SseDecode for (String, crate::api::pgp::wot::path::GraphVertex) {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_field0 = <String>::sse_decode(deserializer);
         let mut var_field1 = <crate::api::pgp::wot::path::GraphVertex>::sse_decode(deserializer);
-        return (var_field0, var_field1);
-    }
-}
-
-impl SseDecode for (String, Vec<u8>) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_field0 = <String>::sse_decode(deserializer);
-        let mut var_field1 = <Vec<u8>>::sse_decode(deserializer);
         return (var_field0, var_field1);
     }
 }
@@ -20131,12 +20131,12 @@ impl SseEncode for Option<crate::api::ser::QrCodeContent> {
     }
 }
 
-impl SseEncode for Option<(String, Vec<u8>)> {
+impl SseEncode for Option<(String, UserHandle)> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
-            <(String, Vec<u8>)>::sse_encode(value, serializer);
+            <(String, UserHandle)>::sse_encode(value, serializer);
         }
     }
 }
@@ -20225,6 +20225,14 @@ impl SseEncode for (Option<String>, Vec<crate::api::db::Certification>) {
     }
 }
 
+impl SseEncode for (String, UserHandle) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.0, serializer);
+        <UserHandle>::sse_encode(self.1, serializer);
+    }
+}
+
 impl SseEncode for (String, UserID) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -20238,14 +20246,6 @@ impl SseEncode for (String, crate::api::pgp::wot::path::GraphVertex) {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.0, serializer);
         <crate::api::pgp::wot::path::GraphVertex>::sse_encode(self.1, serializer);
-    }
-}
-
-impl SseEncode for (String, Vec<u8>) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <String>::sse_encode(self.0, serializer);
-        <Vec<u8>>::sse_encode(self.1, serializer);
     }
 }
 

@@ -289,6 +289,13 @@ impl CircleLike for CircleApp {
             })
             .collect()
     }
+
+    fn validate(&self) -> anyhow::Result<bool> {
+        match self.pgp {
+            None => Ok(false),
+            Some(ref pgp) => pgp.verify_app(self),
+        }
+    }
 }
 
 impl CircleApp {

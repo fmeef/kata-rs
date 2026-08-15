@@ -194,6 +194,10 @@ impl CircleLike for UserHandle {
             RustAutoOpaque::new(self.clone()),
         ))]
     }
+
+    fn validate(&self) -> anyhow::Result<bool> {
+        Ok(true)
+    }
 }
 
 impl UserHandle {

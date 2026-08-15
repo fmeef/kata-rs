@@ -247,6 +247,14 @@ impl CircleLike for CircleOr {
             Self::User(u) => u.blocking_read().get_members(),
         }
     }
+
+    fn validate(&self) -> anyhow::Result<bool> {
+        match self {
+            Self::App(a) => a.blocking_read().validate(),
+            Self::Circle(c) => c.blocking_read().validate(),
+            Self::User(u) => u.blocking_read().validate(),
+        }
+    }
 }
 
 impl Hash for CircleOr {
@@ -423,6 +431,8 @@ impl PgpApp {
                         UserHandle::RawBytes(item.get_id()?.to_owned()).name(),
                         circle.get_members().len()
                     );
+
+                    circle.validate()?;
                     let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
 
                     out.push((
@@ -456,7 +466,7 @@ impl PgpApp {
                             })
                         })
                         .collect();
-
+                    app.validate()?;
                     let id = app.get_id().to_owned();
                     let app = if item.deleted.unwrap_or_default() {
                         println!("app with members {:?}", app.inner.children);
@@ -593,6 +603,7 @@ pub trait CircleLike {
     #[frb(sync)]
     fn get_type(&self) -> CircleType;
     fn insert(&self, db: &SqliteDb) -> anyhow::Result<()>;
+    fn validate(&self) -> anyhow::Result<bool>;
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
@@ -655,6 +666,10 @@ where
     fn get_members(&self) -> Vec<CircleEntry> {
         (*self).get_members()
     }
+
+    fn validate(&self) -> anyhow::Result<bool> {
+        (*self).validate()
+    }
 }
 
 impl<'a> CircleLike for GenericCircle<'a> {
@@ -693,6 +708,10 @@ impl<'a> CircleLike for GenericCircle<'a> {
     #[frb(sync)]
     fn get_members(&self) -> Vec<CircleEntry> {
         self.0.get_members()
+    }
+
+    fn validate(&self) -> anyhow::Result<bool> {
+        self.0.validate()
     }
 }
 

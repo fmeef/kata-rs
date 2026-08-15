@@ -281,8 +281,8 @@ pub struct CircleWithMembers {
 impl CircleWithMembers {
     fn get_bytes(&self, value: &str) -> Result<Vec<u8>> {
         match self.circle_type.as_str() {
-            "circle" => Ok(hex::decode(value)?),
-            "app" => Ok(hex::decode(value)?),
+            "circle" => Ok(Vec::<u8>::from_hex(value)?),
+            "app" => Ok(UserHandle::from_hex(value)?.into_bytes()),
             "user" => Ok(UserHandle::from_hex(value)?.into_bytes()),
             v => Err(InternalErr::InvalidCircleType(v.to_owned())),
         }

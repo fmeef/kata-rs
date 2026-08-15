@@ -18,7 +18,7 @@ use sequoia_openpgp::{
 };
 use sequoia_wot::store::StoreError;
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
+use sha2::{digest, Digest, Sha256};
 use std::{
     collections::BTreeMap,
     io::{Read, Write},
@@ -186,6 +186,11 @@ impl CircleLike for Circle {
             .map(|v| CircleEntry::from_circle_or(v.clone()))
             .collect()
     }
+
+    fn validate(&self) -> anyhow::Result<bool> {
+        let check = self.get_digest();
+        Ok(check == self.inner.id.as_bytes())
+    }
 }
 
 impl Circle {
@@ -298,14 +303,20 @@ impl Circle {
         Ok(())
     }
 
-    pub fn update_digest(&mut self) {
+    pub fn get_digest(&self) -> Vec<u8> {
         let mut digest = Sha256::new();
 
         for member in self.inner.members.values() {
             digest.update(&member.as_bytes());
         }
 
-        self.inner.id = UserHandle::RawBytes(digest.finalize().to_vec());
+        digest.finalize().to_vec()
+    }
+
+    pub fn update_digest(&mut self) {
+        let digest = self.get_digest();
+
+        self.inner.id = UserHandle::RawBytes(digest);
     }
 
     pub(crate) fn new_mut(

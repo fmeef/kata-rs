@@ -13974,7 +13974,7 @@ fn wire__crate__api__pgp__circles__circle_or_add_impl(
             let api_circle = <crate::api::pgp::circles::CircleOr>::sse_decode(&mut deserializer);
             let api_tag = <crate::api::pgp::circles::app::MemberTag>::sse_decode(&mut deserializer);
             let api_db = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PgpApp>,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {

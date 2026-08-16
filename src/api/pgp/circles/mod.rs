@@ -879,6 +879,7 @@ mod test {
 
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
         let user = CircleOr::User(RustAutoOpaque::new(v));
+        user.to_db(&app.pgp.db).unwrap();
         let circle = app.create_circle(vec![user]).unwrap();
         let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
         circle.to_db(&app.pgp.db).unwrap();
@@ -998,7 +999,10 @@ mod test {
         let app = PgpApp::create(test_config("app")).unwrap();
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
         let u = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854037").unwrap();
-
+        let v = CircleOr::User(RustAutoOpaque::new(v.clone()));
+        let u = CircleOr::User(RustAutoOpaque::new(u.clone()));
+        u.to_db(&app.pgp.db).unwrap();
+        v.to_db(&app.pgp.db).unwrap();
         let childcircle = app.create_circle(vec![]).unwrap();
 
         let childcircle = CircleOr::Circle(RustAutoOpaque::new(childcircle));
@@ -1006,20 +1010,13 @@ mod test {
         let circle = app.create_circle(vec![childcircle.clone()]).unwrap();
         let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
 
-        let singledecoy = app
-            .create_circle(vec![CircleOr::User(RustAutoOpaque::new(v.clone()))])
-            .unwrap();
+        let singledecoy = app.create_circle(vec![]).unwrap();
         let singledecoy = CircleOr::Circle(RustAutoOpaque::new(singledecoy));
 
         let parent = app
             .create_circle(vec![circle.clone(), singledecoy.clone()])
             .unwrap();
-        let decoy = app
-            .create_circle(vec![
-                CircleOr::User(RustAutoOpaque::new(v)),
-                CircleOr::User(RustAutoOpaque::new(u)),
-            ])
-            .unwrap();
+        let decoy = app.create_circle(vec![v, u]).unwrap();
 
         let decoy = CircleOr::Circle(RustAutoOpaque::new(decoy));
 
@@ -1068,9 +1065,9 @@ mod test {
         let parent = app.create_circle(vec![circle.clone()]).unwrap();
 
         let parent = CircleOr::Circle(RustAutoOpaque::new(parent));
+        dummy.to_db(&app.pgp.db).unwrap();
         circle.to_db(&app.pgp.db).unwrap();
         parent.to_db(&app.pgp.db).unwrap();
-        dummy.to_db(&app.pgp.db).unwrap();
 
         println!("{:?}", parent.handle());
         for (name, circle) in [("circle", &circle), ("parent", &parent)] {

@@ -106,9 +106,23 @@ pub trait CertDao {
 
     #[query(
         "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
-        FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type"
+        FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type "
     )]
     fn get_circles_join(&self) -> Result<Vec<CircleWithMembers>>;
+
+    #[query(
+        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
+        FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type
+        WHERE parent_id = :parent AND parent_type = :parent_type
+        AND member_id = :child AND member_type = :child_type"
+    )]
+    fn get_circle_with_members(
+        &self,
+        parent: &str,
+        parent_type: &str,
+        child: &str,
+        child_type: &str,
+    ) -> Result<Vec<CircleWithMembers>>;
 
     #[query("SELECT id FROM circles")]
     fn get_all_circle_ids(&self) -> Result<Vec<OnlyId>>;

@@ -4,7 +4,7 @@ use crate::{
             connection::{Crud, OnConflict},
             store::{CircleData, CircleMembersData},
         },
-        pgp::circles::CircleType,
+        pgp::circles::{CircleHandle, CircleType},
         SqliteDb,
     },
     error::Result,
@@ -19,10 +19,7 @@ use sequoia_openpgp::{
 use sequoia_wot::store::StoreError;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::{
-    collections::BTreeMap,
-    io::{Read, Write},
-};
+use std::{collections::BTreeSet, io::Write};
 
 use crate::{
     api::{
@@ -33,7 +30,6 @@ use crate::{
         },
         PgpApp,
     },
-    error::InternalErr,
     frb_generated::StreamSink,
 };
 
@@ -101,7 +97,7 @@ pub struct CircleAuthor {
 #[frb(opaque)]
 pub(crate) struct CircleInner {
     pub(crate) author: Option<CircleAuthor>,
-    pub(crate) members: BTreeMap<Vec<u8>, CircleOr>,
+    pub(crate) members: BTreeSet<CircleHandle>,
     pub(crate) id: UserHandle,
 }
 
@@ -144,17 +140,24 @@ impl CircleLike for Circle {
     }
 
     fn iter_members(&self, sink: StreamSink<CircleEntry>) {
-        for member in self.inner.members.values() {
-            sink.add(CircleEntry::from_circle_or(member.clone()))
-                .unwrap();
+        for member in self.inner.members.iter() {
+            if let Ok(Some(circle)) = self.app.get_circle_by_id(&member) {
+                sink.add(CircleEntry::from_circle_or(circle)).unwrap();
+            }
         }
     }
+
     #[frb(sync)]
-    fn get_member(&self, id: UserHandle) -> Option<CircleEntry> {
-        self.inner
-            .members
-            .get(id.as_bytes())
-            .map(|v| CircleEntry::from_circle_or(v.clone()))
+    fn get_member(&self, id: CircleHandle) -> anyhow::Result<Option<CircleEntry>> {
+        let res = self.inner.members.get(&id);
+
+        match res {
+            Some(res) => Ok(self
+                .app
+                .get_circle_by_id(&res)?
+                .map(|v| CircleEntry::from_circle_or(v))),
+            None => Ok(None),
+        }
     }
 
     fn verify(&self) -> anyhow::Result<bool> {
@@ -175,20 +178,29 @@ impl CircleLike for Circle {
     fn get_members(&self) -> Vec<CircleEntry> {
         self.inner
             .members
-            .values()
-            .map(|v| CircleEntry::from_circle_or(v.clone()))
+            .iter()
+            .flat_map(|v| self.app.get_circle_by_id(v))
+            .flat_map(|v| v.into_iter())
+            .map(|v| CircleEntry::from_circle_or(v))
             .collect()
     }
 
     fn validate(&self) -> anyhow::Result<bool> {
-        let check = self.get_digest();
+        let check = self.get_digest()?;
         Ok(check == self.inner.id.as_bytes())
+    }
+
+    fn from_db(db: Vec<crate::api::db::store::CircleWithMembers>) -> Self
+    where
+        Self: Sized,
+    {
+        todo!()
     }
 }
 
 impl Circle {
-    pub fn is_member(&self, user: &UserHandle) -> bool {
-        self.inner.members.contains_key(user.as_bytes())
+    pub fn is_member(&self, user: &CircleHandle) -> bool {
+        self.inner.members.contains(user)
     }
 
     // #[frb(sync)]
@@ -254,10 +266,10 @@ impl CircleOr {
         CircleOr::User(RustAutoOpaque::new(user_handle))
     }
 
-    pub fn is_member(&self, user: &UserHandle) -> bool {
+    pub fn is_member(&self, user: &CircleHandle) -> bool {
         match self {
             Self::Circle(c) => c.blocking_read().is_member(user),
-            Self::User(u) => *u.blocking_read() == *user,
+            Self::User(u) => *u.blocking_read().name() == user.id,
             Self::App(u) => u.blocking_read().is_member(user),
         }
     }
@@ -274,15 +286,14 @@ impl Circle {
 
         entity.insert_on_conflict_custom(db, OnConflict::Update, vec!["id", "circle_type"])?;
 
-        for m in self.inner.members.values() {
-            m.to_db(db)?;
+        for CircleHandle { id, circle_type } in self.inner.members.iter() {
             let entity = CircleMembersData {
                 circle_member_id: None,
-                member_id: m.id_hex(),
+                member_id: id.to_owned(),
                 parent_id: self.inner.id.name(),
                 deleted: Some(false),
                 parent_type: "circle".to_owned(),
-                member_type: m.db_type(),
+                member_type: circle_type.get_type_str().to_owned(),
                 tag: None,
             };
 
@@ -296,20 +307,22 @@ impl Circle {
         Ok(())
     }
 
-    pub fn get_digest(&self) -> Vec<u8> {
+    pub fn get_digest(&self) -> anyhow::Result<Vec<u8>> {
         let mut digest = Sha256::new();
 
-        for member in self.inner.members.values() {
-            digest.update(&member.as_bytes());
+        for member in self.inner.members.iter() {
+            digest.update(&member.get_bin()?);
         }
 
-        digest.finalize().to_vec()
+        Ok(digest.finalize().to_vec())
     }
 
-    pub fn update_digest(&mut self) {
-        let digest = self.get_digest();
+    pub fn update_digest(&mut self) -> anyhow::Result<()> {
+        let digest = self.get_digest()?;
 
         self.inner.id = UserHandle::RawBytes(digest);
+
+        Ok(())
     }
 
     pub(crate) fn new_mut(
@@ -325,7 +338,7 @@ impl Circle {
         let res = Self {
             inner: CircleInner {
                 author,
-                members: BTreeMap::new(),
+                members: BTreeSet::new(),
                 id: UserHandle::RawBytes(id),
             },
             app,
@@ -333,18 +346,18 @@ impl Circle {
         Ok(res)
     }
 
-    fn members_reader<'a>(&'a self) -> Box<dyn std::io::Read + Send + Sync + 'a> {
-        let v: &[u8] = &[];
-        for (i, (_, member)) in self.inner.members.iter().enumerate() {
-            let v = v.chain(member.as_read());
+    fn members_reader<'a>(&'a self) -> Result<Vec<u8>> {
+        let mut v = Vec::with_capacity(self.inner.members.len() * 128);
+        for (i, member) in self.inner.members.iter().enumerate() {
+            v.extend_from_slice(&member.get_bin()?);
             if i + 1 == self.inner.members.len() {
-                return Box::new(v);
+                return Ok(v);
             }
         }
-        Box::new(v)
+        Ok(v)
     }
 
-    fn bytes_buf<'a>(&'a self) -> (impl std::io::Read + Send + Sync + 'a, Option<&'a [u8]>) {
+    fn bytes_buf<'a>(&'a self) -> Result<(Vec<u8>, Option<&'a [u8]>)> {
         // let mut size = self.inner.id.as_bytes().len()
         //     + self
         //         .members
@@ -366,7 +379,8 @@ impl Circle {
         //
         //
 
-        let v = self.inner.id.as_bytes().chain(self.members_reader());
+        let mut v = self.inner.id.as_bytes().to_vec();
+        v.extend_from_slice(&self.members_reader()?);
 
         let author = if let Some(ref author) = self.inner.author {
             author.author.as_bytes()
@@ -374,20 +388,22 @@ impl Circle {
             &[]
         };
 
-        (
-            v.chain(author),
+        v.extend_from_slice(author);
+
+        Ok((
+            v,
             self.inner
                 .author
                 .as_ref()
                 .map(|CircleAuthor { ref sig, .. }| sig.as_slice()),
-        )
+        ))
     }
 }
 
 impl PgpApp {
     pub fn verify_circle(&self, circle: &Circle) -> anyhow::Result<bool> {
         let mut helper = PgpAppVerifier::from_app(self);
-        let (buf, sig) = circle.bytes_buf();
+        let (buf, sig) = circle.bytes_buf()?;
         if let Some(sig) = sig {
             let mut verifier = match DetachedVerifierBuilder::from_bytes(&sig)?
                 .mapping(true)
@@ -404,7 +420,7 @@ impl PgpApp {
                 }),
             }?;
 
-            verifier.verify_reader(buf)?;
+            verifier.verify_bytes(buf)?;
             return Ok(true);
         }
 
@@ -415,10 +431,10 @@ impl PgpApp {
         let mut digest = Sha256::new();
         let members = keys
             .into_iter()
-            .map(|v| (v.as_bytes().to_owned(), v))
-            .collect::<BTreeMap<Vec<u8>, CircleOr>>();
-        for member in members.values() {
-            digest.update(member.as_bytes());
+            .map(|v| v.handle())
+            .collect::<BTreeSet<_>>();
+        for member in members.iter() {
+            digest.update(member.get_bin()?);
         }
 
         let inner = CircleInner {
@@ -450,8 +466,8 @@ impl PgpApp {
 
             signer.write_all(author.as_bytes())?;
 
-            for member in circle.inner.members.values() {
-                signer.write_all(&member.as_bytes())?;
+            for member in circle.inner.members.iter() {
+                signer.write_all(&member.get_bin()?)?;
             }
 
             signer.write_all(circle.inner.id.as_bytes())?;
@@ -470,7 +486,10 @@ impl PgpApp {
 mod test {
     use crate::{
         api::{
-            pgp::{circles::circle::CircleOr, test_config, UserHandle},
+            pgp::{
+                circles::{circle::CircleOr, CircleHandle, CircleType},
+                test_config, UserHandle,
+            },
             PgpApp, PgpAppTrait,
         },
         frb_generated::RustAutoOpaque,
@@ -523,7 +542,10 @@ mod test {
 
         let key = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
 
-        let member = circle.is_member(&key);
+        let member = circle.is_member(&CircleHandle {
+            id: key.name(),
+            circle_type: CircleType::User,
+        });
 
         assert!(member)
     }

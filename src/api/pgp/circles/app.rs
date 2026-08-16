@@ -21,7 +21,9 @@ use crate::{
             store::{CertDao, CircleData, CircleMembersData},
         },
         pgp::{
-            circles::{circle::Circle, CircleEntry, CircleLike, CircleOr, CircleType},
+            circles::{
+                circle::Circle, CircleEntry, CircleHandle, CircleLike, CircleOr, CircleType,
+            },
             sign::PgpAppVerifier,
             UserHandle, POLICY,
         },
@@ -199,7 +201,7 @@ impl AppMember {
 #[frb(opaque)]
 pub(crate) struct CircleAppInner {
     pub(crate) owner: UserHandle,
-    pub(crate) children: BTreeMap<Vec<u8>, AppMember>,
+    pub(crate) children: BTreeMap<CircleHandle, AppMember>,
     pub(crate) sig: Vec<u8>,
 }
 
@@ -243,19 +245,20 @@ impl CircleLike for CircleApp {
 
     fn iter_members(&self, sink: StreamSink<CircleEntry>) {
         for (id, member) in self.inner.children.iter() {
-            let id = UserHandle::RawBytes(id.clone());
-            sink.add(CircleEntry::from_app_member(member.clone(), id))
+            sink.add(CircleEntry::from_app_member(member.clone(), id.clone()))
                 .unwrap();
         }
     }
 
     #[frb(sync)]
-    fn get_member(&self, id: UserHandle) -> Option<CircleEntry> {
-        self.inner
+    fn get_member(&self, id: CircleHandle) -> anyhow::Result<Option<CircleEntry>> {
+        let res = self
+            .inner
             .children
-            .get(id.as_bytes())
+            .get(&id) //TODO: handle circle type here
             .cloned()
-            .map(|v| CircleEntry::from_app_member(v, id))
+            .map(|v| CircleEntry::from_app_member(v, id));
+        Ok(res)
     }
 
     fn verify(&self) -> anyhow::Result<bool> {
@@ -277,9 +280,7 @@ impl CircleLike for CircleApp {
         self.inner
             .children
             .iter()
-            .map(|(id, v)| {
-                CircleEntry::from_app_member(v.clone(), UserHandle::RawBytes(id.clone()))
-            })
+            .map(|(id, v)| CircleEntry::from_app_member(v.clone(), id.clone()))
             .collect()
     }
 
@@ -341,8 +342,8 @@ impl CircleApp {
     }
 
     #[frb(sync)]
-    pub fn update_tag(&mut self, id: &UserHandle, tag: MemberTag) {
-        if let Some(member) = self.inner.children.get_mut(id.as_bytes()) {
+    pub fn update_tag(&mut self, id: &CircleHandle, tag: MemberTag) {
+        if let Some(member) = self.inner.children.get_mut(id) {
             member.tag = tag;
         }
     }
@@ -399,7 +400,7 @@ impl CircleApp {
         Box::new(v)
     }
 
-    pub fn is_member(&self, user: &UserHandle) -> bool {
+    pub fn is_member(&self, user: &CircleHandle) -> bool {
         self.inner
             .children
             .values()
@@ -431,9 +432,12 @@ impl CircleApp {
     }
 
     pub fn add_circle(&mut self, circle: Circle, tag: MemberTag) -> anyhow::Result<()> {
-        let id = circle.inner.id.as_bytes().to_owned();
+        let id = CircleHandle {
+            id: circle.inner.id.name(),
+            circle_type: CircleType::Circle,
+        };
         self.inner.children.insert(
-            id.clone(),
+            id,
             AppMember {
                 member: match tag {
                     MemberTag::Delete => MaybeDeleted::Deleted(circle.get_id_userhandle()),
@@ -446,9 +450,12 @@ impl CircleApp {
     }
 
     pub fn add_app(&mut self, app: CircleApp, tag: MemberTag) -> anyhow::Result<()> {
-        let id = app.inner.owner.as_bytes().to_owned();
+        let id = CircleHandle {
+            id: app.id_hex(),
+            circle_type: CircleType::App,
+        };
         self.inner.children.insert(
-            id.clone(),
+            id,
             AppMember {
                 member: match tag {
                     MemberTag::Delete => MaybeDeleted::Deleted(app.get_id_userhandle()),
@@ -461,8 +468,12 @@ impl CircleApp {
     }
 
     pub fn add_user(&mut self, user: UserHandle, tag: MemberTag) -> anyhow::Result<()> {
+        let id = CircleHandle {
+            id: user.name(),
+            circle_type: CircleType::User,
+        };
         self.inner.children.insert(
-            user.as_bytes().to_owned(),
+            id,
             AppMember {
                 member: match tag {
                     MemberTag::Delete => MaybeDeleted::Deleted(user),

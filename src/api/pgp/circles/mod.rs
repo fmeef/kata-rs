@@ -1,5 +1,6 @@
 use anyhow::anyhow;
 use flutter_rust_bridge::frb;
+use sequoia_openpgp::{Fingerprint, KeyHandle};
 
 use crate::api::db::store::CertDao;
 use crate::api::db::utils::HexConvert;
@@ -20,21 +21,51 @@ use crate::{
     error::{InternalErr, Result},
     frb_generated::{RustAutoOpaque, StreamSink},
 };
-use serde::de::Error;
-use serde::{de::Visitor, ser::SerializeMap, Deserialize, Serialize};
+
+use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, hash::Hash};
 
 pub mod app;
 pub mod circle;
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[frb(non_opaque)]
 pub struct CircleHandle {
     pub id: String,
     pub circle_type: CircleType,
 }
+// #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+// pub(crate) struct BinCircleHandle {
+//     pub(crate) id: Vec<u8>,
+//     pub(crate) circle_type: CircleType,
+// }
+
+// impl BinCircleHandle {
+//     pub(crate) fn non_bin(&self) -> Result<CircleHandle> {
+//         let res = CircleHandle {
+//             id: match self.circle_type {
+//                 CircleType::App => UserHandle::KeyHandle(
+//                     KeyHandle::Fingerprint(Fingerprint::try_from(self.id.as_slice())?),
+//                     None,
+//                 )
+//                 .name(),
+//             },
+//             circle_type: (),
+//         };
+
+//         Ok(res)
+//     }
+// }
 
 impl CircleHandle {
+    pub(crate) fn get_bin(&self) -> Result<Vec<u8>> {
+        let mut res = Vec::<u8>::from_hex(&self.id)?;
+
+        res.push(self.circle_type.get_type_u8());
+
+        Ok(res)
+    }
+
     fn get_bytes(&self) -> Result<Vec<u8>> {
         match self.circle_type {
             CircleType::Circle => Ok(Vec::<u8>::from_hex(&self.id)?),
@@ -133,7 +164,7 @@ impl CircleLike for CircleOr {
         }
     }
     #[frb(sync)]
-    fn get_member(&self, id: UserHandle) -> Option<CircleEntry> {
+    fn get_member(&self, id: CircleHandle) -> anyhow::Result<Option<CircleEntry>> {
         match self {
             Self::App(a) => a.blocking_read().get_member(id),
             Self::User(u) => u.blocking_read().get_member(id),
@@ -293,7 +324,7 @@ impl PgpApp {
         parent: Option<Vec<(String, UserHandle)>>,
         start: &Option<CircleHandle>,
         all: bool,
-    ) -> Result<Vec<(Vec<u8>, TagOr)>> {
+    ) -> Result<Vec<(CircleHandle, TagOr)>> {
         self.get_children_parent(members, actual, parent, start, all)
     }
     fn get_children_parent(
@@ -303,7 +334,7 @@ impl PgpApp {
         parent: Option<Vec<(String, UserHandle)>>,
         start: &Option<CircleHandle>,
         all: bool,
-    ) -> Result<Vec<(Vec<u8>, TagOr)>> {
+    ) -> Result<Vec<(CircleHandle, TagOr)>> {
         // log::error!("get_children_parent {parent:?}");
         let mut out = Vec::new();
 
@@ -340,7 +371,7 @@ impl PgpApp {
                 "user" => {
                     let handle = CircleOr::User(RustAutoOpaque::new(handle));
                     out.push((
-                        handle.get_id().to_owned(),
+                        handle.handle(),
                         TagOr {
                             content: MaybeDeleted::Member(handle),
                             tag: item.get_tag()?,
@@ -359,7 +390,7 @@ impl PgpApp {
                     circle.inner.members = self
                         .get_children_parent(members, actual, Some(n), start, false)?
                         .into_iter()
-                        .flat_map(|(v, u)| u.content.into_option().map(|u| (v, u)))
+                        .flat_map(|(_, u)| u.content.into_option().map(|u| u.handle()))
                         .collect();
 
                     // circle.update_digest();
@@ -374,7 +405,7 @@ impl PgpApp {
                     let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
 
                     out.push((
-                        circle.get_id().to_owned(),
+                        circle.handle(),
                         TagOr {
                             content: MaybeDeleted::Member(circle),
                             tag: item.get_tag()?,
@@ -406,7 +437,10 @@ impl PgpApp {
                         })
                         .collect();
                     app.validate()?;
-                    let id = app.get_id().to_owned();
+                    let id = CircleHandle {
+                        id: app.id_hex(),
+                        circle_type: CircleType::App,
+                    };
                     let app = if item.deleted.unwrap_or_default() {
                         println!("app with members {:?}", app.inner.children);
                         MaybeDeleted::Deleted(item.get_id_userhandle()?)
@@ -438,7 +472,7 @@ impl CircleOr {
         match self {
             CircleOr::Circle(c) => {
                 let mut inner = c.blocking_write();
-                inner.inner.members.insert(circle.get_id(), circle.clone());
+                inner.inner.members.insert(circle.handle());
                 inner.update_digest();
                 inner.to_db(&db.get_db())?;
             }
@@ -510,13 +544,13 @@ impl CircleOr {
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct CircleEntry {
-    pub id: UserHandle,
+    pub id: CircleHandle,
     pub content: Option<CircleOr>,
     pub tag: Option<MemberTag>,
 }
 
 impl CircleEntry {
-    pub(crate) fn from_app_member(member: AppMember, id: UserHandle) -> Self {
+    pub(crate) fn from_app_member(member: AppMember, id: CircleHandle) -> Self {
         Self {
             id,
             content: member.member.into_option(),
@@ -526,7 +560,7 @@ impl CircleEntry {
 
     pub(crate) fn from_circle_or(circleor: CircleOr) -> Self {
         Self {
-            id: UserHandle::RawBytes(circleor.get_id().to_owned()),
+            id: circleor.handle(),
             content: Some(circleor),
             tag: None,
         }
@@ -539,6 +573,14 @@ impl CircleType {
             CircleType::App => "app",
             CircleType::Circle => "circle",
             CircleType::User => "user",
+        }
+    }
+
+    fn get_type_u8(&self) -> u8 {
+        match self {
+            CircleType::User => 0,
+            CircleType::Circle => 1,
+            CircleType::App => 2,
         }
     }
 
@@ -555,7 +597,7 @@ impl CircleType {
 pub trait CircleLike {
     fn iter_members(&self, sink: StreamSink<CircleEntry>);
     #[frb(sync)]
-    fn get_member(&self, id: UserHandle) -> Option<CircleEntry>;
+    fn get_member(&self, id: CircleHandle) -> anyhow::Result<Option<CircleEntry>>;
     #[frb(sync)]
     fn get_members(&self) -> Vec<CircleEntry>;
     fn verify(&self) -> anyhow::Result<bool>;
@@ -567,9 +609,15 @@ pub trait CircleLike {
     fn get_type(&self) -> CircleType;
     fn insert(&self, db: &SqliteDb) -> anyhow::Result<()>;
     fn validate(&self) -> anyhow::Result<bool>;
+    fn from_db(db: Vec<CircleWithMembers>) -> Self
+    where
+        Self: Sized,
+    {
+        panic!("not implemented")
+    }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[frb(non_opaque)]
 pub enum CircleType {
     User,
@@ -577,17 +625,17 @@ pub enum CircleType {
     App,
 }
 
-#[frb(opaque)]
-pub struct GenericCircle<'a>(Box<dyn CircleLike + Send + Sync + 'a>);
+// #[frb(opaque)]
+// pub struct GenericCircle<'a>(Box<dyn CircleLike + Send + Sync + 'a>);
 
-impl<'a> GenericCircle<'a> {
-    pub fn new<T>(inner: T) -> GenericCircle<'a>
-    where
-        T: CircleLike + Send + Sync + 'a,
-    {
-        Self(Box::new(inner))
-    }
-}
+// impl<'a> GenericCircle<'a> {
+//     pub fn new<T>(inner: T) -> GenericCircle<'a>
+//     where
+//         T: CircleLike + Send + Sync + 'a,
+//     {
+//         Self(Box::new(inner))
+//     }
+// }
 
 impl<'a, T> CircleLike for &'a T
 where
@@ -604,7 +652,7 @@ where
     }
 
     #[frb(sync)]
-    fn get_member(&self, id: UserHandle) -> Option<CircleEntry> {
+    fn get_member(&self, id: CircleHandle) -> anyhow::Result<Option<CircleEntry>> {
         (*self).get_member(id)
     }
 
@@ -635,48 +683,48 @@ where
     }
 }
 
-impl<'a> CircleLike for GenericCircle<'a> {
-    #[frb(sync)]
-    fn get_id(&self) -> Vec<u8> {
-        self.0.get_id()
-    }
+// impl<'a> CircleLike for GenericCircle<'a> {
+//     #[frb(sync)]
+//     fn get_id(&self) -> Vec<u8> {
+//         self.0.get_id()
+//     }
 
-    #[frb(sync)]
-    fn get_id_userhandle(&self) -> UserHandle {
-        self.0.get_id_userhandle()
-    }
+//     #[frb(sync)]
+//     fn get_id_userhandle(&self) -> UserHandle {
+//         self.0.get_id_userhandle()
+//     }
 
-    #[frb(sync)]
-    fn get_member(&self, id: UserHandle) -> Option<CircleEntry> {
-        self.0.get_member(id)
-    }
+//     #[frb(sync)]
+//     fn get_member(&self, id: UserHandle) -> Option<CircleEntry> {
+//         self.0.get_member(id)
+//     }
 
-    fn iter_members(&self, sink: StreamSink<CircleEntry>) {
-        self.0.iter_members(sink);
-    }
+//     fn iter_members(&self, sink: StreamSink<CircleEntry>) {
+//         self.0.iter_members(sink);
+//     }
 
-    fn verify(&self) -> anyhow::Result<bool> {
-        self.0.verify()
-    }
+//     fn verify(&self) -> anyhow::Result<bool> {
+//         self.0.verify()
+//     }
 
-    #[frb(sync)]
-    fn get_type(&self) -> CircleType {
-        self.0.get_type()
-    }
+//     #[frb(sync)]
+//     fn get_type(&self) -> CircleType {
+//         self.0.get_type()
+//     }
 
-    fn insert(&self, db: &SqliteDb) -> anyhow::Result<()> {
-        self.0.insert(db)
-    }
+//     fn insert(&self, db: &SqliteDb) -> anyhow::Result<()> {
+//         self.0.insert(db)
+//     }
 
-    #[frb(sync)]
-    fn get_members(&self) -> Vec<CircleEntry> {
-        self.0.get_members()
-    }
+//     #[frb(sync)]
+//     fn get_members(&self) -> Vec<CircleEntry> {
+//         self.0.get_members()
+//     }
 
-    fn validate(&self) -> anyhow::Result<bool> {
-        self.0.validate()
-    }
-}
+//     fn validate(&self) -> anyhow::Result<bool> {
+//         self.0.validate()
+//     }
+// }
 
 impl std::io::Read for &CircleOr {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {

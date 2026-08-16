@@ -154,8 +154,12 @@ impl CircleLike for UserHandle {
     }
 
     #[frb(sync)]
-    fn get_member(&self, id: UserHandle) -> Option<circles::CircleEntry> {
-        if id == *self {
+    fn get_member(&self, id: CircleHandle) -> anyhow::Result<Option<circles::CircleEntry>> {
+        let test = CircleHandle {
+            id: self.name(),
+            circle_type: CircleType::User,
+        };
+        let res = if id == test {
             Some(circles::CircleEntry {
                 id,
                 content: None,
@@ -163,12 +167,17 @@ impl CircleLike for UserHandle {
             })
         } else {
             None
-        }
+        };
+
+        Ok(res)
     }
 
     fn iter_members(&self, sink: StreamSink<circles::CircleEntry>) {
         sink.add(circles::CircleEntry {
-            id: self.clone(),
+            id: CircleHandle {
+                id: self.name(),
+                circle_type: CircleType::User,
+            },
             content: None,
             tag: None,
         })

@@ -18,7 +18,7 @@ use sequoia_openpgp::{
 };
 use sequoia_wot::store::StoreError;
 use serde::{Deserialize, Serialize};
-use sha2::{digest, Digest, Sha256};
+use sha2::{Digest, Sha256};
 use std::{
     collections::BTreeMap,
     io::{Read, Write},
@@ -97,7 +97,7 @@ pub struct CircleAuthor {
 //     }
 // }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
 #[frb(opaque)]
 pub(crate) struct CircleInner {
     pub(crate) author: Option<CircleAuthor>,
@@ -105,13 +105,11 @@ pub(crate) struct CircleInner {
     pub(crate) id: UserHandle,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone)]
 #[frb(opaque)]
 pub struct Circle {
-    #[serde(flatten)]
     pub(crate) inner: CircleInner,
-    #[serde(deserialize_with = "none", skip)]
-    pub(crate) app: Option<PgpApp>,
+    pub(crate) app: PgpApp,
 }
 
 impl PartialEq for Circle {
@@ -160,12 +158,7 @@ impl CircleLike for Circle {
     }
 
     fn verify(&self) -> anyhow::Result<bool> {
-        let res = self
-            .app
-            .as_ref()
-            .ok_or(InternalErr::MissingPgpApp)?
-            .verify_circle(self)
-            .is_ok();
+        let res = self.app.verify_circle(self).is_ok();
         Ok(res)
     }
 
@@ -323,6 +316,7 @@ impl Circle {
         id: Vec<u8>,
         author: Option<UserHandle>,
         sig: Option<Vec<u8>>,
+        app: PgpApp,
     ) -> Result<Self> {
         let author = match (author, sig) {
             (Some(author), Some(sig)) => Some(CircleAuthor { sig, author }),
@@ -334,7 +328,7 @@ impl Circle {
                 members: BTreeMap::new(),
                 id: UserHandle::RawBytes(id),
             },
-            app: None,
+            app,
         };
         Ok(res)
     }
@@ -348,10 +342,6 @@ impl Circle {
             }
         }
         Box::new(v)
-    }
-
-    pub fn set_pgp(&mut self, pgp: PgpApp) {
-        self.app = Some(pgp);
     }
 
     fn bytes_buf<'a>(&'a self) -> (impl std::io::Read + Send + Sync + 'a, Option<&'a [u8]>) {
@@ -439,7 +429,7 @@ impl PgpApp {
 
         Ok(Circle {
             inner,
-            app: Some(self.clone()),
+            app: self.clone(),
         })
     }
 

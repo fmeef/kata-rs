@@ -103,7 +103,7 @@ impl MemberTag {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum MaybeDeleted {
     Member(CircleOr),
     Deleted(UserHandle),
@@ -169,7 +169,7 @@ impl MaybeDeleted {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[frb(non_opaque)]
 pub struct AppMember {
     pub member: MaybeDeleted,
@@ -195,7 +195,7 @@ impl AppMember {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[frb(opaque)]
 pub(crate) struct CircleAppInner {
     pub(crate) owner: UserHandle,
@@ -203,13 +203,11 @@ pub(crate) struct CircleAppInner {
     pub(crate) sig: Vec<u8>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone)]
 #[frb(opaque)]
 pub struct CircleApp {
-    #[serde(flatten)]
     pub(crate) inner: CircleAppInner,
-    #[serde(deserialize_with = "none", skip)]
-    pub(crate) pgp: Option<PgpApp>,
+    pub(crate) pgp: PgpApp,
 }
 
 impl PartialEq for CircleApp {
@@ -261,12 +259,7 @@ impl CircleLike for CircleApp {
     }
 
     fn verify(&self) -> anyhow::Result<bool> {
-        let res = self
-            .pgp
-            .as_ref()
-            .ok_or(InternalErr::MissingPgpApp)?
-            .verify_app(self)
-            .is_ok();
+        let res = self.pgp.verify_app(self).is_ok();
         Ok(res)
     }
 
@@ -291,10 +284,7 @@ impl CircleLike for CircleApp {
     }
 
     fn validate(&self) -> anyhow::Result<bool> {
-        match self.pgp {
-            None => Ok(false),
-            Some(ref pgp) => pgp.verify_app(self),
-        }
+        self.pgp.verify_app(self)
     }
 }
 
@@ -376,7 +366,11 @@ impl CircleApp {
     //     self.inner.children.values().cloned().collect()
     // }
 
-    pub(crate) fn new_empty(author: Option<UserHandle>, sig: Option<Vec<u8>>) -> Result<Self> {
+    pub(crate) fn new_empty(
+        author: Option<UserHandle>,
+        sig: Option<Vec<u8>>,
+        pgp: PgpApp,
+    ) -> Result<Self> {
         let (owner, sig) = match (author, sig) {
             (Some(owner), Some(sig)) => (owner, sig),
             _ => (UserHandle::RawBytes(vec![]), vec![]),
@@ -388,7 +382,7 @@ impl CircleApp {
                 children: BTreeMap::new(),
                 sig,
             },
-            pgp: None,
+            pgp,
         };
 
         Ok(res)
@@ -413,10 +407,6 @@ impl CircleApp {
             .any(|v| v.is_member(user))
     }
 
-    pub fn set_pgp(&mut self, app: PgpApp) {
-        self.pgp = Some(app);
-    }
-
     fn to_read<'a>(&'a self) -> impl std::io::Read + Send + Sync + 'a {
         self.inner.owner.as_bytes().chain(self.tag_reader())
     }
@@ -426,8 +416,6 @@ impl CircleApp {
         {
             let cert = self
                 .pgp
-                .as_ref()
-                .ok_or(InternalErr::MissingPgpApp)?
                 .configured_privkey(&self.inner.owner, |v| v.for_signing())?;
 
             let message = Message::new(&mut out);
@@ -583,7 +571,7 @@ impl PgpApp {
                 children,
                 sig: out,
             },
-            pgp: Some(self.clone()),
+            pgp: self.clone(),
         })
     }
 }

@@ -60,76 +60,6 @@ pub enum CircleOr {
     App(RustAutoOpaque<CircleApp>),
 }
 
-impl Serialize for CircleOr {
-    fn serialize<S>(&self, serializer: S) -> std::prelude::v1::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let mut map = serializer.serialize_map(Some(1))?;
-        match self {
-            Self::Circle(circle) => {
-                map.serialize_key("circle")?;
-                map.serialize_value(&*circle.blocking_read())?;
-            }
-
-            Self::User(user) => {
-                map.serialize_key("user")?;
-                map.serialize_value(&*user.blocking_read())?;
-            }
-
-            Self::App(app) => {
-                map.serialize_key("app")?;
-                map.serialize_value(&*app.blocking_read())?;
-            }
-        }
-
-        map.end()
-    }
-}
-
-struct CircleOrVisitor;
-
-impl<'de> Visitor<'de> for CircleOrVisitor {
-    type Value = CircleOr;
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        formatter.write_str("expecting a CircleOr")
-    }
-
-    fn visit_map<A>(self, mut map: A) -> std::prelude::v1::Result<Self::Value, A::Error>
-    where
-        A: serde::de::MapAccess<'de>,
-    {
-        if let Some(key) = map.next_key::<String>()? {
-            match key.as_str() {
-                "circle" => {
-                    let v = map.next_value::<Circle>()?;
-                    return Ok(CircleOr::Circle(RustAutoOpaque::new(v)));
-                }
-                "app" => {
-                    let v = map.next_value::<CircleApp>()?;
-                    return Ok(CircleOr::App(RustAutoOpaque::new(v)));
-                }
-                "user" => {
-                    let v = map.next_value::<UserHandle>()?;
-                    return Ok(CircleOr::User(RustAutoOpaque::new(v)));
-                }
-                _ => (),
-            }
-        }
-
-        Err(A::Error::custom("no map key/value"))
-    }
-}
-
-impl<'de> Deserialize<'de> for CircleOr {
-    fn deserialize<D>(deserializer: D) -> std::prelude::v1::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        deserializer.deserialize_map(CircleOrVisitor)
-    }
-}
-
 impl PartialEq for CircleOr {
     fn eq(&self, other: &Self) -> bool {
         let me = match self {
@@ -321,6 +251,7 @@ impl PgpApp {
         members: Vec<CircleWithMembers>,
         users: bool,
         parent: Option<CircleHandle>,
+        all: bool,
     ) -> Result<Vec<CircleOr>> {
         let out = CircleOr::get_parent_cache(&members)?;
         let parent = match parent {
@@ -339,7 +270,7 @@ impl PgpApp {
         };
         println!("parent = {parent:?}");
 
-        let res = self.get_children(&out, &members, parent, &None)?;
+        let res = self.get_children(&out, &members, parent, &None, all)?;
 
         let res = res
             .into_iter()
@@ -361,8 +292,9 @@ impl PgpApp {
         actual: &Vec<CircleWithMembers>,
         parent: Option<Vec<(String, UserHandle)>>,
         start: &Option<CircleHandle>,
+        all: bool,
     ) -> Result<Vec<(Vec<u8>, TagOr)>> {
-        self.get_children_parent(members, actual, parent, start)
+        self.get_children_parent(members, actual, parent, start, all)
     }
     fn get_children_parent(
         &self,
@@ -370,6 +302,7 @@ impl PgpApp {
         actual: &Vec<CircleWithMembers>,
         parent: Option<Vec<(String, UserHandle)>>,
         start: &Option<CircleHandle>,
+        all: bool,
     ) -> Result<Vec<(Vec<u8>, TagOr)>> {
         // log::error!("get_children_parent {parent:?}");
         let mut out = Vec::new();
@@ -378,7 +311,11 @@ impl PgpApp {
             // log::error!("for item in actual {item:?}");
             let pv = item.get_parent_vec(members)?;
             // log::error!("get_parent_vec {}", pv.is_none());
-            if pv != parent {
+            let p = pv
+                .as_ref()
+                .map(|v| v.iter().map(|v| v.1.name()).collect::<Vec<_>>());
+            println!("gc_parent={p:?}");
+            if pv != parent && !all {
                 // println!("skipping pv={pv:?} parent={parent:?}");
                 continue;
             }
@@ -411,7 +348,8 @@ impl PgpApp {
                     ));
                 }
                 "circle" => {
-                    let mut circle = Circle::new_mut(item.get_id()?, item.get_author()?, None)?;
+                    let mut circle =
+                        Circle::new_mut(item.get_id()?, item.get_author()?, None, self.clone())?;
 
                     let n = match parent {
                         Some(ref parent) => [&parent[..], &[item.get_id_tuple()?]].concat(),
@@ -419,7 +357,7 @@ impl PgpApp {
                     };
 
                     circle.inner.members = self
-                        .get_children_parent(members, actual, Some(n), start)?
+                        .get_children_parent(members, actual, Some(n), start, false)?
                         .into_iter()
                         .flat_map(|(v, u)| u.content.into_option().map(|u| (v, u)))
                         .collect();
@@ -444,7 +382,8 @@ impl PgpApp {
                     ));
                 }
                 "app" => {
-                    let mut app = CircleApp::new_empty(item.get_author()?, item.sig.clone())?;
+                    let mut app =
+                        CircleApp::new_empty(item.get_author()?, item.sig.clone(), self.clone())?;
 
                     let n = match parent {
                         Some(ref parent) => [&parent[..], &[item.get_id_tuple()?]].concat(),
@@ -452,7 +391,7 @@ impl PgpApp {
                     };
 
                     app.inner.children = self
-                        .get_children_parent(members, actual, Some(n), start)?
+                        .get_children_parent(members, actual, Some(n), start, false)?
                         .into_iter()
                         .flat_map(|(v, u)| {
                             u.tag.map(|tag| {
@@ -501,12 +440,10 @@ impl CircleOr {
                 let mut inner = c.blocking_write();
                 inner.inner.members.insert(circle.get_id(), circle.clone());
                 inner.update_digest();
-                inner.set_pgp(db.clone());
                 inner.to_db(&db.get_db())?;
             }
             CircleOr::App(a) => {
                 let mut inner = a.blocking_write();
-                inner.set_pgp(db.clone());
 
                 match circle {
                     CircleOr::Circle(c) => inner.add_circle(c.blocking_read().clone(), tag)?,
@@ -814,7 +751,7 @@ impl PgpApp {
             .get_db()
             .get_circles_for_parent(&parent.id, parent.circle_type.get_type_str())?;
 
-        self.circles_from_db(v, false, None)
+        self.circles_from_db(v, true, Some(parent.clone()), false)
     }
 
     pub fn get_circle_by_id(&self, id: &CircleHandle) -> Result<Option<CircleOr>> {
@@ -826,7 +763,7 @@ impl PgpApp {
         println!("v={v:?}");
         println!("id: {id:?} {}", id.circle_type.get_type_str());
 
-        let out = self.circles_from_db(v, false, Some(id.clone()))?;
+        let out = self.circles_from_db(v, true, Some(id.clone()), true)?;
         println!("out={out:?}");
         Ok(out.into_iter().find(|p| {
             println!("checking {:?}", p.id_hex());
@@ -869,7 +806,7 @@ mod test {
         user.to_db(&app.pgp.db).unwrap();
         let out = app.pgp.db.get_circle_by_id(&id, "user").unwrap();
         assert!(!out.is_empty());
-        let newcircle = app.circles_from_db(out, false, None).unwrap();
+        let newcircle = app.circles_from_db(out, false, None, false).unwrap();
         assert!(newcircle.is_empty());
         //assert_eq!(user, newcircle[0]);
     }
@@ -883,7 +820,7 @@ mod test {
         user.to_db(&app.pgp.db).unwrap();
         let out = app.pgp.db.get_circle_roots().unwrap();
         assert!(!out.is_empty());
-        let newcircle = app.circles_from_db(out, false, None).unwrap();
+        let newcircle = app.circles_from_db(out, false, None, false).unwrap();
         assert!(newcircle.is_empty());
         //assert_eq!(user, newcircle[0]);
     }
@@ -904,7 +841,7 @@ mod test {
 
         assert_eq!(out.len(), 2);
 
-        let newcircle = app.circles_from_db(out, false, None).unwrap();
+        let newcircle = app.circles_from_db(out, false, None, false).unwrap();
         assert!(!newcircle.is_empty());
         assert_eq!(newcircle.len(), 1);
         assert_eq!(circle, newcircle[0]);
@@ -933,7 +870,7 @@ mod test {
 
         assert_eq!(out.len(), 3);
 
-        let newcircle = app.circles_from_db(out, false, None).unwrap();
+        let newcircle = app.circles_from_db(out, false, None, false).unwrap();
         assert!(!newcircle.is_empty());
         assert_eq!(newcircle.len(), 1);
         assert_eq!(circle.get_members(), newcircle[0].get_members());
@@ -1001,7 +938,7 @@ mod test {
             .get_circles_for_parent(&parent.id_hex(), &parent.db_type())
             .unwrap();
 
-        let outcircle = app.circles_from_db(out, false, None).unwrap();
+        let outcircle = app.circles_from_db(out, false, None, false).unwrap();
 
         assert_eq!(outcircle.len(), 1);
 
@@ -1058,15 +995,43 @@ mod test {
             println!("circle={name}, id={}", circle.id_hex());
         }
         for (name, circle) in [
-            // ("circle", circle),
-            // ("childcircle", childcircle),
+            ("circle", circle),
+            ("childcircle", childcircle),
             ("parent", parent),
-            // ("decoy", decoy),
+            ("decoy", decoy),
         ] {
             println!("testing {name}: {} {:?}", circle.id_hex(), circle.handle());
             let out = app.get_circle_by_id(&circle.handle()).unwrap();
 
             assert!(out.is_some());
+        }
+    }
+
+    #[test]
+    fn get_parent_multiple() {
+        let app = PgpApp::create(test_config("app")).unwrap();
+
+        let dummy = app.create_circle(vec![]).unwrap();
+        let dummy = CircleOr::Circle(RustAutoOpaque::new(dummy));
+
+        let circle = app.create_circle(vec![dummy.clone()]).unwrap();
+        let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
+
+        let parent = app.create_circle(vec![circle.clone()]).unwrap();
+
+        let parent = CircleOr::Circle(RustAutoOpaque::new(parent));
+        circle.to_db(&app.pgp.db).unwrap();
+        parent.to_db(&app.pgp.db).unwrap();
+        dummy.to_db(&app.pgp.db).unwrap();
+
+        println!("{:?}", parent.handle());
+        for (name, circle) in [("circle", &circle), ("parent", &parent)] {
+            println!("circle={name}, id={}", circle.id_hex());
+        }
+        for (name, circle) in [("circle", circle), ("parent", parent)] {
+            let out = app.get_circle_by_id(&circle.handle()).unwrap();
+            println!("testing {name}: {} {:?}", circle.id_hex(), circle.handle());
+            assert!(!out.unwrap().get_members().is_empty());
         }
     }
 }

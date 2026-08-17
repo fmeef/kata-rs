@@ -23,6 +23,7 @@ use crate::{
 };
 
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeSet;
 use std::{collections::BTreeMap, hash::Hash};
 
 pub mod app;
@@ -325,7 +326,8 @@ impl PgpApp {
         start: &Option<CircleHandle>,
         all: bool,
     ) -> Result<Vec<(CircleHandle, TagOr)>> {
-        self.get_children_parent(members, actual, parent, start, all)
+        let mut visited = BTreeSet::new();
+        self.get_children_parent(members, actual, parent, start, all, &mut visited)
     }
     fn get_children_parent(
         &self,
@@ -334,9 +336,16 @@ impl PgpApp {
         parent: Option<(String, UserHandle)>,
         start: &Option<CircleHandle>,
         all: bool,
+        visited: &mut BTreeSet<(String, UserHandle)>,
     ) -> Result<Vec<(CircleHandle, TagOr)>> {
         // log::error!("get_children_parent {parent:?}");
+
         let mut out = Vec::new();
+        if let Some(ref parent) = parent {
+            if !visited.insert(parent.clone()) {
+                return Ok(out);
+            }
+        }
 
         for item in actual {
             // log::error!("for item in actual {item:?}");
@@ -382,7 +391,7 @@ impl PgpApp {
                     let n = item.get_id_tuple()?;
 
                     circle.inner.members = self
-                        .get_children_parent(members, actual, Some(n), start, false)?
+                        .get_children_parent(members, actual, Some(n), start, false, visited)?
                         .into_iter()
                         .flat_map(|(_, u)| u.content.into_option().map(|u| u.handle()))
                         .collect();
@@ -413,7 +422,7 @@ impl PgpApp {
                     let n = item.get_id_tuple()?;
 
                     app.inner.children = self
-                        .get_children_parent(members, actual, Some(n), start, false)?
+                        .get_children_parent(members, actual, Some(n), start, false, visited)?
                         .into_iter()
                         .flat_map(|(v, u)| {
                             u.tag.map(|tag| {
@@ -1061,6 +1070,36 @@ mod test {
         let parent = CircleOr::Circle(RustAutoOpaque::new(parent));
         dummy.to_db(&app.pgp.db).unwrap();
         circle.to_db(&app.pgp.db).unwrap();
+        parent.to_db(&app.pgp.db).unwrap();
+
+        println!("{:?}", parent.handle());
+        for (name, circle) in [("circle", &circle), ("parent", &parent), ("dummy", &dummy)] {
+            println!("circle={name}, id={}", circle.id_hex());
+        }
+        for (name, circle) in [("circle", circle), ("parent", parent)] {
+            let out = app.get_circle_by_id(&circle.handle()).unwrap();
+            println!("testing {name}: {} {:?}", circle.id_hex(), circle.handle());
+            assert!(!out.unwrap().get_members().is_empty());
+        }
+    }
+
+    #[test]
+    fn get_parent_recursive() {
+        let app = PgpApp::create(test_config("app")).unwrap();
+
+        let dummy = app.create_circle(vec![]).unwrap();
+        let dummy = CircleOr::Circle(RustAutoOpaque::new(dummy));
+
+        let circle = app.create_circle(vec![dummy.clone()]).unwrap();
+        let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
+
+        let parent = app.create_circle(vec![circle.clone()]).unwrap();
+
+        let parent = CircleOr::Circle(RustAutoOpaque::new(parent));
+
+        dummy.to_db(&app.pgp.db).unwrap();
+        circle.to_db(&app.pgp.db).unwrap();
+        dummy.add(&circle, MemberTag::Merge, &app).unwrap();
         parent.to_db(&app.pgp.db).unwrap();
 
         println!("{:?}", parent.handle());

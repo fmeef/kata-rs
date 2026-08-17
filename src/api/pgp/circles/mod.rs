@@ -292,7 +292,7 @@ impl PgpApp {
                     UserHandle::RawBytes(parent.get_bytes()?),
                 ))
                 .map(|v| {
-                    let v = v.get_parent_vec(&out).unwrap();
+                    let v = v.get_parent_tuple().unwrap();
                     println!("get_parent_vec={out:?}");
                     v
                 })
@@ -321,7 +321,7 @@ impl PgpApp {
         &self,
         members: &ParentCache,
         actual: &Vec<CircleWithMembers>,
-        parent: Option<Vec<(String, UserHandle)>>,
+        parent: Option<(String, UserHandle)>,
         start: &Option<CircleHandle>,
         all: bool,
     ) -> Result<Vec<(CircleHandle, TagOr)>> {
@@ -331,7 +331,7 @@ impl PgpApp {
         &self,
         members: &ParentCache,
         actual: &Vec<CircleWithMembers>,
-        parent: Option<Vec<(String, UserHandle)>>,
+        parent: Option<(String, UserHandle)>,
         start: &Option<CircleHandle>,
         all: bool,
     ) -> Result<Vec<(CircleHandle, TagOr)>> {
@@ -340,12 +340,9 @@ impl PgpApp {
 
         for item in actual {
             // log::error!("for item in actual {item:?}");
-            let pv = item.get_parent_vec(members)?;
+            let pv = item.get_parent_tuple()?;
             // log::error!("get_parent_vec {}", pv.is_none());
-            let p = pv
-                .as_ref()
-                .map(|v| v.iter().map(|v| v.1.name()).collect::<Vec<_>>());
-            println!("gc_parent={p:?}");
+
             if pv != parent && !all {
                 // println!("skipping pv={pv:?} parent={parent:?}");
                 continue;
@@ -382,10 +379,7 @@ impl PgpApp {
                     let mut circle =
                         Circle::new_mut(item.get_id()?, item.get_author()?, None, self.clone())?;
 
-                    let n = match parent {
-                        Some(ref parent) => [&parent[..], &[item.get_id_tuple()?]].concat(),
-                        None => vec![item.get_id_tuple()?],
-                    };
+                    let n = item.get_id_tuple()?;
 
                     circle.inner.members = self
                         .get_children_parent(members, actual, Some(n), start, false)?
@@ -416,10 +410,7 @@ impl PgpApp {
                     let mut app =
                         CircleApp::new_empty(item.get_author()?, item.sig.clone(), self.clone())?;
 
-                    let n = match parent {
-                        Some(ref parent) => [&parent[..], &[item.get_id_tuple()?]].concat(),
-                        None => vec![item.get_id_tuple()?],
-                    };
+                    let n = item.get_id_tuple()?;
 
                     app.inner.children = self
                         .get_children_parent(members, actual, Some(n), start, false)?
@@ -473,7 +464,7 @@ impl CircleOr {
             CircleOr::Circle(c) => {
                 let mut inner = c.blocking_write();
                 inner.inner.members.insert(circle.handle());
-                inner.update_digest();
+                inner.update_digest()?;
                 inner.to_db(&db.get_db())?;
             }
             CircleOr::App(a) => {
@@ -799,7 +790,7 @@ impl PgpApp {
             .get_db()
             .get_circles_for_parent(&parent.id, parent.circle_type.get_type_str())?;
 
-        self.circles_from_db(v, true, Some(parent.clone()), false)
+        self.circles_from_db(v, false, Some(parent.clone()), false)
     }
 
     pub fn get_circle_by_id(&self, id: &CircleHandle) -> Result<Option<CircleOr>> {
@@ -808,13 +799,13 @@ impl PgpApp {
             .get_db()
             .get_circles_by_id(&id.id, &id.circle_type.get_type_str())?;
 
-        println!("v={v:?}");
+        println!("v={v:#?}");
         println!("id: {id:?} {}", id.circle_type.get_type_str());
 
-        let out = self.circles_from_db(v, true, Some(id.clone()), true)?;
+        let out = self.circles_from_db(v, true, Some(id.clone()), false)?;
         println!("out={out:?}");
         Ok(out.into_iter().find(|p| {
-            println!("checking {:?}", p.id_hex());
+            println!("checking {id:?} {:?}", p.handle());
             p.handle() == *id
         }))
     }
@@ -1056,7 +1047,10 @@ mod test {
     fn get_parent_multiple() {
         let app = PgpApp::create(test_config("app")).unwrap();
 
-        let dummy = app.create_circle(vec![]).unwrap();
+        let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
+        let v = CircleOr::User(RustAutoOpaque::new(v.clone()));
+        v.to_db(&app.pgp.db).unwrap();
+        let dummy = app.create_circle(vec![v]).unwrap();
         let dummy = CircleOr::Circle(RustAutoOpaque::new(dummy));
 
         let circle = app.create_circle(vec![dummy.clone()]).unwrap();
@@ -1070,7 +1064,7 @@ mod test {
         parent.to_db(&app.pgp.db).unwrap();
 
         println!("{:?}", parent.handle());
-        for (name, circle) in [("circle", &circle), ("parent", &parent)] {
+        for (name, circle) in [("circle", &circle), ("parent", &parent), ("dummy", &dummy)] {
             println!("circle={name}, id={}", circle.id_hex());
         }
         for (name, circle) in [("circle", circle), ("parent", parent)] {

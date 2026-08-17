@@ -299,6 +299,22 @@ impl CircleApp {
         };
         entity.insert_on_conflict_custom(db, OnConflict::Update, vec!["id", "circle_type"])?;
 
+        for CircleHandle { id, circle_type } in self.inner.children.keys() {
+            if let CircleType::User = circle_type {
+                let entity = CircleData {
+                    id: id.name(),
+                    circle_type: "user".to_owned(),
+                    author: None,
+                    sig: None,
+                };
+                entity.insert_on_conflict_custom(
+                    db,
+                    OnConflict::Ignore,
+                    vec!["id", "circle_type"],
+                )?;
+            }
+        }
+
         for member in self.inner.children.values() {
             match member.member {
                 MaybeDeleted::Member(ref m) => {

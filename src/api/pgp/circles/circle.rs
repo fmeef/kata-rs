@@ -301,6 +301,21 @@ impl Circle {
         entity.insert_on_conflict_custom(db, OnConflict::Update, vec!["id", "circle_type"])?;
 
         for CircleHandle { id, circle_type } in self.inner.members.iter() {
+            if let CircleType::User = circle_type {
+                let entity = CircleData {
+                    id: id.name(),
+                    circle_type: "user".to_owned(),
+                    author: None,
+                    sig: None,
+                };
+                entity.insert_on_conflict_custom(
+                    db,
+                    OnConflict::Ignore,
+                    vec!["id", "circle_type"],
+                )?;
+            }
+        }
+        for CircleHandle { id, circle_type } in self.inner.members.iter() {
             let entity = CircleMembersData {
                 circle_member_id: None,
                 member_id: id.name(),

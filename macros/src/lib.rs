@@ -128,10 +128,12 @@ fn generate_crud_impl(st: &[ColumnField], name: &Ident, table_attr: &str) -> imp
 
                 match on_conflict {
                     crate::api::db::connection::OnConflict::Abort => conn.0.conn.lock().unwrap().execute(#insert, self.get_params().as_slice())?,
-                    crate::api::db::connection::OnConflict::Ignore => conn.0.conn.lock().unwrap().execute(#insert_ignore, self.get_params().as_slice())?,
+                    crate::api::db::connection::OnConflict::Ignore => {
+                        let update = format!("{} {}) DO NOTHING", #update_custom, cols);
+                        conn.0.conn.lock().unwrap().execute(&update, self.get_params().as_slice())?
+                    }
                     crate::api::db::connection::OnConflict::Update => {
                         let update = format!("{} {}) DO UPDATE SET {}", #update_custom, cols, excluded);
-
                         conn.0.conn.lock().unwrap().execute(&update, self.get_params().as_slice())?
                     }
                 };

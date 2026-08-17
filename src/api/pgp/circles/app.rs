@@ -29,7 +29,7 @@ use crate::{
         },
         PgpApp, SqliteDb,
     },
-    error::{InternalErr, Result},
+    error::Result,
     frb_generated::{RustAutoOpaque, StreamSink},
 };
 

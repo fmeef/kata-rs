@@ -179,9 +179,23 @@ impl CircleLike for Circle {
         self.inner
             .members
             .iter()
-            .flat_map(|v| self.app.get_circle_by_id(v))
-            .flat_map(|v| v.into_iter())
-            .map(|v| CircleEntry::from_circle_or(v))
+            .map(|v| {
+                self.app
+                    .get_circle_by_id(v)
+                    .map(|v| v.map(|v| CircleEntry::from_circle_or(v)))
+                    .unwrap_or_else(|_| {
+                        Some(CircleEntry {
+                            id: v.clone(),
+                            content: None,
+                            tag: None,
+                        })
+                    })
+                    .unwrap_or_else(|| CircleEntry {
+                        id: v.clone(),
+                        content: None,
+                        tag: None,
+                    })
+            })
             .collect()
     }
 

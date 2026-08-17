@@ -32,7 +32,7 @@ pub mod circle;
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[frb(non_opaque)]
 pub struct CircleHandle {
-    pub id: String,
+    pub id: UserHandle,
     pub circle_type: CircleType,
 }
 // #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -60,7 +60,7 @@ pub struct CircleHandle {
 
 impl CircleHandle {
     pub(crate) fn get_bin(&self) -> Result<Vec<u8>> {
-        let mut res = Vec::<u8>::from_hex(&self.id)?;
+        let mut res = self.id.as_bytes().to_owned();
 
         res.push(self.circle_type.get_type_u8());
 
@@ -69,9 +69,9 @@ impl CircleHandle {
 
     fn get_bytes(&self) -> Result<Vec<u8>> {
         match self.circle_type {
-            CircleType::Circle => Ok(Vec::<u8>::from_hex(&self.id)?),
-            CircleType::App => Ok(UserHandle::from_hex(&self.id)?.into_bytes()),
-            CircleType::User => Ok(UserHandle::from_hex(&self.id)?.into_bytes()),
+            CircleType::Circle => Ok(self.id.as_bytes().to_owned()),
+            CircleType::App => Ok(self.id.as_bytes().to_owned()),
+            CircleType::User => Ok(self.id.as_bytes().to_owned()),
         }
     }
 }
@@ -438,7 +438,7 @@ impl PgpApp {
                         .collect();
                     app.validate()?;
                     let id = CircleHandle {
-                        id: app.id_hex(),
+                        id: app.get_id_userhandle(),
                         circle_type: CircleType::App,
                     };
                     let app = if item.deleted.unwrap_or_default() {
@@ -495,7 +495,7 @@ impl CircleOr {
     #[frb(sync)]
     pub fn handle(&self) -> CircleHandle {
         CircleHandle {
-            id: self.id_hex(),
+            id: self.get_id_userhandle(),
             circle_type: self.get_type(),
         }
     }
@@ -797,16 +797,15 @@ impl PgpApp {
     pub fn get_circles_for_parent(&self, parent: &CircleHandle) -> Result<Vec<CircleOr>> {
         let v = self
             .get_db()
-            .get_circles_for_parent(&parent.id, parent.circle_type.get_type_str())?;
+            .get_circles_for_parent(&parent.id.name(), parent.circle_type.get_type_str())?;
 
         self.circles_from_db(v, false, Some(parent.clone()), false)
     }
 
     pub fn get_circle_by_id(&self, id: &CircleHandle) -> Result<Option<CircleOr>> {
-        println!("get_circle_by_id id={}", id.id);
         let v = self
             .get_db()
-            .get_circles_by_id(&id.id, &id.circle_type.get_type_str())?;
+            .get_circles_by_id(&id.id.name(), &id.circle_type.get_type_str())?;
 
         println!("v={v:#?}");
         println!("id: {id:?} {}", id.circle_type.get_type_str());

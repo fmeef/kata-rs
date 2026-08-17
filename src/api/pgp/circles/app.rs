@@ -433,7 +433,7 @@ impl CircleApp {
 
     pub fn add_circle(&mut self, circle: Circle, tag: MemberTag) -> anyhow::Result<()> {
         let id = CircleHandle {
-            id: circle.inner.id.name(),
+            id: circle.inner.id.clone(),
             circle_type: CircleType::Circle,
         };
         self.inner.children.insert(
@@ -451,7 +451,7 @@ impl CircleApp {
 
     pub fn add_app(&mut self, app: CircleApp, tag: MemberTag) -> anyhow::Result<()> {
         let id = CircleHandle {
-            id: app.id_hex(),
+            id: app.get_id_userhandle(),
             circle_type: CircleType::App,
         };
         self.inner.children.insert(
@@ -469,7 +469,7 @@ impl CircleApp {
 
     pub fn add_user(&mut self, user: UserHandle, tag: MemberTag) -> anyhow::Result<()> {
         let id = CircleHandle {
-            id: user.name(),
+            id: user.clone(),
             circle_type: CircleType::User,
         };
         self.inner.children.insert(

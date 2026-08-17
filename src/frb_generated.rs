@@ -16594,7 +16594,7 @@ impl SseDecode for crate::api::pgp::circles::CircleEntry {
 impl SseDecode for crate::api::pgp::circles::CircleHandle {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_id = <UserHandle>::sse_decode(deserializer);
         let mut var_circleType = <crate::api::pgp::circles::CircleType>::sse_decode(deserializer);
         return crate::api::pgp::circles::CircleHandle {
             id: var_id,
@@ -19442,7 +19442,7 @@ impl SseEncode for crate::api::pgp::circles::CircleEntry {
 impl SseEncode for crate::api::pgp::circles::CircleHandle {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <String>::sse_encode(self.id, serializer);
+        <UserHandle>::sse_encode(self.id, serializer);
         <crate::api::pgp::circles::CircleType>::sse_encode(self.circle_type, serializer);
     }
 }

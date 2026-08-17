@@ -16,6 +16,7 @@ use crate::{
         db::{
             connection::{Crud, OnConflict},
             store::CircleData,
+            utils::HexConvert,
         },
         pgp::{
             cert::PgpCertWithIds,
@@ -156,7 +157,7 @@ impl CircleLike for UserHandle {
     #[frb(sync)]
     fn get_member(&self, id: CircleHandle) -> anyhow::Result<Option<circles::CircleEntry>> {
         let test = CircleHandle {
-            id: self.name(),
+            id: self.clone(),
             circle_type: CircleType::User,
         };
         let res = if id == test {
@@ -175,7 +176,7 @@ impl CircleLike for UserHandle {
     fn iter_members(&self, sink: StreamSink<circles::CircleEntry>) {
         sink.add(circles::CircleEntry {
             id: CircleHandle {
-                id: self.name(),
+                id: self.clone(),
                 circle_type: CircleType::User,
             },
             content: None,
@@ -212,13 +213,16 @@ impl CircleLike for UserHandle {
 impl UserHandle {
     #[frb(sync)]
     pub fn from_hex(hex: &str) -> anyhow::Result<Self> {
-        Ok(Self::KeyHandle(KeyHandle::from_str(hex)?, None))
+        match KeyHandle::from_str(hex) {
+            Ok(v) => Ok(Self::KeyHandle(v, None)),
+            Err(_) => Ok(Self::RawBytes(Vec::<u8>::from_hex(hex)?)),
+        }
     }
 
     #[frb(sync)]
     pub fn handle(&self) -> CircleHandle {
         CircleHandle {
-            id: self.name(),
+            id: self.clone(),
             circle_type: CircleType::User,
         }
     }

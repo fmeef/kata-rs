@@ -283,7 +283,7 @@ impl CircleOr {
     pub fn is_member(&self, user: &CircleHandle) -> bool {
         match self {
             Self::Circle(c) => c.blocking_read().is_member(user),
-            Self::User(u) => *u.blocking_read().name() == user.id,
+            Self::User(u) => *u.blocking_read().name() == user.id.name(),
             Self::App(u) => u.blocking_read().is_member(user),
         }
     }
@@ -303,7 +303,7 @@ impl Circle {
         for CircleHandle { id, circle_type } in self.inner.members.iter() {
             let entity = CircleMembersData {
                 circle_member_id: None,
-                member_id: id.to_owned(),
+                member_id: id.name(),
                 parent_id: self.inner.id.name(),
                 deleted: Some(false),
                 parent_type: "circle".to_owned(),
@@ -557,7 +557,7 @@ mod test {
         let key = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
 
         let member = circle.is_member(&CircleHandle {
-            id: key.name(),
+            id: key,
             circle_type: CircleType::User,
         });
 

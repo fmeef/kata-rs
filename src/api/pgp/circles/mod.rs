@@ -358,13 +358,13 @@ impl PgpApp {
                 ))
                 .map(|v| {
                     let v = v.get_parent_tuple().unwrap();
-                    println!("get_parent_vec={out:?}");
+                    log::debug!("get_parent_vec={out:?}");
                     v
                 })
                 .flatten(),
             None => None,
         };
-        println!("parent = {parent:?}");
+        log::debug!("parent = {parent:?}");
 
         let res = self.get_children(&out, &members, parent, &None, all)?;
 
@@ -378,7 +378,7 @@ impl PgpApp {
             })
             .collect();
 
-        // println!("get! {res:#?}");
+        // log::debug!("get! {res:#?}");
         Ok(res)
     }
 
@@ -416,10 +416,10 @@ impl PgpApp {
             // log::error!("get_parent_vec {}", pv.is_none());
 
             if pv != parent && !all {
-                // println!("skipping pv={pv:?} parent={parent:?}");
+                // log::debug!("skipping pv={pv:?} parent={parent:?}");
                 continue;
             }
-            println!(
+            log::debug!(
                 "not skipping parent={parent:?} child={} type={}",
                 UserHandle::RawBytes(item.get_id()?.to_owned()).name(),
                 item.circle_type
@@ -435,7 +435,7 @@ impl PgpApp {
                 Err(err) => log::error!("failed to fetch key {err}"),
             }
             // log::error!("get key complete");
-            // println!("get_children_parent {item:?}");
+            // log::debug!("get_children_parent {item:?}");
             match item.circle_type.as_ref() {
                 "user" => {
                     let handle = CircleOr::User(RustAutoOpaque::new(handle));
@@ -460,7 +460,7 @@ impl PgpApp {
                         .collect();
 
                     // circle.update_digest();
-                    println!(
+                    log::debug!(
                         "pushing circle id={} actual={} members={}",
                         UserHandle::RawBytes(circle.get_id().to_owned()).name(),
                         UserHandle::RawBytes(item.get_id()?.to_owned()).name(),
@@ -505,7 +505,7 @@ impl PgpApp {
                         circle_type: CircleType::App,
                     };
                     let app = if item.deleted.unwrap_or_default() {
-                        println!("app with members {:?}", app.inner.children);
+                        log::debug!("app with members {:?}", app.inner.children);
                         MaybeDeletedFull::Deleted(item.handle()?)
                     } else {
                         MaybeDeletedFull::Member(CircleOr::App(RustAutoOpaque::new(app)))
@@ -877,13 +877,13 @@ impl PgpApp {
             .get_db()
             .get_circles_by_id(&id.id.name(), &id.circle_type.get_type_str())?;
 
-        println!("v={v:#?}");
-        println!("id: {id:?} {}", id.circle_type.get_type_str());
+        log::debug!("v={v:#?}");
+        log::debug!("id: {id:?} {}", id.circle_type.get_type_str());
 
         let out = self.circles_from_db(v, true, Some(id.clone()), false)?;
-        println!("out={out:?}");
+        log::debug!("out={out:?}");
         Ok(out.into_iter().find(|p| {
-            println!("checking {id:?} {:?}", p.handle());
+            log::debug!("checking {id:?} {:?}", p.handle());
             p.handle() == *id
         }))
     }
@@ -954,7 +954,7 @@ mod test {
         circle.to_db(&app.pgp.db).unwrap();
 
         let out = app.pgp.db.get_circles_join().unwrap();
-        println!("{out:?}");
+        log::debug!("{out:?}");
         //   let out = app.pgp.db.get_circle_by_id(&id).unwrap();
 
         assert_eq!(out.len(), 2);
@@ -983,7 +983,7 @@ mod test {
         circle.to_db(&app.pgp.db).unwrap();
 
         let out = app.pgp.db.get_circles_join().unwrap();
-        println!("{out:?}");
+        log::debug!("{out:?}");
         // let out = app.pgp.db.get_circle_by_id(&id).unwrap();
 
         assert_eq!(out.len(), 3);
@@ -1099,14 +1099,14 @@ mod test {
         parent.to_db(&app.pgp.db).unwrap();
         decoy.to_db(&app.pgp.db).unwrap();
 
-        println!("{:?}", parent.handle());
+        log::debug!("{:?}", parent.handle());
         for (name, circle) in [
             ("circle", &circle),
             ("childcircle", &childcircle),
             ("parent", &parent),
             ("decoy", &decoy),
         ] {
-            println!("circle={name}, id={}", circle.id_hex());
+            log::debug!("circle={name}, id={}", circle.id_hex());
         }
         for (name, circle) in [
             ("circle", circle),
@@ -1114,7 +1114,7 @@ mod test {
             ("parent", parent),
             ("decoy", decoy),
         ] {
-            println!("testing {name}: {} {:?}", circle.id_hex(), circle.handle());
+            log::debug!("testing {name}: {} {:?}", circle.id_hex(), circle.handle());
             let out = app.get_circle_by_id(&circle.handle()).unwrap();
 
             assert!(out.is_some());
@@ -1141,13 +1141,13 @@ mod test {
         circle.to_db(&app.pgp.db).unwrap();
         parent.to_db(&app.pgp.db).unwrap();
 
-        println!("{:?}", parent.handle());
+        log::debug!("{:?}", parent.handle());
         for (name, circle) in [("circle", &circle), ("parent", &parent), ("dummy", &dummy)] {
-            println!("circle={name}, id={}", circle.id_hex());
+            log::debug!("circle={name}, id={}", circle.id_hex());
         }
         for (name, circle) in [("circle", circle), ("parent", parent)] {
             let out = app.get_circle_by_id(&circle.handle()).unwrap();
-            println!("testing {name}: {} {:?}", circle.id_hex(), circle.handle());
+            log::debug!("testing {name}: {} {:?}", circle.id_hex(), circle.handle());
             assert!(!out.unwrap().get_members().is_empty());
         }
     }
@@ -1171,13 +1171,13 @@ mod test {
         dummy.add(&circle, MemberTag::Merge, &app).unwrap();
         parent.to_db(&app.pgp.db).unwrap();
 
-        println!("{:?}", parent.handle());
+        log::debug!("{:?}", parent.handle());
         for (name, circle) in [("circle", &circle), ("parent", &parent), ("dummy", &dummy)] {
-            println!("circle={name}, id={}", circle.id_hex());
+            log::debug!("circle={name}, id={}", circle.id_hex());
         }
         for (name, circle) in [("circle", circle), ("parent", parent)] {
             let out = app.get_circle_by_id(&circle.handle()).unwrap();
-            println!("testing {name}: {} {:?}", circle.id_hex(), circle.handle());
+            log::debug!("testing {name}: {} {:?}", circle.id_hex(), circle.handle());
             assert!(!out.unwrap().get_members().is_empty());
         }
     }

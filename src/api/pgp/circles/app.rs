@@ -629,9 +629,15 @@ impl PgpApp {
 
 #[cfg(test)]
 mod test {
-    use crate::api::{
-        pgp::{circles::app::MemberTag, test_config},
-        PgpApp, PgpAppTrait,
+    use crate::{
+        api::{
+            pgp::{
+                circles::{app::MemberTag, CircleLike, CircleOr},
+                test_config,
+            },
+            PgpApp, PgpAppTrait,
+        },
+        frb_generated::RustAutoOpaque,
     };
 
     #[test]
@@ -728,6 +734,38 @@ mod test {
         assert_eq!(a.inner.children.len(), 1);
         assert_eq!(a.inner.children.len(), 1);
         assert_eq!(a.inner.children, a2.inner.children);
+    }
+
+    #[test]
+    fn app_contains_itself() {
+        let service = PgpApp::create(test_config("app")).unwrap();
+
+        let key = service
+            .generate_key("test@example.com".to_owned())
+            .generate()
+            .unwrap();
+
+        let mut app = service.create_app(&key.cert.fingerprint).unwrap();
+        app.add_app(app.clone(), MemberTag::Merge).unwrap();
+        let app = CircleOr::App(RustAutoOpaque::new(app));
+        app.to_db(&service.get_db()).unwrap();
+
+        let members = app.get_members();
+
+        // let members = service.get_db().get_circles_join().unwrap();
+        // let test = service.circles_from_db(members, false, None, true).unwrap();
+        // for circle in test {
+        //     if let CircleOr::App(ref app) = circle {
+        //         let clone = app.blocking_read().clone();
+        //         let mut app = app.blocking_write();
+        //         app.add_app(clone, MemberTag::Merge).unwrap();
+        //     }
+
+        //     circle.to_db(&service.get_db()).unwrap();
+        // }
+
+        // let members = service.get_db().get_circles_join().unwrap();
+        // let test = service.circles_from_db(members, false, None, true).unwrap();
     }
 
     #[test]

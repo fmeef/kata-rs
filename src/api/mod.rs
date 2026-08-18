@@ -4,7 +4,7 @@ pub mod pgp;
 pub mod ser;
 pub mod sync;
 
-use crate::api::pgp::UserHandle;
+use crate::{api::pgp::UserHandle, LOG_SETUP};
 use flutter_rust_bridge::frb;
 use lazy_static::lazy_static;
 pub use sequoia_cert_store::{LazyCert, Store, StoreUpdate};
@@ -495,6 +495,7 @@ impl PgpAppTest {
 
 impl PgpApp {
     pub fn create(config: Config) -> anyhow::Result<Self> {
+        println!("log_setup {:?}", *LOG_SETUP);
         let db = SqliteDb::new(&config.db_path.to_string_lossy())?;
         run_migrations(&db)?;
         let pgp = PgpService::new(&config.keystore_path.to_string_lossy(), db.clone())?;

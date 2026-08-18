@@ -390,8 +390,8 @@ impl PgpApp {
         start: &Option<CircleHandle>,
         all: bool,
     ) -> Result<BTreeMap<CircleHandle, TagOr>> {
-        let mut count = 0;
-        self.get_children_parent(members, actual, parent, start, all, &mut count)
+        let mut visited = BTreeSet::new();
+        self.get_children_parent(members, actual, parent, start, all, &mut visited, false)
     }
     fn get_children_parent(
         &self,
@@ -400,25 +400,36 @@ impl PgpApp {
         parent: Option<(String, UserHandle)>,
         start: &Option<CircleHandle>,
         all: bool,
-        visited: &mut usize,
+        visited: &mut BTreeSet<(String, UserHandle)>,
+        mut die: bool,
     ) -> Result<BTreeMap<CircleHandle, TagOr>> {
         // log::error!("get_children_parent {parent:?}");
 
         let mut out = BTreeMap::new();
 
-        if *visited > actual.len() {
+        if die {
             return Ok(out);
+        }
+
+        if let Some(ref parent) = parent {
+            if parent.0 == "circle" || parent.0 == "app" {
+                if !visited.insert(parent.clone()) {
+                    die = true;
+                }
+            }
         }
 
         for item in actual {
             // log::error!("for item in actual {item:?}");
             let pv = item.get_parent_tuple()?;
+            let n = item.get_id_tuple()?;
             // log::error!("get_parent_vec {}", pv.is_none());
 
             if pv != parent && !all {
                 // log::debug!("skipping pv={pv:?} parent={parent:?}");
                 continue;
             }
+
             log::debug!(
                 "not skipping parent={parent:?} child={} type={}",
                 UserHandle::RawBytes(item.get_id()?.to_owned()).name(),
@@ -451,10 +462,8 @@ impl PgpApp {
                     let mut circle =
                         Circle::new_mut(item.get_id()?, item.get_author()?, None, self.clone())?;
 
-                    let n = item.get_id_tuple()?;
-
                     circle.inner.members = self
-                        .get_children_parent(members, actual, Some(n), start, false, visited)?
+                        .get_children_parent(members, actual, Some(n), start, false, visited, die)?
                         .into_iter()
                         .flat_map(|(_, u)| u.content.into_option().map(|u| u.handle()))
                         .collect();
@@ -482,10 +491,8 @@ impl PgpApp {
                     let mut app =
                         CircleApp::new_empty(item.get_author()?, item.sig.clone(), self.clone())?;
 
-                    let n = item.get_id_tuple()?;
-
                     app.inner.children = self
-                        .get_children_parent(members, actual, Some(n), start, false, visited)?
+                        .get_children_parent(members, actual, Some(n), start, false, visited, die)?
                         .into_iter()
                         .flat_map(|(v, u)| {
                             u.tag.map(|tag| {
@@ -522,7 +529,7 @@ impl PgpApp {
                 _ => return Err(InternalErr::InvalidCircleType(item.circle_type.clone())),
             }
         }
-        *visited += out.len();
+
         Ok(out)
     }
 }
@@ -1030,7 +1037,6 @@ mod test {
 
     #[test]
     fn get_recursive() {
-        env_logger::init();
         let app = PgpApp::create(test_config("app")).unwrap();
         let key = app
             .generate_key("test@example.com".to_owned())

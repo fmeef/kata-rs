@@ -390,8 +390,8 @@ impl PgpApp {
         start: &Option<CircleHandle>,
         all: bool,
     ) -> Result<BTreeMap<CircleHandle, TagOr>> {
-        let mut visited = BTreeSet::new();
-        self.get_children_parent(members, actual, parent, start, all, &mut visited)
+        let mut count = 0;
+        self.get_children_parent(members, actual, parent, start, all, &mut count)
     }
     fn get_children_parent(
         &self,
@@ -400,18 +400,15 @@ impl PgpApp {
         parent: Option<(String, UserHandle)>,
         start: &Option<CircleHandle>,
         all: bool,
-        visited: &mut BTreeSet<(String, UserHandle)>,
+        visited: &mut usize,
     ) -> Result<BTreeMap<CircleHandle, TagOr>> {
         // log::error!("get_children_parent {parent:?}");
 
         let mut out = BTreeMap::new();
 
-        // TODO: return cached value instead of empty array
-        // if let Some(ref parent) = parent {
-        //     if !visited.insert(parent.clone()) {
-        //         return Ok(out);
-        //     }
-        // }
+        if *visited > actual.len() {
+            return Ok(out);
+        }
 
         for item in actual {
             // log::error!("for item in actual {item:?}");
@@ -525,6 +522,7 @@ impl PgpApp {
                 _ => return Err(InternalErr::InvalidCircleType(item.circle_type.clone())),
             }
         }
+        *visited += out.len();
         Ok(out)
     }
 }

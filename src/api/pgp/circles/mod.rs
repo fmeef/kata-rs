@@ -389,7 +389,7 @@ impl PgpApp {
         parent: Option<(String, UserHandle)>,
         start: &Option<CircleHandle>,
         all: bool,
-    ) -> Result<Vec<(CircleHandle, TagOr)>> {
+    ) -> Result<BTreeMap<CircleHandle, TagOr>> {
         let mut visited = BTreeSet::new();
         self.get_children_parent(members, actual, parent, start, all, &mut visited)
     }
@@ -401,10 +401,10 @@ impl PgpApp {
         start: &Option<CircleHandle>,
         all: bool,
         visited: &mut BTreeSet<(String, UserHandle)>,
-    ) -> Result<Vec<(CircleHandle, TagOr)>> {
+    ) -> Result<BTreeMap<CircleHandle, TagOr>> {
         // log::error!("get_children_parent {parent:?}");
 
-        let mut out = Vec::new();
+        let mut out = BTreeMap::new();
 
         // TODO: return cached value instead of empty array
         // if let Some(ref parent) = parent {
@@ -442,13 +442,13 @@ impl PgpApp {
             match item.circle_type.as_ref() {
                 "user" => {
                     let handle = CircleOr::User(RustAutoOpaque::new(handle));
-                    out.push((
+                    out.insert(
                         handle.handle(),
                         TagOr {
                             content: MaybeDeletedFull::Member(handle),
                             tag: item.get_tag()?,
                         },
-                    ));
+                    );
                 }
                 "circle" => {
                     let mut circle =
@@ -473,13 +473,13 @@ impl PgpApp {
                     circle.validate()?;
                     let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
 
-                    out.push((
+                    out.insert(
                         circle.handle(),
                         TagOr {
                             content: MaybeDeletedFull::Member(circle),
                             tag: item.get_tag()?,
                         },
-                    ));
+                    );
                 }
                 "app" => {
                     let mut app =
@@ -514,13 +514,13 @@ impl PgpApp {
                         MaybeDeletedFull::Member(CircleOr::App(RustAutoOpaque::new(app)))
                     };
 
-                    out.push((
+                    out.insert(
                         id,
                         TagOr {
                             content: app,
                             tag: item.get_tag()?,
                         },
-                    ));
+                    );
                 }
                 _ => return Err(InternalErr::InvalidCircleType(item.circle_type.clone())),
             }

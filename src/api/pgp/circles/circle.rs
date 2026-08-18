@@ -204,6 +204,14 @@ impl CircleLike for Circle {
         Ok(check == self.inner.id.as_bytes())
     }
 
+    #[frb(sync)]
+    fn handle(&self) -> CircleHandle {
+        CircleHandle {
+            id: self.inner.id.clone(),
+            circle_type: CircleType::Circle,
+        }
+    }
+
     fn from_db(db: Vec<crate::api::db::store::CircleWithMembers>) -> Self
     where
         Self: Sized,

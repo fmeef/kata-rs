@@ -27,9 +27,9 @@ use crate::{
             sign::PgpAppVerifier,
             UserHandle, POLICY,
         },
-        PgpApp, SqliteDb,
+        PgpApp, PgpAppTrait, SqliteDb,
     },
-    error::Result,
+    error::{InternalErr, Result},
     frb_generated::{RustAutoOpaque, StreamSink},
 };
 
@@ -62,8 +62,10 @@ impl NonOpaqueApp {
 
         for m in self.members.iter() {
             match m.member {
-                MaybeDeleted::Deleted(ref v) => db.delete_circle_member(&v.name())?,
-                MaybeDeleted::Member(ref v) => v.to_db(db)?,
+                MaybeDeleted::Deleted(ref v) => {
+                    db.delete_circle_member(&v.id.name(), v.circle_type.get_type_str())?
+                }
+                MaybeDeleted::Member(_) => (),
             }
 
             let entity = CircleMembersData {
@@ -87,6 +89,16 @@ impl NonOpaqueApp {
     }
 }
 
+impl AppMember {
+    fn as_read<'a>(&'a self) -> impl std::io::Read + Send + Sync + 'a {
+        self.member
+            .option()
+            .unwrap_or(&EMPTY)
+            .as_read()
+            .chain(self.tag.as_bytes())
+    }
+}
+
 impl MemberTag {
     fn as_bytes<'a>(&'a self) -> &'a [u8] {
         match self {
@@ -107,22 +119,22 @@ impl MemberTag {
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum MaybeDeleted {
-    Member(CircleOr),
-    Deleted(UserHandle),
+    Member(CircleHandle),
+    Deleted(CircleHandle),
 }
 
 impl MaybeDeleted {
     pub(crate) fn member_type(&self) -> String {
         match self {
-            Self::Member(m) => match m {
-                CircleOr::App(_) => "app".to_owned(),
-                CircleOr::User(_) => "user".to_owned(),
-                CircleOr::Circle(_) => "circle".to_owned(),
+            Self::Member(m) => match m.circle_type {
+                CircleType::App => "app".to_owned(),
+                CircleType::User => "user".to_owned(),
+                CircleType::Circle => "circle".to_owned(),
             },
             Self::Deleted(_) => "TODO DELETED".to_owned(),
         }
     }
-    fn option(&self) -> Option<&'_ CircleOr> {
+    fn option(&self) -> Option<&'_ CircleHandle> {
         match self {
             Self::Member(v) => Some(v),
             Self::Deleted(_) => None,
@@ -131,12 +143,12 @@ impl MaybeDeleted {
 
     pub(crate) fn delete(&self) -> MaybeDeleted {
         match self {
-            MaybeDeleted::Member(m) => MaybeDeleted::Deleted(m.clone().get_userhandle()),
+            MaybeDeleted::Member(m) => MaybeDeleted::Deleted(m.clone()),
             v => v.clone(),
         }
     }
 
-    pub(crate) fn into_option(self) -> Option<CircleOr> {
+    pub(crate) fn into_option(self) -> Option<CircleHandle> {
         match self {
             Self::Member(member) => Some(member),
             Self::Deleted(_) => None,
@@ -144,22 +156,14 @@ impl MaybeDeleted {
     }
 
     #[frb(sync)]
-    pub fn member(&self) -> Option<CircleOr> {
+    pub fn member(&self) -> Option<CircleHandle> {
         self.clone().into_option()
     }
 
-    fn option_mut(&mut self) -> Option<&'_ mut CircleOr> {
+    fn option_mut(&mut self) -> Option<&'_ mut CircleHandle> {
         match self {
             Self::Member(v) => Some(v),
             Self::Deleted(_) => None,
-        }
-    }
-
-    #[frb(sync)]
-    fn id_hex(&self) -> String {
-        match self {
-            Self::Member(m) => m.id_hex(),
-            Self::Deleted(m) => m.name(),
         }
     }
 
@@ -167,6 +171,14 @@ impl MaybeDeleted {
         match self {
             Self::Deleted(_) => true,
             Self::Member(_) => false,
+        }
+    }
+
+    #[frb(sync)]
+    fn id_hex(&self) -> String {
+        match self {
+            Self::Member(m) => m.id.name(),
+            Self::Deleted(m) => m.id.name(),
         }
     }
 }
@@ -178,23 +190,12 @@ pub struct AppMember {
     pub tag: MemberTag,
 }
 
-fn generic_read() -> impl std::io::Read + 'static {
-    let v = &[];
-    v.as_slice()
-}
-
+// TODO: fixd
 lazy_static! {
-    static ref EMPTY: CircleOr = CircleOr::empty();
-}
-
-impl AppMember {
-    fn as_read<'a>(&'a self) -> impl std::io::Read + Send + Sync + 'a {
-        self.member
-            .option()
-            .unwrap_or(&EMPTY)
-            .as_read()
-            .chain(self.tag.as_bytes())
-    }
+    static ref EMPTY: CircleHandle = CircleHandle {
+        id: UserHandle::RawBytes(vec![]),
+        circle_type: CircleType::User
+    };
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -245,19 +246,24 @@ impl CircleLike for CircleApp {
 
     fn iter_members(&self, sink: StreamSink<CircleEntry>) {
         for (id, member) in self.inner.children.iter() {
-            sink.add(CircleEntry::from_app_member(member.clone(), id.clone()))
-                .unwrap();
+            if let Ok(Some(v)) = self.pgp.get_circle_by_id(id) {
+                sink.add(CircleEntry::from_circle_or_tag(v, member.tag))
+                    .unwrap();
+            }
         }
     }
 
     #[frb(sync)]
     fn get_member(&self, id: CircleHandle) -> anyhow::Result<Option<CircleEntry>> {
-        let res = self
-            .inner
-            .children
-            .get(&id) //TODO: handle circle type here
-            .cloned()
-            .map(|v| CircleEntry::from_app_member(v, id));
+        let res = self.inner.children.get(&id).and_then(|t| {
+            t.member.option().and_then(|v| {
+                self.pgp
+                    .get_circle_by_id(v)
+                    .ok()
+                    .and_then(|v| v)
+                    .map(|v| CircleEntry::from_circle_or_tag(v, t.tag))
+            })
+        });
         Ok(res)
     }
 
@@ -280,12 +286,25 @@ impl CircleLike for CircleApp {
         self.inner
             .children
             .iter()
-            .map(|(id, v)| CircleEntry::from_app_member(v.clone(), id.clone()))
+            .flat_map(|(id, v)| {
+                self.pgp
+                    .get_circle_by_id(id)
+                    .ok()
+                    .and_then(|circ| circ.map(|circ| CircleEntry::from_circle_or_tag(circ, v.tag)))
+            })
             .collect()
     }
 
     fn validate(&self) -> anyhow::Result<bool> {
         self.pgp.verify_app(self)
+    }
+
+    #[frb(sync)]
+    fn handle(&self) -> CircleHandle {
+        CircleHandle {
+            id: self.get_id_userhandle(),
+            circle_type: CircleType::App,
+        }
     }
 }
 
@@ -318,14 +337,13 @@ impl CircleApp {
         for member in self.inner.children.values() {
             match member.member {
                 MaybeDeleted::Member(ref m) => {
-                    m.to_db(db)?;
                     let entity = CircleMembersData {
                         circle_member_id: None,
-                        member_id: m.id_hex(),
+                        member_id: m.id.name(),
                         deleted: Some(false),
                         parent_type: "app".to_owned(),
                         parent_id: self.inner.owner.name(),
-                        member_type: m.db_type(),
+                        member_type: m.circle_type.get_type_str().to_owned(),
                         tag: Some(member.tag.as_str().to_owned()),
                     };
 
@@ -338,7 +356,7 @@ impl CircleApp {
                 MaybeDeleted::Deleted(ref d) => {
                     let entity = CircleMembersData {
                         circle_member_id: None,
-                        member_id: d.name(),
+                        member_id: d.id.name(),
                         deleted: Some(true),
                         parent_type: "app".to_owned(),
                         parent_id: self.inner.owner.name(),
@@ -417,11 +435,7 @@ impl CircleApp {
     }
 
     pub fn is_member(&self, user: &CircleHandle) -> bool {
-        self.inner
-            .children
-            .values()
-            .flat_map(|v| v.member.option())
-            .any(|v| v.is_member(user))
+        self.inner.children.contains_key(user)
     }
 
     fn to_read<'a>(&'a self) -> impl std::io::Read + Send + Sync + 'a {
@@ -452,12 +466,13 @@ impl CircleApp {
             id: circle.inner.id.clone(),
             circle_type: CircleType::Circle,
         };
+        circle.to_db(&self.pgp.get_db())?;
         self.inner.children.insert(
             id,
             AppMember {
                 member: match tag {
-                    MemberTag::Delete => MaybeDeleted::Deleted(circle.get_id_userhandle()),
-                    _ => MaybeDeleted::Member(CircleOr::Circle(RustAutoOpaque::new(circle))),
+                    MemberTag::Delete => MaybeDeleted::Deleted(circle.handle()),
+                    _ => MaybeDeleted::Member(circle.handle()),
                 },
                 tag,
             },
@@ -470,12 +485,13 @@ impl CircleApp {
             id: app.get_id_userhandle(),
             circle_type: CircleType::App,
         };
+        app.to_db(&self.pgp.get_db())?;
         self.inner.children.insert(
             id,
             AppMember {
                 member: match tag {
-                    MemberTag::Delete => MaybeDeleted::Deleted(app.get_id_userhandle()),
-                    _ => MaybeDeleted::Member(CircleOr::App(RustAutoOpaque::new(app))),
+                    MemberTag::Delete => MaybeDeleted::Deleted(app.handle()),
+                    _ => MaybeDeleted::Member(app.handle()),
                 },
                 tag,
             },
@@ -488,12 +504,13 @@ impl CircleApp {
             id: user.clone(),
             circle_type: CircleType::User,
         };
+        user.to_db(&self.pgp.get_db())?;
         self.inner.children.insert(
             id,
             AppMember {
                 member: match tag {
-                    MemberTag::Delete => MaybeDeleted::Deleted(user),
-                    _ => MaybeDeleted::Member(CircleOr::User(RustAutoOpaque::new(user))),
+                    MemberTag::Delete => MaybeDeleted::Deleted(user.get_handle()),
+                    _ => MaybeDeleted::Member(user.get_handle()),
                 },
                 tag,
             },
@@ -532,12 +549,19 @@ impl CircleApp {
                     (MemberTag::Merge, MemberTag::Merge) => {
                         // if the id is the same, we have the same user or the same circle,
                         // but apps must be merged
-                        if let (
-                            MaybeDeleted::Member(CircleOr::App(ours)),
-                            MaybeDeleted::Member(CircleOr::App(theirs)),
-                        ) = (&mut ours.get_mut().member, &entry.member)
+                        if let (MaybeDeleted::Member(ours), MaybeDeleted::Member(theirs)) =
+                            (&mut ours.get_mut().member, &entry.member)
                         {
-                            ours.blocking_write().merge(&theirs.blocking_read())?;
+                            // TODO: cycle detection here
+                            match (
+                                self.pgp.get_circle_by_id(ours)?,
+                                self.pgp.get_circle_by_id(theirs)?,
+                            ) {
+                                (Some(CircleOr::App(ours)), Some(CircleOr::App(theirs))) => {
+                                    ours.blocking_write().merge(&theirs.blocking_read())?
+                                }
+                                _ => (),
+                            }
                         }
                     }
                 },

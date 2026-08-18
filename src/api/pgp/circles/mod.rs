@@ -1,9 +1,7 @@
 use anyhow::anyhow;
 use flutter_rust_bridge::frb;
-use sequoia_openpgp::{Fingerprint, KeyHandle};
 
 use crate::api::db::store::CertDao;
-use crate::api::db::utils::HexConvert;
 use crate::api::pgp::PgpServiceTrait;
 use crate::api::{PgpApp, PgpAppTrait};
 use crate::{
@@ -58,6 +56,59 @@ pub struct CircleHandle {
 //     }
 // }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum MaybeDeletedFull {
+    Member(CircleOr),
+    Deleted(CircleHandle),
+}
+
+impl MaybeDeletedFull {
+    pub(crate) fn member_type(&self) -> String {
+        match self {
+            Self::Member(m) => match m {
+                CircleOr::App(_) => "app".to_owned(),
+                CircleOr::User(_) => "user".to_owned(),
+                CircleOr::Circle(_) => "circle".to_owned(),
+            },
+            Self::Deleted(_) => "TODO DELETED".to_owned(),
+        }
+    }
+    fn option(&self) -> Option<&'_ CircleOr> {
+        match self {
+            Self::Member(v) => Some(v),
+            Self::Deleted(_) => None,
+        }
+    }
+
+    pub(crate) fn into_option(self) -> Option<CircleOr> {
+        match self {
+            Self::Member(member) => Some(member),
+            Self::Deleted(_) => None,
+        }
+    }
+
+    fn thin(self) -> MaybeDeleted {
+        match self {
+            Self::Member(v) => MaybeDeleted::Member(v.handle()),
+            Self::Deleted(v) => MaybeDeleted::Deleted(v),
+        }
+    }
+
+    fn option_mut(&mut self) -> Option<&'_ mut CircleOr> {
+        match self {
+            Self::Member(v) => Some(v),
+            Self::Deleted(_) => None,
+        }
+    }
+
+    fn is_none(&self) -> bool {
+        match self {
+            Self::Deleted(_) => true,
+            Self::Member(_) => false,
+        }
+    }
+}
+
 impl CircleHandle {
     pub(crate) fn get_bin(&self) -> Result<Vec<u8>> {
         let mut res = self.id.as_bytes().to_owned();
@@ -65,6 +116,10 @@ impl CircleHandle {
         res.push(self.circle_type.get_type_u8());
 
         Ok(res)
+    }
+
+    fn as_read<'a>(&'a self) -> impl std::io::Read + Send + Sync + 'a {
+        self.id.as_bytes()
     }
 
     fn get_bytes(&self) -> Result<Vec<u8>> {
@@ -217,6 +272,15 @@ impl CircleLike for CircleOr {
             Self::User(u) => u.blocking_read().validate(),
         }
     }
+
+    #[frb(sync)]
+    fn handle(&self) -> CircleHandle {
+        match self {
+            Self::App(a) => a.blocking_read().handle(),
+            Self::Circle(c) => c.blocking_read().handle(),
+            Self::User(u) => u.blocking_read().handle(),
+        }
+    }
 }
 
 impl Hash for CircleOr {
@@ -227,7 +291,7 @@ impl Hash for CircleOr {
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct TagOr {
-    content: MaybeDeleted,
+    content: MaybeDeletedFull,
     tag: Option<MemberTag>,
 }
 
@@ -341,11 +405,13 @@ impl PgpApp {
         // log::error!("get_children_parent {parent:?}");
 
         let mut out = Vec::new();
-        if let Some(ref parent) = parent {
-            if !visited.insert(parent.clone()) {
-                return Ok(out);
-            }
-        }
+
+        // TODO: return cached value instead of empty array
+        // if let Some(ref parent) = parent {
+        //     if !visited.insert(parent.clone()) {
+        //         return Ok(out);
+        //     }
+        // }
 
         for item in actual {
             // log::error!("for item in actual {item:?}");
@@ -379,7 +445,7 @@ impl PgpApp {
                     out.push((
                         handle.handle(),
                         TagOr {
-                            content: MaybeDeleted::Member(handle),
+                            content: MaybeDeletedFull::Member(handle),
                             tag: item.get_tag()?,
                         },
                     ));
@@ -410,7 +476,7 @@ impl PgpApp {
                     out.push((
                         circle.handle(),
                         TagOr {
-                            content: MaybeDeleted::Member(circle),
+                            content: MaybeDeletedFull::Member(circle),
                             tag: item.get_tag()?,
                         },
                     ));
@@ -429,7 +495,7 @@ impl PgpApp {
                                 (
                                     v,
                                     AppMember {
-                                        member: u.content,
+                                        member: u.content.thin(),
                                         tag,
                                     },
                                 )
@@ -443,9 +509,9 @@ impl PgpApp {
                     };
                     let app = if item.deleted.unwrap_or_default() {
                         println!("app with members {:?}", app.inner.children);
-                        MaybeDeleted::Deleted(item.get_id_userhandle()?)
+                        MaybeDeletedFull::Deleted(item.handle()?)
                     } else {
-                        MaybeDeleted::Member(CircleOr::App(RustAutoOpaque::new(app)))
+                        MaybeDeletedFull::Member(CircleOr::App(RustAutoOpaque::new(app)))
                     };
 
                     out.push((
@@ -492,8 +558,7 @@ impl CircleOr {
         Ok(())
     }
 
-    #[frb(sync)]
-    pub fn handle(&self) -> CircleHandle {
+    fn get_handle(&self) -> CircleHandle {
         CircleHandle {
             id: self.get_id_userhandle(),
             circle_type: self.get_type(),
@@ -550,19 +615,19 @@ pub struct CircleEntry {
 }
 
 impl CircleEntry {
-    pub(crate) fn from_app_member(member: AppMember, id: CircleHandle) -> Self {
-        Self {
-            id,
-            content: member.member.into_option(),
-            tag: Some(member.tag),
-        }
-    }
-
     pub(crate) fn from_circle_or(circleor: CircleOr) -> Self {
         Self {
             id: circleor.handle(),
             content: Some(circleor),
             tag: None,
+        }
+    }
+
+    pub(crate) fn from_circle_or_tag(circleor: CircleOr, tag: MemberTag) -> Self {
+        Self {
+            id: circleor.handle(),
+            content: Some(circleor),
+            tag: Some(tag),
         }
     }
 }
@@ -609,6 +674,8 @@ pub trait CircleLike {
     fn get_type(&self) -> CircleType;
     fn insert(&self, db: &SqliteDb) -> anyhow::Result<()>;
     fn validate(&self) -> anyhow::Result<bool>;
+    #[frb(sync)]
+    fn handle(&self) -> CircleHandle;
     fn from_db(db: Vec<CircleWithMembers>) -> Self
     where
         Self: Sized,
@@ -680,6 +747,11 @@ where
 
     fn validate(&self) -> anyhow::Result<bool> {
         (*self).validate()
+    }
+
+    #[frb(sync)]
+    fn handle(&self) -> CircleHandle {
+        (*self).handle()
     }
 }
 

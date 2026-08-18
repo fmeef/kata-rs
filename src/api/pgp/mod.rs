@@ -208,6 +208,11 @@ impl CircleLike for UserHandle {
     fn validate(&self) -> anyhow::Result<bool> {
         Ok(true)
     }
+
+    #[frb(sync)]
+    fn handle(&self) -> CircleHandle {
+        self.get_handle()
+    }
 }
 
 impl UserHandle {
@@ -220,7 +225,7 @@ impl UserHandle {
     }
 
     #[frb(sync)]
-    pub fn handle(&self) -> CircleHandle {
+    fn get_handle(&self) -> CircleHandle {
         CircleHandle {
             id: self.clone(),
             circle_type: CircleType::User,

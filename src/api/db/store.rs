@@ -10,7 +10,7 @@ use crate::api::db::entities::FromRow;
 use crate::api::db::migrations::rollback;
 use crate::api::pgp::cert::PgpCert;
 use crate::api::pgp::circles::app::MemberTag;
-use crate::api::pgp::circles::CircleOr;
+use crate::api::pgp::circles::{CircleHandle, CircleOr, CircleType};
 use crate::api::pgp::UserHandle;
 use crate::error::{InternalErr, Result};
 use macros::{dao, query, FromRow};
@@ -196,8 +196,8 @@ pub trait CertDao {
     #[query("PRAGMA user_version")]
     fn get_migration_version(&self) -> Result<usize>;
 
-    #[query("UPDATE circle_members SET deleted = '1' WHERE member_id = :id")]
-    fn delete_circle_member(&self, id: &str) -> Result<()>;
+    #[query("UPDATE circle_members SET deleted = '1' WHERE member_id = :id AND member_type = :ty")]
+    fn delete_circle_member(&self, id: &str, ty: &str) -> Result<()>;
 
     #[query("UPDATE circle_members SET tag = :tag WHERE member_id = :member")]
     fn update_tag(&self, tag: &str, member: &str) -> Result<()>;
@@ -360,6 +360,22 @@ impl CircleWithMembers {
 
         // println!("get_parent_tuple={out:?}");
         out
+    }
+
+    pub(crate) fn handle(&self) -> Result<CircleHandle> {
+        let ty = match self.circle_type.as_str() {
+            "circle" => CircleType::Circle,
+            "user" => CircleType::User,
+            "app" => CircleType::App,
+            v => return Err(InternalErr::InvalidCircleType(v.to_owned())),
+        };
+
+        let handle = CircleHandle {
+            id: self.get_id_userhandle()?,
+            circle_type: ty,
+        };
+
+        Ok(handle)
     }
 
     pub fn get_id(&self) -> Result<Vec<u8>> {

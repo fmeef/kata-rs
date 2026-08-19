@@ -750,7 +750,7 @@ mod test {
         let app = CircleOr::App(RustAutoOpaque::new(app));
         app.to_db(&service.get_db()).unwrap();
 
-        let members = app.get_members();
+        let _ = app.get_members();
 
         // let members = service.get_db().get_circles_join().unwrap();
         // let test = service.circles_from_db(members, false, None, true).unwrap();

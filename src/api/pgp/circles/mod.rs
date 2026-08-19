@@ -390,9 +390,11 @@ impl PgpApp {
         start: &Option<CircleHandle>,
         all: bool,
     ) -> Result<BTreeMap<CircleHandle, TagOr>> {
+        log::info!("get_children cache={}", members.len());
         let mut visited = BTreeSet::new();
         self.get_children_parent(members, actual, parent, start, all, &mut visited, false)
     }
+
     fn get_children_parent(
         &self,
         members: &ParentCache,
@@ -530,6 +532,9 @@ impl PgpApp {
             }
         }
 
+        if let Some(ref parent) = parent {
+            visited.remove(parent);
+        }
         Ok(out)
     }
 }
@@ -876,7 +881,7 @@ impl PgpApp {
             .get_db()
             .get_circles_for_parent(&parent.id.name(), parent.circle_type.get_type_str())?;
 
-        self.circles_from_db(v, false, Some(parent.clone()), false)
+        self.circles_from_db(v, true, Some(parent.clone()), false)
     }
 
     pub fn get_circle_by_id(&self, id: &CircleHandle) -> Result<Option<CircleOr>> {

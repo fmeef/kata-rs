@@ -390,7 +390,8 @@ impl PgpApp {
         start: &Option<CircleHandle>,
         all: bool,
     ) -> Result<BTreeMap<CircleHandle, TagOr>> {
-        log::info!("get_children cache={}", members.len());
+        log::error!("get_children cache={}", members.len());
+        log::error!("actual={actual:?}");
         let mut visited = BTreeSet::new();
         self.get_children_parent(members, actual, parent, start, all, &mut visited, false)
     }
@@ -416,6 +417,7 @@ impl PgpApp {
         if let Some(ref parent) = parent {
             if parent.0 == "circle" || parent.0 == "app" {
                 if !visited.insert(parent.clone()) {
+                    log::error!("cycle detected {parent:?}, dying on next call");
                     die = true;
                 }
             }
@@ -890,12 +892,12 @@ impl PgpApp {
             .get_circles_by_id(&id.id.name(), &id.circle_type.get_type_str())?;
 
         log::debug!("v={v:#?}");
-        log::debug!("id: {id:?} {}", id.circle_type.get_type_str());
+        log::error!("id: {id:?} {}", id.circle_type.get_type_str());
 
         let out = self.circles_from_db(v, true, Some(id.clone()), false)?;
         log::debug!("out={out:?}");
         Ok(out.into_iter().find(|p| {
-            log::debug!("checking {id:?} {:?}", p.handle());
+            log::error!("checking {id:?} {:?}", p.handle());
             p.handle() == *id
         }))
     }

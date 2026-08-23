@@ -211,13 +211,6 @@ impl CircleLike for Circle {
             circle_type: CircleType::Circle,
         }
     }
-
-    fn from_db(db: Vec<crate::api::db::store::CircleWithMembers>) -> Self
-    where
-        Self: Sized,
-    {
-        todo!()
-    }
 }
 
 impl Circle {

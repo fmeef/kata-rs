@@ -688,12 +688,6 @@ pub trait CircleLike {
     fn validate(&self) -> anyhow::Result<bool>;
     #[frb(sync)]
     fn handle(&self) -> CircleHandle;
-    fn from_db(db: Vec<CircleWithMembers>) -> Self
-    where
-        Self: Sized,
-    {
-        panic!("not implemented")
-    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]

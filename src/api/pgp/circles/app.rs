@@ -306,6 +306,11 @@ impl CircleLike for CircleApp {
             circle_type: CircleType::App,
         }
     }
+
+    #[frb(sync)]
+    fn get_owner(&self) -> Option<UserHandle> {
+        Some(self.inner.owner.clone())
+    }
 }
 
 impl CircleApp {

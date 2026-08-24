@@ -211,6 +211,11 @@ impl CircleLike for Circle {
             circle_type: CircleType::Circle,
         }
     }
+
+    #[frb(sync)]
+    fn get_owner(&self) -> Option<UserHandle> {
+        self.inner.author.as_ref().map(|v| v.author.clone())
+    }
 }
 
 impl Circle {

@@ -281,6 +281,15 @@ impl CircleLike for CircleOr {
             Self::User(u) => u.blocking_read().handle(),
         }
     }
+
+    #[frb(sync)]
+    fn get_owner(&self) -> Option<UserHandle> {
+        match self {
+            Self::App(a) => a.blocking_read().get_owner(),
+            Self::Circle(c) => c.blocking_read().get_owner(),
+            Self::User(u) => u.blocking_read().get_owner(),
+        }
+    }
 }
 
 impl Hash for CircleOr {
@@ -688,6 +697,8 @@ pub trait CircleLike {
     fn validate(&self) -> anyhow::Result<bool>;
     #[frb(sync)]
     fn handle(&self) -> CircleHandle;
+    #[frb(sync)]
+    fn get_owner(&self) -> Option<UserHandle>;
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -758,6 +769,11 @@ where
     #[frb(sync)]
     fn handle(&self) -> CircleHandle {
         (*self).handle()
+    }
+
+    #[frb(sync)]
+    fn get_owner(&self) -> Option<UserHandle> {
+        (*self).get_owner()
     }
 }
 

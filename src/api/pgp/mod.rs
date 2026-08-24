@@ -213,6 +213,11 @@ impl CircleLike for UserHandle {
     fn handle(&self) -> CircleHandle {
         self.get_handle()
     }
+
+    #[frb(sync)]
+    fn get_owner(&self) -> Option<UserHandle> {
+        None
+    }
 }
 
 impl UserHandle {

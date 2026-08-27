@@ -28,7 +28,7 @@ pub mod app;
 pub mod circle;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[frb(non_opaque)]
+#[frb(opaque)]
 pub struct CircleHandle {
     pub id: UserHandle,
     pub circle_type: CircleType,
@@ -220,7 +220,7 @@ impl CircleLike for CircleOr {
         }
     }
     #[frb(sync)]
-    fn get_member(&self, id: CircleHandle) -> anyhow::Result<Option<CircleEntry>> {
+    fn get_member(&self, id: &CircleHandle) -> anyhow::Result<Option<CircleEntry>> {
         match self {
             Self::App(a) => a.blocking_read().get_member(id),
             Self::User(u) => u.blocking_read().get_member(id),
@@ -683,7 +683,7 @@ impl CircleType {
 pub trait CircleLike {
     fn iter_members(&self, sink: StreamSink<CircleEntry>);
     #[frb(sync)]
-    fn get_member(&self, id: CircleHandle) -> anyhow::Result<Option<CircleEntry>>;
+    fn get_member(&self, id: &CircleHandle) -> anyhow::Result<Option<CircleEntry>>;
     #[frb(sync)]
     fn get_members(&self) -> Vec<CircleEntry>;
     fn verify(&self) -> anyhow::Result<bool>;
@@ -736,7 +736,7 @@ where
     }
 
     #[frb(sync)]
-    fn get_member(&self, id: CircleHandle) -> anyhow::Result<Option<CircleEntry>> {
+    fn get_member(&self, id: &CircleHandle) -> anyhow::Result<Option<CircleEntry>> {
         (*self).get_member(id)
     }
 

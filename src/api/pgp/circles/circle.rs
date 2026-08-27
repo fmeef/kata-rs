@@ -148,7 +148,7 @@ impl CircleLike for Circle {
     }
 
     #[frb(sync)]
-    fn get_member(&self, id: CircleHandle) -> anyhow::Result<Option<CircleEntry>> {
+    fn get_member(&self, id: &CircleHandle) -> anyhow::Result<Option<CircleEntry>> {
         let res = self.inner.members.get(&id);
 
         match res {

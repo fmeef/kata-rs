@@ -155,14 +155,14 @@ impl CircleLike for UserHandle {
     }
 
     #[frb(sync)]
-    fn get_member(&self, id: CircleHandle) -> anyhow::Result<Option<circles::CircleEntry>> {
+    fn get_member(&self, id: &CircleHandle) -> anyhow::Result<Option<circles::CircleEntry>> {
         let test = CircleHandle {
             id: self.clone(),
             circle_type: CircleType::User,
         };
-        let res = if id == test {
+        let res = if *id == test {
             Some(circles::CircleEntry {
-                id,
+                id: id.clone(),
                 content: None,
                 tag: None,
             })

@@ -254,7 +254,7 @@ impl CircleLike for CircleApp {
     }
 
     #[frb(sync)]
-    fn get_member(&self, id: CircleHandle) -> anyhow::Result<Option<CircleEntry>> {
+    fn get_member(&self, id: &CircleHandle) -> anyhow::Result<Option<CircleEntry>> {
         let res = self.inner.children.get(&id).and_then(|t| {
             t.member.option().and_then(|v| {
                 self.pgp

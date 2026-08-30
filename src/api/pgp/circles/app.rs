@@ -466,6 +466,17 @@ impl CircleApp {
         Ok(())
     }
 
+    pub fn remove(&mut self, handle: &CircleHandle, delete: bool) -> anyhow::Result<()> {
+        if delete {
+            if let Some(child) = self.inner.children.get_mut(handle) {
+                child.member = child.member.delete();
+            }
+        } else {
+            self.inner.children.remove(handle);
+        }
+        self.resign()
+    }
+
     pub fn add_circle(&mut self, circle: &Circle, tag: MemberTag) -> anyhow::Result<()> {
         let id = CircleHandle {
             id: circle.inner.id.clone(),

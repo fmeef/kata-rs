@@ -1,6 +1,5 @@
 use std::{
     collections::{BTreeMap, HashMap},
-    fmt::Debug,
     sync::{Arc, Mutex, MutexGuard, RwLock},
 };
 
@@ -28,6 +27,7 @@ pub trait Crud {
         conn: &SqliteDb,
         on_conflict: OnConflict,
         cols: Vec<&str>,
+        set: Vec<&str>,
     ) -> anyhow::Result<()>;
 
     fn insert_on_conflict_cols(
@@ -35,8 +35,14 @@ pub trait Crud {
         conn: &SqliteDb,
         on_conflict: OnConflict,
         cols: Vec<String>,
+        set: Vec<String>,
     ) -> anyhow::Result<()> {
-        self.insert_on_conflict_custom(conn, on_conflict, cols.iter().map(|v| v.as_str()).collect())
+        self.insert_on_conflict_custom(
+            conn,
+            on_conflict,
+            cols.iter().map(|v| v.as_str()).collect(),
+            set.iter().map(|v| v.as_str()).collect(),
+        )
     }
 
     fn insert_on_conflict(&self, conn: &SqliteDb, on_conflict: OnConflict) -> anyhow::Result<()>;

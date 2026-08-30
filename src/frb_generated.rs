@@ -1777,6 +1777,7 @@ fn wire__crate__api__db__store__CircleData_insert_on_conflict_cols_impl(
             let api_on_conflict =
                 <crate::api::db::connection::OnConflict>::sse_decode(&mut deserializer);
             let api_cols = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_set = <Vec<String>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -1808,6 +1809,7 @@ fn wire__crate__api__db__store__CircleData_insert_on_conflict_cols_impl(
                             &*api_conn_guard,
                             api_on_conflict,
                             api_cols,
+                            api_set,
                         )?;
                         Ok(output_ok)
                     })(),
@@ -2656,6 +2658,7 @@ fn wire__crate__api__db__store__CircleMembersData_insert_on_conflict_cols_impl(
             let api_on_conflict =
                 <crate::api::db::connection::OnConflict>::sse_decode(&mut deserializer);
             let api_cols = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_set = <Vec<String>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -2688,6 +2691,7 @@ fn wire__crate__api__db__store__CircleMembersData_insert_on_conflict_cols_impl(
                                 &*api_conn_guard,
                                 api_on_conflict,
                                 api_cols,
+                                api_set,
                             )?;
                         Ok(output_ok)
                     })(),
@@ -3470,6 +3474,7 @@ fn wire__crate__api__db__store__CircleWithMembers_insert_on_conflict_cols_impl(
             let api_on_conflict =
                 <crate::api::db::connection::OnConflict>::sse_decode(&mut deserializer);
             let api_cols = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_set = <Vec<String>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -3502,6 +3507,7 @@ fn wire__crate__api__db__store__CircleWithMembers_insert_on_conflict_cols_impl(
                                 &*api_conn_guard,
                                 api_on_conflict,
                                 api_cols,
+                                api_set,
                             )?;
                         Ok(output_ok)
                     })(),
@@ -5773,6 +5779,7 @@ fn wire__crate__api__db__entities__NewsGroup_insert_on_conflict_cols_impl(
             let api_on_conflict =
                 <crate::api::db::connection::OnConflict>::sse_decode(&mut deserializer);
             let api_cols = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_set = <Vec<String>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -5805,6 +5812,7 @@ fn wire__crate__api__db__entities__NewsGroup_insert_on_conflict_cols_impl(
                                 &*api_conn_guard,
                                 api_on_conflict,
                                 api_cols,
+                                api_set,
                             )?;
                         Ok(output_ok)
                     })(),
@@ -10312,6 +10320,7 @@ fn wire__crate__api__db__store__PgpDataCert_insert_on_conflict_cols_impl(
             let api_on_conflict =
                 <crate::api::db::connection::OnConflict>::sse_decode(&mut deserializer);
             let api_cols = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_set = <Vec<String>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -10344,6 +10353,7 @@ fn wire__crate__api__db__store__PgpDataCert_insert_on_conflict_cols_impl(
                                 &*api_conn_guard,
                                 api_on_conflict,
                                 api_cols,
+                                api_set,
                             )?;
                         Ok(output_ok)
                     })(),
@@ -15477,6 +15487,7 @@ fn wire__crate__api__db__store__only_fingerprint_insert_on_conflict_cols_impl(
             let api_on_conflict =
                 <crate::api::db::connection::OnConflict>::sse_decode(&mut deserializer);
             let api_cols = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_set = <Vec<String>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -15501,6 +15512,7 @@ fn wire__crate__api__db__store__only_fingerprint_insert_on_conflict_cols_impl(
                                 &*api_conn_guard,
                                 api_on_conflict,
                                 api_cols,
+                                api_set,
                             )?;
                         Ok(output_ok)
                     })(),
@@ -15823,6 +15835,7 @@ fn wire__crate__api__db__store__only_id_insert_on_conflict_cols_impl(
             let api_on_conflict =
                 <crate::api::db::connection::OnConflict>::sse_decode(&mut deserializer);
             let api_cols = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_set = <Vec<String>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -15846,6 +15859,7 @@ fn wire__crate__api__db__store__only_id_insert_on_conflict_cols_impl(
                             &*api_conn_guard,
                             api_on_conflict,
                             api_cols,
+                            api_set,
                         )?;
                         Ok(output_ok)
                     })(),
@@ -16166,6 +16180,7 @@ fn wire__crate__api__db__store__only_online_insert_on_conflict_cols_impl(
             let api_on_conflict =
                 <crate::api::db::connection::OnConflict>::sse_decode(&mut deserializer);
             let api_cols = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_set = <Vec<String>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -16189,6 +16204,7 @@ fn wire__crate__api__db__store__only_online_insert_on_conflict_cols_impl(
                             &*api_conn_guard,
                             api_on_conflict,
                             api_cols,
+                            api_set,
                         )?;
                         Ok(output_ok)
                     })(),

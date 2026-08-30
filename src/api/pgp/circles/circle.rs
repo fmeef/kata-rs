@@ -304,7 +304,12 @@ impl Circle {
             sig: self.inner.author.as_ref().map(|v| v.sig.clone()),
         };
 
-        entity.insert_on_conflict_custom(db, OnConflict::Update, vec!["id", "circle_type"])?;
+        entity.insert_on_conflict_custom(
+            db,
+            OnConflict::Update,
+            vec!["id", "circle_type"],
+            vec!["author", "sig", "circle_type"],
+        )?;
 
         for CircleHandle { id, circle_type } in self.inner.members.iter() {
             if let CircleType::User = circle_type {
@@ -318,6 +323,7 @@ impl Circle {
                     db,
                     OnConflict::Ignore,
                     vec!["id", "circle_type"],
+                    vec!["author", "sig", "circle_type"],
                 )?;
             }
         }
@@ -336,6 +342,7 @@ impl Circle {
                 db,
                 OnConflict::Update,
                 vec!["member_id", "parent_id", "member_type", "parent_type"],
+                vec!["tag", "deleted"],
             )?;
         }
 

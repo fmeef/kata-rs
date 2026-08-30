@@ -118,9 +118,9 @@ fn generate_crud_impl(st: &[ColumnField], name: &Ident, table_attr: &str) -> imp
             }
 
             #[::flutter_rust_bridge::frb(ignore)]
-            fn insert_on_conflict_custom(&self, conn: &crate::api::db::connection::SqliteDb, on_conflict: crate::api::db::connection::OnConflict, cols: Vec<&str>) -> anyhow::Result<()> {
+            fn insert_on_conflict_custom(&self, conn: &crate::api::db::connection::SqliteDb, on_conflict: crate::api::db::connection::OnConflict, cols: Vec<&str>, set: Vec<&str>) -> anyhow::Result<()> {
                 use crate::api::db::entities::GetParams;
-                let excluded = cols.iter().map(|v| format!("{v} = excluded.{v}")).collect::<Vec<String>>().join(", ");
+                let excluded = set.iter().map(|v| format!("{v} = excluded.{v}")).collect::<Vec<String>>().join(", ");
 
                 let cols = cols.iter().map(|v| *v).collect::<Vec<&str>>().join(", ");
 
@@ -134,6 +134,7 @@ fn generate_crud_impl(st: &[ColumnField], name: &Ident, table_attr: &str) -> imp
                     }
                     crate::api::db::connection::OnConflict::Update => {
                         let update = format!("{} {}) DO UPDATE SET {}", #update_custom, cols, excluded);
+                        log::error!("{update}");
                         conn.0.conn.lock().unwrap().execute(&update, self.get_params().as_slice())?
                     }
                 };

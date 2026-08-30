@@ -58,7 +58,12 @@ impl NonOpaqueApp {
             sig: Some(self.sig.clone()),
         };
 
-        entity.insert_on_conflict_custom(db, OnConflict::Update, vec!["id", "circle_type"])?;
+        entity.insert_on_conflict_custom(
+            db,
+            OnConflict::Update,
+            vec!["id", "circle_type"],
+            vec!["author", "sig", "circle_type"],
+        )?;
 
         for m in self.members.iter() {
             match m.member {
@@ -82,6 +87,7 @@ impl NonOpaqueApp {
                 db,
                 OnConflict::Update,
                 vec!["member_id", "parent_id", "member_type", "parent_type"],
+                vec!["tag", "deleted"],
             )?;
         }
 
@@ -321,7 +327,12 @@ impl CircleApp {
             author: Some(self.inner.owner.name()),
             sig: Some(self.inner.sig.clone()),
         };
-        entity.insert_on_conflict_custom(db, OnConflict::Update, vec!["id", "circle_type"])?;
+        entity.insert_on_conflict_custom(
+            db,
+            OnConflict::Update,
+            vec!["id", "circle_type"],
+            vec!["author", "sig", "circle_type"],
+        )?;
 
         for CircleHandle { id, circle_type } in self.inner.children.keys() {
             if let CircleType::User = circle_type {
@@ -335,6 +346,7 @@ impl CircleApp {
                     db,
                     OnConflict::Ignore,
                     vec!["id", "circle_type"],
+                    vec!["author", "sig", "circle_type"],
                 )?;
             }
         }
@@ -356,6 +368,7 @@ impl CircleApp {
                         db,
                         OnConflict::Update,
                         vec!["member_id", "parent_id", "member_type", "parent_type"],
+                        vec!["deleted", "tag"],
                     )?;
                 }
                 MaybeDeleted::Deleted(ref d) => {
@@ -365,14 +378,16 @@ impl CircleApp {
                         deleted: Some(true),
                         parent_type: "app".to_owned(),
                         parent_id: self.inner.owner.name(),
-                        member_type: "TODO DELETED".to_owned(),
-                        tag: Some(member.tag.as_str().to_owned()),
+                        member_type: d.circle_type.get_type_str().to_owned(),
+                        tag: Some("delete".to_owned()),
                     };
+                    log::error!("deleted {entity:?}");
 
                     entity.insert_on_conflict_custom(
                         db,
                         OnConflict::Update,
                         vec!["member_id", "parent_id", "member_type", "parent_type"],
+                        vec!["deleted", "tag"],
                     )?;
                 }
             }
@@ -475,6 +490,7 @@ impl CircleApp {
         if delete {
             if let Some(child) = self.inner.children.get_mut(handle) {
                 child.member = child.member.delete();
+                child.tag = MemberTag::Delete;
             }
         } else {
             self.pgp.get_db().purge_circle_member(

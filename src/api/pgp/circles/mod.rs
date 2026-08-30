@@ -399,8 +399,8 @@ impl PgpApp {
         start: &Option<CircleHandle>,
         all: bool,
     ) -> Result<BTreeMap<CircleHandle, TagOr>> {
-        log::error!("get_children cache={}", members.len());
-        log::error!("actual={actual:?}");
+        log::debug!("get_children cache={}", members.len());
+        log::debug!("actual={actual:?}");
         let mut visited = BTreeSet::new();
         self.get_children_parent(members, actual, parent, start, all, &mut visited, false)
     }
@@ -902,14 +902,11 @@ impl PgpApp {
             .get_circles_by_id(&id.id.name(), &id.circle_type.get_type_str())?;
 
         log::debug!("v={v:#?}");
-        log::error!("id: {id:?} {}", id.circle_type.get_type_str());
+        log::debug!("id: {id:?} {}", id.circle_type.get_type_str());
 
         let out = self.circles_from_db(v, true, Some(id.clone()), false)?;
         log::debug!("out={out:?}");
-        Ok(out.into_iter().find(|p| {
-            log::error!("checking {id:?} {:?}", p.handle());
-            p.handle() == *id
-        }))
+        Ok(out.into_iter().find(|p| p.handle() == *id))
     }
 
     pub fn get_all_circle_ids(&self) -> Result<Vec<String>> {

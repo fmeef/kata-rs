@@ -466,7 +466,7 @@ impl CircleApp {
         Ok(())
     }
 
-    pub fn add_circle(&mut self, circle: Circle, tag: MemberTag) -> anyhow::Result<()> {
+    pub fn add_circle(&mut self, circle: &Circle, tag: MemberTag) -> anyhow::Result<()> {
         let id = CircleHandle {
             id: circle.inner.id.clone(),
             circle_type: CircleType::Circle,
@@ -485,7 +485,7 @@ impl CircleApp {
         self.resign()
     }
 
-    pub fn add_app(&mut self, app: CircleApp, tag: MemberTag) -> anyhow::Result<()> {
+    pub fn add_app(&mut self, app: &CircleApp, tag: MemberTag) -> anyhow::Result<()> {
         let id = CircleHandle {
             id: app.get_id_userhandle(),
             circle_type: CircleType::App,
@@ -504,7 +504,7 @@ impl CircleApp {
         self.resign()
     }
 
-    pub fn add_user(&mut self, user: UserHandle, tag: MemberTag) -> anyhow::Result<()> {
+    pub fn add_user(&mut self, user: &UserHandle, tag: MemberTag) -> anyhow::Result<()> {
         let id = CircleHandle {
             id: user.clone(),
             circle_type: CircleType::User,
@@ -729,7 +729,7 @@ mod test {
         let mut a = service.create_app(&author).unwrap();
         let mut a2 = service.create_app(&author).unwrap();
         let circ = service.create_circle(vec![]).unwrap();
-        a2.add_circle(circ, MemberTag::Merge).unwrap();
+        a2.add_circle(&circ, MemberTag::Merge).unwrap();
         a.merge_both(&mut a2).unwrap();
         let res = service.verify_app(&a).unwrap();
         assert!(res);
@@ -751,7 +751,7 @@ mod test {
             .unwrap();
 
         let mut app = service.create_app(&key.cert.fingerprint).unwrap();
-        app.add_app(app.clone(), MemberTag::Merge).unwrap();
+        app.add_app(&app.clone(), MemberTag::Merge).unwrap();
         let app = CircleOr::App(RustAutoOpaque::new(app));
         app.to_db(&service.get_db()).unwrap();
 
@@ -787,7 +787,7 @@ mod test {
         let mut a = service.create_app(&author).unwrap();
         let circ = service.create_circle(vec![]).unwrap();
         let mut a2 = service.create_app(&author).unwrap();
-        a2.add_circle(circ, MemberTag::Delete).unwrap();
+        a2.add_circle(&circ, MemberTag::Delete).unwrap();
         a.merge_both(&mut a2).unwrap();
         let res = service.verify_app(&a).unwrap();
         assert!(res);

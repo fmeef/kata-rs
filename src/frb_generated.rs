@@ -98,29 +98,39 @@ fn wire__crate__api__pgp__circles__app__CircleApp_add_app_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleApp>,
             >>::sse_decode(&mut deserializer);
-            let api_app = <CircleApp>::sse_decode(&mut deserializer);
+            let api_app = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleApp>,
+            >>::sse_decode(&mut deserializer);
             let api_tag = <crate::api::pgp::circles::app::MemberTag>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || {
                         let mut api_that_guard = None;
+                        let mut api_app_guard = None;
                         let decode_indices_ =
                             flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, true,
-                                )],
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, true,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_app, 1, false,
+                                    ),
+                                ],
                             );
                         for i in decode_indices_ {
                             match i {
                                 0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
+                                1 => api_app_guard = Some(api_app.lockable_decode_sync_ref()),
                                 _ => unreachable!(),
                             }
                         }
                         let mut api_that_guard = api_that_guard.unwrap();
+                        let api_app_guard = api_app_guard.unwrap();
                         let output_ok = crate::api::pgp::circles::app::CircleApp::add_app(
                             &mut *api_that_guard,
-                            api_app,
+                            &*api_app_guard,
                             api_tag,
                         )?;
                         Ok(output_ok)
@@ -155,29 +165,41 @@ fn wire__crate__api__pgp__circles__app__CircleApp_add_circle_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleApp>,
             >>::sse_decode(&mut deserializer);
-            let api_circle = <Circle>::sse_decode(&mut deserializer);
+            let api_circle = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Circle>,
+            >>::sse_decode(&mut deserializer);
             let api_tag = <crate::api::pgp::circles::app::MemberTag>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || {
                         let mut api_that_guard = None;
+                        let mut api_circle_guard = None;
                         let decode_indices_ =
                             flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, true,
-                                )],
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, true,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_circle,
+                                        1,
+                                        false,
+                                    ),
+                                ],
                             );
                         for i in decode_indices_ {
                             match i {
                                 0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
+                                1 => api_circle_guard = Some(api_circle.lockable_decode_sync_ref()),
                                 _ => unreachable!(),
                             }
                         }
                         let mut api_that_guard = api_that_guard.unwrap();
+                        let api_circle_guard = api_circle_guard.unwrap();
                         let output_ok = crate::api::pgp::circles::app::CircleApp::add_circle(
                             &mut *api_that_guard,
-                            api_circle,
+                            &*api_circle_guard,
                             api_tag,
                         )?;
                         Ok(output_ok)
@@ -212,29 +234,39 @@ fn wire__crate__api__pgp__circles__app__CircleApp_add_user_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleApp>,
             >>::sse_decode(&mut deserializer);
-            let api_user = <UserHandle>::sse_decode(&mut deserializer);
+            let api_user = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
+            >>::sse_decode(&mut deserializer);
             let api_tag = <crate::api::pgp::circles::app::MemberTag>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || {
                         let mut api_that_guard = None;
+                        let mut api_user_guard = None;
                         let decode_indices_ =
                             flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, true,
-                                )],
+                                vec![
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_that, 0, true,
+                                    ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_user, 1, false,
+                                    ),
+                                ],
                             );
                         for i in decode_indices_ {
                             match i {
                                 0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
+                                1 => api_user_guard = Some(api_user.lockable_decode_sync_ref()),
                                 _ => unreachable!(),
                             }
                         }
                         let mut api_that_guard = api_that_guard.unwrap();
+                        let api_user_guard = api_user_guard.unwrap();
                         let output_ok = crate::api::pgp::circles::app::CircleApp::add_user(
                             &mut *api_that_guard,
-                            api_user,
+                            &*api_user_guard,
                             api_tag,
                         )?;
                         Ok(output_ok)

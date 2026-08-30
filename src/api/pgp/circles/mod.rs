@@ -567,9 +567,9 @@ impl CircleOr {
                 let mut inner = a.blocking_write();
 
                 match circle {
-                    CircleOr::Circle(c) => inner.add_circle(c.blocking_read().clone(), tag)?,
-                    CircleOr::App(a) => inner.add_app(a.blocking_read().clone(), tag)?,
-                    CircleOr::User(u) => inner.add_user(u.blocking_read().clone(), tag)?,
+                    CircleOr::Circle(c) => inner.add_circle(&c.blocking_read(), tag)?,
+                    CircleOr::App(a) => inner.add_app(&a.blocking_read(), tag)?,
+                    CircleOr::User(u) => inner.add_user(&u.blocking_read(), tag)?,
                 };
                 inner.to_db(&db.get_db())?;
             }
@@ -1000,8 +1000,8 @@ mod test {
         let u = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854037").unwrap();
 
         let mut circle = app.create_app(&key.cert.fingerprint).unwrap();
-        circle.add_user(v.clone(), MemberTag::Merge).unwrap();
-        circle.add_user(u.clone(), MemberTag::Merge).unwrap();
+        circle.add_user(&v, MemberTag::Merge).unwrap();
+        circle.add_user(&u, MemberTag::Merge).unwrap();
         let circle = CircleOr::App(RustAutoOpaque::new(circle));
 
         circle.to_db(&app.pgp.db).unwrap();
@@ -1029,8 +1029,8 @@ mod test {
         let u = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854037").unwrap();
 
         let mut circle = app.create_app(&key.cert.fingerprint).unwrap();
-        circle.add_user(v.clone(), MemberTag::Merge).unwrap();
-        circle.add_user(u.clone(), MemberTag::Merge).unwrap();
+        circle.add_user(&v, MemberTag::Merge).unwrap();
+        circle.add_user(&u, MemberTag::Merge).unwrap();
         let circle = CircleOr::App(RustAutoOpaque::new(circle));
 
         circle.to_db(&app.pgp.db).unwrap();
@@ -1062,7 +1062,7 @@ mod test {
 
         let mut circle = app.create_app(&key.cert.fingerprint).unwrap();
 
-        circle.add_app(circle.clone(), MemberTag::Merge).unwrap();
+        circle.add_app(&circle.clone(), MemberTag::Merge).unwrap();
 
         let circle = CircleOr::App(RustAutoOpaque::new(circle));
         let parent = app.create_circle(vec![circle.clone()]).unwrap();

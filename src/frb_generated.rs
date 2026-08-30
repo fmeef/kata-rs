@@ -65,7 +65,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0-beta.5";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 265339846;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 2001724179;
 
 // Section: executor
 
@@ -1049,6 +1049,9 @@ fn wire__crate__api__pgp__circles__app__CircleApp_remove_impl(
             let api_handle = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleHandle>,
             >>::sse_decode(&mut deserializer);
+            let api_parent = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CircleHandle>,
+            >>::sse_decode(&mut deserializer);
             let api_delete = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
@@ -1056,6 +1059,7 @@ fn wire__crate__api__pgp__circles__app__CircleApp_remove_impl(
                     (move || {
                         let mut api_that_guard = None;
                         let mut api_handle_guard = None;
+                        let mut api_parent_guard = None;
                         let decode_indices_ =
                             flutter_rust_bridge::for_generated::lockable_compute_decode_order(
                                 vec![
@@ -1067,20 +1071,28 @@ fn wire__crate__api__pgp__circles__app__CircleApp_remove_impl(
                                         1,
                                         false,
                                     ),
+                                    flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                        &api_parent,
+                                        2,
+                                        false,
+                                    ),
                                 ],
                             );
                         for i in decode_indices_ {
                             match i {
                                 0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
                                 1 => api_handle_guard = Some(api_handle.lockable_decode_sync_ref()),
+                                2 => api_parent_guard = Some(api_parent.lockable_decode_sync_ref()),
                                 _ => unreachable!(),
                             }
                         }
                         let mut api_that_guard = api_that_guard.unwrap();
                         let api_handle_guard = api_handle_guard.unwrap();
+                        let api_parent_guard = api_parent_guard.unwrap();
                         let output_ok = crate::api::pgp::circles::app::CircleApp::remove(
                             &mut *api_that_guard,
                             &*api_handle_guard,
+                            &*api_parent_guard,
                             api_delete,
                         )?;
                         Ok(output_ok)
@@ -12561,6 +12573,67 @@ fn wire__crate__api__db__connection__SqliteDb_new_in_memory_impl(
         },
     )
 }
+fn wire__crate__api__db__connection__SqliteDb_purge_circle_member_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "SqliteDb_purge_circle_member",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SqliteDb>,
+            >>::sse_decode(&mut deserializer);
+            let api_id = <String>::sse_decode(&mut deserializer);
+            let api_ty = <String>::sse_decode(&mut deserializer);
+            let api_parent = <String>::sse_decode(&mut deserializer);
+            let api_parent_ty = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok = crate::api::db::connection::SqliteDb::purge_circle_member(
+                            &*api_that_guard,
+                            &api_id,
+                            &api_ty,
+                            &api_parent,
+                            &api_parent_ty,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__db__connection__SqliteDb_rollback_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -18459,56 +18532,57 @@ fn pde_ffi_dispatcher_primary_impl(
 238 => wire__crate__api__db__connection__SqliteDb_grep_by_userid_anchor_start_impl(port, ptr, rust_vec_len, data_len),
 239 => wire__crate__api__db__connection__SqliteDb_insert_group_impl(port, ptr, rust_vec_len, data_len),
 240 => wire__crate__api__db__connection__SqliteDb_is_online_impl(port, ptr, rust_vec_len, data_len),
-243 => wire__crate__api__db__connection__SqliteDb_rollback_impl(port, ptr, rust_vec_len, data_len),
-244 => wire__crate__api__db__connection__SqliteDb_search_owned_certs_impl(port, ptr, rust_vec_len, data_len),
-245 => wire__crate__api__db__connection__SqliteDb_test_impl(port, ptr, rust_vec_len, data_len),
-246 => wire__crate__api__db__connection__SqliteDb_test_nullable_impl(port, ptr, rust_vec_len, data_len),
-247 => wire__crate__api__db__connection__SqliteDb_test_one_impl(port, ptr, rust_vec_len, data_len),
-248 => wire__crate__api__db__connection__SqliteDb_update_role_impl(port, ptr, rust_vec_len, data_len),
-249 => wire__crate__api__db__connection__SqliteDb_update_tag_impl(port, ptr, rust_vec_len, data_len),
-250 => wire__crate__api__pgp__wot__network__StoreNetwork_authenticate_impl(port, ptr, rust_vec_len, data_len),
-251 => wire__crate__api__pgp__wot__network__StoreNetwork_dump_all_impl(port, ptr, rust_vec_len, data_len),
-353 => wire__crate__api__pgp__UserHandle_identicon_impl(port, ptr, rust_vec_len, data_len),
-354 => wire__crate__api__pgp__UserHandle_insert_impl(port, ptr, rust_vec_len, data_len),
-355 => wire__crate__api__pgp__UserHandle_iter_members_impl(port, ptr, rust_vec_len, data_len),
-361 => wire__crate__api__pgp__UserHandle_set_name_impl(port, ptr, rust_vec_len, data_len),
-362 => wire__crate__api__pgp__UserHandle_to_db_impl(port, ptr, rust_vec_len, data_len),
-363 => wire__crate__api__pgp__UserHandle_validate_impl(port, ptr, rust_vec_len, data_len),
-364 => wire__crate__api__pgp__UserHandle_verify_impl(port, ptr, rust_vec_len, data_len),
-366 => wire__crate__api__pgp__circles__circle_or_add_impl(port, ptr, rust_vec_len, data_len),
-376 => wire__crate__api__pgp__circles__circle_or_insert_impl(port, ptr, rust_vec_len, data_len),
-377 => wire__crate__api__pgp__circles__circle_or_is_member_impl(port, ptr, rust_vec_len, data_len),
-378 => wire__crate__api__pgp__circles__circle_or_iter_members_impl(port, ptr, rust_vec_len, data_len),
-379 => wire__crate__api__pgp__circles__circle_or_to_db_impl(port, ptr, rust_vec_len, data_len),
-380 => wire__crate__api__pgp__circles__circle_or_validate_impl(port, ptr, rust_vec_len, data_len),
-381 => wire__crate__api__pgp__circles__circle_or_verify_impl(port, ptr, rust_vec_len, data_len),
-382 => wire__crate__api__pgp__circles__circle_type_from_str_impl(port, ptr, rust_vec_len, data_len),
-385 => wire__crate__api__init_logging_impl(port, ptr, rust_vec_len, data_len),
-389 => wire__crate__api__pgp__circles__app__non_opaque_app_to_db_impl(port, ptr, rust_vec_len, data_len),
-390 => wire__crate__api__db__store__only_fingerprint_delete_impl(port, ptr, rust_vec_len, data_len),
-391 => wire__crate__api__db__store__only_fingerprint_has_params_impl(port, ptr, rust_vec_len, data_len),
-392 => wire__crate__api__db__store__only_fingerprint_insert_impl(port, ptr, rust_vec_len, data_len),
-393 => wire__crate__api__db__store__only_fingerprint_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
-394 => wire__crate__api__db__store__only_fingerprint_insert_on_conflict_cols_impl(port, ptr, rust_vec_len, data_len),
-395 => wire__crate__api__db__store__only_fingerprint_is_entity_impl(port, ptr, rust_vec_len, data_len),
-396 => wire__crate__api__db__store__only_fingerprint_update_impl(port, ptr, rust_vec_len, data_len),
-397 => wire__crate__api__db__store__only_id_delete_impl(port, ptr, rust_vec_len, data_len),
-398 => wire__crate__api__db__store__only_id_has_params_impl(port, ptr, rust_vec_len, data_len),
-399 => wire__crate__api__db__store__only_id_insert_impl(port, ptr, rust_vec_len, data_len),
-400 => wire__crate__api__db__store__only_id_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
-401 => wire__crate__api__db__store__only_id_insert_on_conflict_cols_impl(port, ptr, rust_vec_len, data_len),
-402 => wire__crate__api__db__store__only_id_is_entity_impl(port, ptr, rust_vec_len, data_len),
-403 => wire__crate__api__db__store__only_id_update_impl(port, ptr, rust_vec_len, data_len),
-404 => wire__crate__api__db__store__only_online_delete_impl(port, ptr, rust_vec_len, data_len),
-405 => wire__crate__api__db__store__only_online_has_params_impl(port, ptr, rust_vec_len, data_len),
-406 => wire__crate__api__db__store__only_online_insert_impl(port, ptr, rust_vec_len, data_len),
-407 => wire__crate__api__db__store__only_online_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
-408 => wire__crate__api__db__store__only_online_insert_on_conflict_cols_impl(port, ptr, rust_vec_len, data_len),
-409 => wire__crate__api__db__store__only_online_is_entity_impl(port, ptr, rust_vec_len, data_len),
-410 => wire__crate__api__db__store__only_online_update_impl(port, ptr, rust_vec_len, data_len),
-411 => wire__crate__api__sync__reqwest_test_impl(port, ptr, rust_vec_len, data_len),
-412 => wire__crate__api__db__migrations__rollback_impl(port, ptr, rust_vec_len, data_len),
-413 => wire__crate__api__db__migrations__run_migrations_impl(port, ptr, rust_vec_len, data_len),
+243 => wire__crate__api__db__connection__SqliteDb_purge_circle_member_impl(port, ptr, rust_vec_len, data_len),
+244 => wire__crate__api__db__connection__SqliteDb_rollback_impl(port, ptr, rust_vec_len, data_len),
+245 => wire__crate__api__db__connection__SqliteDb_search_owned_certs_impl(port, ptr, rust_vec_len, data_len),
+246 => wire__crate__api__db__connection__SqliteDb_test_impl(port, ptr, rust_vec_len, data_len),
+247 => wire__crate__api__db__connection__SqliteDb_test_nullable_impl(port, ptr, rust_vec_len, data_len),
+248 => wire__crate__api__db__connection__SqliteDb_test_one_impl(port, ptr, rust_vec_len, data_len),
+249 => wire__crate__api__db__connection__SqliteDb_update_role_impl(port, ptr, rust_vec_len, data_len),
+250 => wire__crate__api__db__connection__SqliteDb_update_tag_impl(port, ptr, rust_vec_len, data_len),
+251 => wire__crate__api__pgp__wot__network__StoreNetwork_authenticate_impl(port, ptr, rust_vec_len, data_len),
+252 => wire__crate__api__pgp__wot__network__StoreNetwork_dump_all_impl(port, ptr, rust_vec_len, data_len),
+355 => wire__crate__api__pgp__UserHandle_identicon_impl(port, ptr, rust_vec_len, data_len),
+356 => wire__crate__api__pgp__UserHandle_insert_impl(port, ptr, rust_vec_len, data_len),
+357 => wire__crate__api__pgp__UserHandle_iter_members_impl(port, ptr, rust_vec_len, data_len),
+363 => wire__crate__api__pgp__UserHandle_set_name_impl(port, ptr, rust_vec_len, data_len),
+364 => wire__crate__api__pgp__UserHandle_to_db_impl(port, ptr, rust_vec_len, data_len),
+365 => wire__crate__api__pgp__UserHandle_validate_impl(port, ptr, rust_vec_len, data_len),
+366 => wire__crate__api__pgp__UserHandle_verify_impl(port, ptr, rust_vec_len, data_len),
+368 => wire__crate__api__pgp__circles__circle_or_add_impl(port, ptr, rust_vec_len, data_len),
+378 => wire__crate__api__pgp__circles__circle_or_insert_impl(port, ptr, rust_vec_len, data_len),
+379 => wire__crate__api__pgp__circles__circle_or_is_member_impl(port, ptr, rust_vec_len, data_len),
+380 => wire__crate__api__pgp__circles__circle_or_iter_members_impl(port, ptr, rust_vec_len, data_len),
+381 => wire__crate__api__pgp__circles__circle_or_to_db_impl(port, ptr, rust_vec_len, data_len),
+382 => wire__crate__api__pgp__circles__circle_or_validate_impl(port, ptr, rust_vec_len, data_len),
+383 => wire__crate__api__pgp__circles__circle_or_verify_impl(port, ptr, rust_vec_len, data_len),
+384 => wire__crate__api__pgp__circles__circle_type_from_str_impl(port, ptr, rust_vec_len, data_len),
+387 => wire__crate__api__init_logging_impl(port, ptr, rust_vec_len, data_len),
+391 => wire__crate__api__pgp__circles__app__non_opaque_app_to_db_impl(port, ptr, rust_vec_len, data_len),
+392 => wire__crate__api__db__store__only_fingerprint_delete_impl(port, ptr, rust_vec_len, data_len),
+393 => wire__crate__api__db__store__only_fingerprint_has_params_impl(port, ptr, rust_vec_len, data_len),
+394 => wire__crate__api__db__store__only_fingerprint_insert_impl(port, ptr, rust_vec_len, data_len),
+395 => wire__crate__api__db__store__only_fingerprint_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
+396 => wire__crate__api__db__store__only_fingerprint_insert_on_conflict_cols_impl(port, ptr, rust_vec_len, data_len),
+397 => wire__crate__api__db__store__only_fingerprint_is_entity_impl(port, ptr, rust_vec_len, data_len),
+398 => wire__crate__api__db__store__only_fingerprint_update_impl(port, ptr, rust_vec_len, data_len),
+399 => wire__crate__api__db__store__only_id_delete_impl(port, ptr, rust_vec_len, data_len),
+400 => wire__crate__api__db__store__only_id_has_params_impl(port, ptr, rust_vec_len, data_len),
+401 => wire__crate__api__db__store__only_id_insert_impl(port, ptr, rust_vec_len, data_len),
+402 => wire__crate__api__db__store__only_id_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
+403 => wire__crate__api__db__store__only_id_insert_on_conflict_cols_impl(port, ptr, rust_vec_len, data_len),
+404 => wire__crate__api__db__store__only_id_is_entity_impl(port, ptr, rust_vec_len, data_len),
+405 => wire__crate__api__db__store__only_id_update_impl(port, ptr, rust_vec_len, data_len),
+406 => wire__crate__api__db__store__only_online_delete_impl(port, ptr, rust_vec_len, data_len),
+407 => wire__crate__api__db__store__only_online_has_params_impl(port, ptr, rust_vec_len, data_len),
+408 => wire__crate__api__db__store__only_online_insert_impl(port, ptr, rust_vec_len, data_len),
+409 => wire__crate__api__db__store__only_online_insert_on_conflict_impl(port, ptr, rust_vec_len, data_len),
+410 => wire__crate__api__db__store__only_online_insert_on_conflict_cols_impl(port, ptr, rust_vec_len, data_len),
+411 => wire__crate__api__db__store__only_online_is_entity_impl(port, ptr, rust_vec_len, data_len),
+412 => wire__crate__api__db__store__only_online_update_impl(port, ptr, rust_vec_len, data_len),
+413 => wire__crate__api__sync__reqwest_test_impl(port, ptr, rust_vec_len, data_len),
+414 => wire__crate__api__db__migrations__rollback_impl(port, ptr, rust_vec_len, data_len),
+415 => wire__crate__api__db__migrations__run_migrations_impl(port, ptr, rust_vec_len, data_len),
                         _ => unreachable!(),
                     }
 }
@@ -18615,39 +18689,39 @@ fn pde_ffi_dispatcher_sync_impl(
 232 => wire__crate__api__db__connection__SqliteDb_get_watcher_impl(ptr, rust_vec_len, data_len),
 241 => wire__crate__api__db__connection__SqliteDb_new_impl(ptr, rust_vec_len, data_len),
 242 => wire__crate__api__db__connection__SqliteDb_new_in_memory_impl(ptr, rust_vec_len, data_len),
-341 => wire__crate__api__pgp__UserHandle_comment_impl(ptr, rust_vec_len, data_len),
-342 => wire__crate__api__pgp__UserHandle_composite_impl(ptr, rust_vec_len, data_len),
-343 => wire__crate__api__pgp__UserHandle_composite_lujvo_impl(ptr, rust_vec_len, data_len),
-344 => wire__crate__api__pgp__UserHandle_composite_lujvo_or_else_impl(ptr, rust_vec_len, data_len),
-345 => wire__crate__api__pgp__UserHandle_from_hex_impl(ptr, rust_vec_len, data_len),
-346 => wire__crate__api__pgp__UserHandle_get_id_impl(ptr, rust_vec_len, data_len),
-347 => wire__crate__api__pgp__UserHandle_get_id_userhandle_impl(ptr, rust_vec_len, data_len),
-348 => wire__crate__api__pgp__UserHandle_get_member_impl(ptr, rust_vec_len, data_len),
-349 => wire__crate__api__pgp__UserHandle_get_members_impl(ptr, rust_vec_len, data_len),
-350 => wire__crate__api__pgp__UserHandle_get_owner_impl(ptr, rust_vec_len, data_len),
-351 => wire__crate__api__pgp__UserHandle_get_type_impl(ptr, rust_vec_len, data_len),
-352 => wire__crate__api__pgp__UserHandle_handle_impl(ptr, rust_vec_len, data_len),
-356 => wire__crate__api__pgp__UserHandle_len_impl(ptr, rust_vec_len, data_len),
-357 => wire__crate__api__pgp__UserHandle_name_impl(ptr, rust_vec_len, data_len),
-358 => wire__crate__api__pgp__UserHandle_separate_impl(ptr, rust_vec_len, data_len),
-359 => wire__crate__api__pgp__UserHandle_separate_lujvo_impl(ptr, rust_vec_len, data_len),
-360 => wire__crate__api__pgp__UserHandle_separate_lujvo_or_else_impl(ptr, rust_vec_len, data_len),
-365 => wire__crate__api__db__connection__Watcher_watch_impl(ptr, rust_vec_len, data_len),
-367 => wire__crate__api__pgp__circles__circle_or_from_cert_impl(ptr, rust_vec_len, data_len),
-368 => wire__crate__api__pgp__circles__circle_or_get_id_impl(ptr, rust_vec_len, data_len),
-369 => wire__crate__api__pgp__circles__circle_or_get_id_userhandle_impl(ptr, rust_vec_len, data_len),
-370 => wire__crate__api__pgp__circles__circle_or_get_member_impl(ptr, rust_vec_len, data_len),
-371 => wire__crate__api__pgp__circles__circle_or_get_members_impl(ptr, rust_vec_len, data_len),
-372 => wire__crate__api__pgp__circles__circle_or_get_owner_impl(ptr, rust_vec_len, data_len),
-373 => wire__crate__api__pgp__circles__circle_or_get_type_impl(ptr, rust_vec_len, data_len),
-374 => wire__crate__api__pgp__circles__circle_or_handle_impl(ptr, rust_vec_len, data_len),
-375 => wire__crate__api__pgp__circles__circle_or_id_hex_impl(ptr, rust_vec_len, data_len),
-383 => wire__crate__api__config_new_impl(ptr, rust_vec_len, data_len),
-386 => wire__crate__api__pgp__cert__maybe_cert_fingerprint_impl(ptr, rust_vec_len, data_len),
-387 => wire__crate__api__pgp__cert__maybe_cert_from_cert_impl(ptr, rust_vec_len, data_len),
-388 => wire__crate__api__pgp__cert__maybe_cert_maybe_ids_impl(ptr, rust_vec_len, data_len),
-414 => wire__crate__api__pgp__fingerprint__visual_key__visual_key_join_emoji_impl(ptr, rust_vec_len, data_len),
-415 => wire__crate__api__pgp__fingerprint__visual_key__visual_key_join_gismu_impl(ptr, rust_vec_len, data_len),
+343 => wire__crate__api__pgp__UserHandle_comment_impl(ptr, rust_vec_len, data_len),
+344 => wire__crate__api__pgp__UserHandle_composite_impl(ptr, rust_vec_len, data_len),
+345 => wire__crate__api__pgp__UserHandle_composite_lujvo_impl(ptr, rust_vec_len, data_len),
+346 => wire__crate__api__pgp__UserHandle_composite_lujvo_or_else_impl(ptr, rust_vec_len, data_len),
+347 => wire__crate__api__pgp__UserHandle_from_hex_impl(ptr, rust_vec_len, data_len),
+348 => wire__crate__api__pgp__UserHandle_get_id_impl(ptr, rust_vec_len, data_len),
+349 => wire__crate__api__pgp__UserHandle_get_id_userhandle_impl(ptr, rust_vec_len, data_len),
+350 => wire__crate__api__pgp__UserHandle_get_member_impl(ptr, rust_vec_len, data_len),
+351 => wire__crate__api__pgp__UserHandle_get_members_impl(ptr, rust_vec_len, data_len),
+352 => wire__crate__api__pgp__UserHandle_get_owner_impl(ptr, rust_vec_len, data_len),
+353 => wire__crate__api__pgp__UserHandle_get_type_impl(ptr, rust_vec_len, data_len),
+354 => wire__crate__api__pgp__UserHandle_handle_impl(ptr, rust_vec_len, data_len),
+358 => wire__crate__api__pgp__UserHandle_len_impl(ptr, rust_vec_len, data_len),
+359 => wire__crate__api__pgp__UserHandle_name_impl(ptr, rust_vec_len, data_len),
+360 => wire__crate__api__pgp__UserHandle_separate_impl(ptr, rust_vec_len, data_len),
+361 => wire__crate__api__pgp__UserHandle_separate_lujvo_impl(ptr, rust_vec_len, data_len),
+362 => wire__crate__api__pgp__UserHandle_separate_lujvo_or_else_impl(ptr, rust_vec_len, data_len),
+367 => wire__crate__api__db__connection__Watcher_watch_impl(ptr, rust_vec_len, data_len),
+369 => wire__crate__api__pgp__circles__circle_or_from_cert_impl(ptr, rust_vec_len, data_len),
+370 => wire__crate__api__pgp__circles__circle_or_get_id_impl(ptr, rust_vec_len, data_len),
+371 => wire__crate__api__pgp__circles__circle_or_get_id_userhandle_impl(ptr, rust_vec_len, data_len),
+372 => wire__crate__api__pgp__circles__circle_or_get_member_impl(ptr, rust_vec_len, data_len),
+373 => wire__crate__api__pgp__circles__circle_or_get_members_impl(ptr, rust_vec_len, data_len),
+374 => wire__crate__api__pgp__circles__circle_or_get_owner_impl(ptr, rust_vec_len, data_len),
+375 => wire__crate__api__pgp__circles__circle_or_get_type_impl(ptr, rust_vec_len, data_len),
+376 => wire__crate__api__pgp__circles__circle_or_handle_impl(ptr, rust_vec_len, data_len),
+377 => wire__crate__api__pgp__circles__circle_or_id_hex_impl(ptr, rust_vec_len, data_len),
+385 => wire__crate__api__config_new_impl(ptr, rust_vec_len, data_len),
+388 => wire__crate__api__pgp__cert__maybe_cert_fingerprint_impl(ptr, rust_vec_len, data_len),
+389 => wire__crate__api__pgp__cert__maybe_cert_from_cert_impl(ptr, rust_vec_len, data_len),
+390 => wire__crate__api__pgp__cert__maybe_cert_maybe_ids_impl(ptr, rust_vec_len, data_len),
+416 => wire__crate__api__pgp__fingerprint__visual_key__visual_key_join_emoji_impl(ptr, rust_vec_len, data_len),
+417 => wire__crate__api__pgp__fingerprint__visual_key__visual_key_join_gismu_impl(ptr, rust_vec_len, data_len),
                         _ => unreachable!(),
                     }
 }

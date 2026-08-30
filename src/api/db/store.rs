@@ -204,6 +204,9 @@ pub trait CertDao {
 
     #[query("DELETE FROM circles WHERE id = :id AND circle_type = :ty")]
     fn delete_circle(&self, id: &str, ty: &str) -> Result<()>;
+
+    #[query("DELETE FROM circle_members WHERE member_id = :id AND member_type = :ty AND parent_id = :parent AND parent_type = :parent_ty")]
+    fn purge_circle_member(&self, id: &str, ty: &str, parent: &str, parent_ty: &str) -> Result<()>;
 }
 
 impl FromRow for usize {

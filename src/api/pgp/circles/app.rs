@@ -466,12 +466,23 @@ impl CircleApp {
         Ok(())
     }
 
-    pub fn remove(&mut self, handle: &CircleHandle, delete: bool) -> anyhow::Result<()> {
+    pub fn remove(
+        &mut self,
+        handle: &CircleHandle,
+        parent: &CircleHandle,
+        delete: bool,
+    ) -> anyhow::Result<()> {
         if delete {
             if let Some(child) = self.inner.children.get_mut(handle) {
                 child.member = child.member.delete();
             }
         } else {
+            self.pgp.get_db().purge_circle_member(
+                &handle.id.name(),
+                handle.circle_type.get_type_str(),
+                &parent.id.name(),
+                parent.circle_type.get_type_str(),
+            )?;
             self.inner.children.remove(handle);
         }
         self.resign()

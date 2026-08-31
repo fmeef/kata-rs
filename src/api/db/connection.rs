@@ -131,11 +131,13 @@ impl SqliteDb {
     #[cfg(test)]
     pub(crate) fn from_conn(conn: Connection) -> SqliteDb {
         conn.execute("PRAGMA foreign_keys = ON;", []).unwrap();
-        SqliteDb(Arc::new(SqliteDbInner {
+        let s = SqliteDb(Arc::new(SqliteDbInner {
             conn: Mutex::new(conn),
             watchers: RwLock::new(BTreeMap::new()),
             watcher_idx: RwLock::new(0),
-        }))
+        }));
+        s.setup_watchers();
+        s
     }
 
     #[frb(sync)]
@@ -147,25 +149,25 @@ impl SqliteDb {
         wl.insert(*idx, Arc::clone(&w.0.cbs));
         drop(wl);
         drop(idx);
-
-        let s = self.clone();
-        let c = self.0.conn.lock().unwrap();
-        c.update_hook(Some(move |_, _: &str, tablename: &str, _| {
-            for watcher in s.0.watchers.read().unwrap().values().cloned() {
-                for (tb, cb) in watcher.read().unwrap().iter() {
-                    if tb != tablename {
-                        continue;
-                    }
-                    FLUTTER_RUST_BRIDGE_HANDLER
-                        .async_runtime()
-                        .spawn(cb(s.clone()));
-                }
-            }
-        }));
         w
     }
 
-    pub(crate) fn fire_watchers(&self) -> anyhow::Result<()> {
+    pub(crate) fn fire_watcher(&self, table: &str) -> anyhow::Result<()> {
+        for watcher in self.0.watchers.read().unwrap().values().cloned() {
+            for (tb, cb) in watcher.read().unwrap().iter() {
+                if tb != table {
+                    continue;
+                }
+                FLUTTER_RUST_BRIDGE_HANDLER
+                    .async_runtime()
+                    .spawn(cb(self.clone()));
+            }
+        }
+
+        Ok(())
+    }
+
+    pub(crate) fn fire_watchers(&self) {
         for watcher in self.0.watchers.read().unwrap().values().cloned() {
             for watcher in watcher.read().unwrap().values().cloned() {
                 FLUTTER_RUST_BRIDGE_HANDLER
@@ -173,7 +175,17 @@ impl SqliteDb {
                     .spawn(watcher(self.clone()));
             }
         }
-        Ok(())
+    }
+
+    fn setup_watchers(&self) {
+        let s = self.clone();
+        self.0
+            .conn
+            .lock()
+            .unwrap()
+            .update_hook(Some(move |_, _: &str, tablename: &str, _| {
+                s.fire_watcher(tablename);
+            }));
     }
 
     #[frb(sync)]
@@ -181,11 +193,16 @@ impl SqliteDb {
         let conn = Connection::open(path)?;
         conn.execute("PRAGMA foreign_keys = ON;", [])?;
         rusqlite::vtab::array::load_module(&conn)?;
-        Ok(SqliteDb(Arc::new(SqliteDbInner {
+
+        let s = SqliteDb(Arc::new(SqliteDbInner {
             conn: Mutex::new(conn),
             watchers: RwLock::new(BTreeMap::new()),
             watcher_idx: RwLock::new(0),
-        })))
+        }));
+
+        s.setup_watchers();
+
+        Ok(s)
     }
 
     #[frb(sync)]

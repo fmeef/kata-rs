@@ -87,7 +87,7 @@ impl PgpApp {
 
         self.pgp.store.mega_flush()?;
 
-        self.pgp.db.fire_watchers()?;
+        self.pgp.db.fire_watchers();
         //  println!("flush fire watchers");
         Ok(())
     }

@@ -145,7 +145,7 @@ impl PgpAppTrait for PgpApp {
             .write()
             .delete_fingerprint(fingerprint.try_fingerprint_owned()?)?;
 
-        self.pgp.db.fire_watchers()?;
+        self.pgp.db.fire_watchers();
 
         Ok(())
     }

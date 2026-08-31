@@ -137,7 +137,7 @@ impl MaybeDeleted {
                 CircleType::User => "user".to_owned(),
                 CircleType::Circle => "circle".to_owned(),
             },
-            Self::Deleted(_) => "TODO DELETED".to_owned(),
+            Self::Deleted(d) => d.circle_type.get_type_str().to_owned(),
         }
     }
     fn option(&self) -> Option<&'_ CircleHandle> {

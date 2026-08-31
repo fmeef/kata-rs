@@ -462,7 +462,7 @@ impl CircleApp {
         self.inner.owner.as_bytes().chain(self.tag_reader())
     }
 
-    fn resign(&mut self) -> anyhow::Result<()> {
+    pub fn resign(&mut self) -> anyhow::Result<()> {
         let mut out = Vec::new();
         {
             let cert = self

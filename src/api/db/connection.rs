@@ -152,7 +152,7 @@ impl SqliteDb {
         w
     }
 
-    pub(crate) fn fire_watcher(&self, table: &str) -> anyhow::Result<()> {
+    pub(crate) fn fire_watcher(&self, table: &str) {
         for watcher in self.0.watchers.read().unwrap().values().cloned() {
             for (tb, cb) in watcher.read().unwrap().iter() {
                 if tb != table {
@@ -163,8 +163,6 @@ impl SqliteDb {
                     .spawn(cb(self.clone()));
             }
         }
-
-        Ok(())
     }
 
     pub(crate) fn fire_watchers(&self) {

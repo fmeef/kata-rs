@@ -29,8 +29,8 @@ use crate::{
         },
         PgpApp, PgpAppTrait, SqliteDb,
     },
-    error::{InternalErr, Result},
-    frb_generated::{RustAutoOpaque, StreamSink},
+    error::Result,
+    frb_generated::StreamSink,
 };
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -39,60 +39,6 @@ pub enum MemberTag {
     Merge = 1,
     Overwrite = 2,
     Delete = 3,
-}
-
-#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
-#[frb(non_opaque)]
-pub struct NonOpaqueApp {
-    pub members: Vec<AppMember>,
-    pub owner: UserHandle,
-    pub sig: Vec<u8>,
-}
-
-impl NonOpaqueApp {
-    pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
-        let entity = CircleData {
-            id: self.owner.name(),
-            circle_type: "app".to_owned(),
-            author: Some(self.owner.name()),
-            sig: Some(self.sig.clone()),
-        };
-
-        entity.insert_on_conflict_custom(
-            db,
-            OnConflict::Update,
-            vec!["id", "circle_type"],
-            vec!["author", "sig", "circle_type"],
-        )?;
-
-        for m in self.members.iter() {
-            match m.member {
-                MaybeDeleted::Deleted(ref v) => {
-                    db.delete_circle_member(&v.id.name(), v.circle_type.get_type_str())?
-                }
-                MaybeDeleted::Member(_) => (),
-            }
-
-            let entity = CircleMembersData {
-                circle_member_id: None,
-                member_id: m.member.id_hex(),
-                parent_id: self.owner.name(),
-                deleted: Some(false),
-                parent_type: "app".to_owned(),
-                member_type: m.member.member_type(),
-                tag: Some(m.tag.as_str().to_owned()),
-            };
-
-            entity.insert_on_conflict_custom(
-                db,
-                OnConflict::Update,
-                vec!["member_id", "parent_id", "member_type", "parent_type"],
-                vec!["tag", "deleted"],
-            )?;
-        }
-
-        Ok(())
-    }
 }
 
 impl AppMember {
@@ -399,15 +345,6 @@ impl CircleApp {
     pub fn update_tag(&mut self, id: &CircleHandle, tag: MemberTag) {
         if let Some(member) = self.inner.children.get_mut(id) {
             member.tag = tag;
-        }
-    }
-
-    #[frb(sync)]
-    pub fn consume_members(self) -> NonOpaqueApp {
-        NonOpaqueApp {
-            members: self.inner.children.into_values().collect(),
-            owner: self.inner.owner,
-            sig: self.inner.sig,
         }
     }
 

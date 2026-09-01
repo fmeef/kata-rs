@@ -306,50 +306,6 @@ struct TagOr {
 
 pub type ParentCache<'a> = BTreeMap<(String, UserHandle), &'a CircleWithMembers>;
 
-impl CircleWithMembers {
-    fn get_parent_vec(&self, cache: &ParentCache) -> Result<Option<Vec<(String, UserHandle)>>> {
-        match self.get_parent_tuple()? {
-            None => return Ok(None),
-            Some(parent) => {
-                let mut out = vec![parent];
-
-                let mut prev = None;
-                while let Some(np) = cache.get(out.last().unwrap()) {
-                    if prev == Some(np) {
-                        break;
-                    }
-                    prev = Some(np);
-                    match np.get_parent_tuple()? {
-                        Some(np) => out.push(np),
-                        None => break,
-                    }
-                }
-
-                Ok(Some(out))
-            }
-        }
-    }
-
-    fn get_id_vec(&self, cache: &ParentCache) -> Result<Option<Vec<(String, UserHandle)>>> {
-        let parent = self.get_id_tuple()?;
-        let mut out = vec![parent];
-
-        let mut prev = None;
-        while let Some(np) = cache.get(out.last().unwrap()) {
-            if prev == Some(np) {
-                break;
-            }
-            prev = Some(np);
-            match np.get_parent_tuple()? {
-                Some(np) => out.push(np),
-                None => break,
-            }
-        }
-
-        Ok(Some(out))
-    }
-}
-
 impl PgpApp {
     pub fn circles_from_db(
         &self,
@@ -577,21 +533,6 @@ impl CircleOr {
         }
 
         Ok(())
-    }
-
-    fn get_handle(&self) -> CircleHandle {
-        CircleHandle {
-            id: self.get_id_userhandle(),
-            circle_type: self.get_type(),
-        }
-    }
-
-    pub(crate) fn db_type(&self) -> String {
-        match self {
-            CircleOr::App(_) => "app".to_owned(),
-            CircleOr::User(_) => "user".to_owned(),
-            CircleOr::Circle(_) => "circle".to_owned(),
-        }
     }
 
     #[frb(sync)]
@@ -1013,74 +954,6 @@ mod test {
         assert!(!newcircle.is_empty());
         assert_eq!(newcircle.len(), 1);
         assert_eq!(circle.get_members(), newcircle[0].get_members());
-    }
-
-    #[test]
-    fn get_parent_vec() {
-        let app = PgpApp::create(test_config("app")).unwrap();
-        let key = app
-            .generate_key("test@example.com".to_owned())
-            .generate()
-            .unwrap();
-        let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
-        let u = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854037").unwrap();
-
-        let mut circle = app.create_app(&key.cert.fingerprint).unwrap();
-        circle.add_user(&v, MemberTag::Merge).unwrap();
-        circle.add_user(&u, MemberTag::Merge).unwrap();
-        let circle = CircleOr::App(RustAutoOpaque::new(circle));
-
-        circle.to_db(&app.pgp.db).unwrap();
-
-        let out = app.pgp.db.get_circles_join().unwrap();
-        let cache = CircleOr::get_parent_cache(&out).unwrap();
-
-        let child = cache
-            .values()
-            .find(|p| p.get_id().unwrap() == v.as_bytes())
-            .unwrap();
-
-        let parents = child.get_parent_vec(&cache).unwrap().unwrap();
-
-        assert_eq!(parents.len(), 1);
-        assert_eq!(
-            parents,
-            vec![("app".to_owned(), UserHandle::RawBytes(circle.get_id()))]
-        );
-    }
-
-    #[test]
-    fn get_recursive() {
-        let app = PgpApp::create(test_config("app")).unwrap();
-        let key = app
-            .generate_key("test@example.com".to_owned())
-            .generate()
-            .unwrap();
-
-        let mut circle = app.create_app(&key.cert.fingerprint).unwrap();
-
-        circle.add_app(&circle.clone(), MemberTag::Merge).unwrap();
-
-        let circle = CircleOr::App(RustAutoOpaque::new(circle));
-        let parent = app.create_circle(vec![circle.clone()]).unwrap();
-
-        let parent = CircleOr::Circle(RustAutoOpaque::new(parent));
-
-        circle.to_db(&app.pgp.db).unwrap();
-
-        parent.to_db(&app.pgp.db).unwrap();
-
-        let out = app
-            .pgp
-            .db
-            .get_circles_for_parent(&parent.id_hex(), &parent.db_type())
-            .unwrap();
-
-        let outcircle = app.circles_from_db(out, false, None, false).unwrap();
-
-        assert_eq!(outcircle.len(), 1);
-
-        // assert_eq!(outcircle[0], parent);
     }
 
     #[test]

@@ -6275,6 +6275,7 @@ fn wire__crate__api__PgpApp_create_app_impl(
             let api_owner = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UserHandle>,
             >>::sse_decode(&mut deserializer);
+            let api_name = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -6301,8 +6302,11 @@ fn wire__crate__api__PgpApp_create_app_impl(
                         }
                         let api_that_guard = api_that_guard.unwrap();
                         let api_owner_guard = api_owner_guard.unwrap();
-                        let output_ok =
-                            crate::api::PgpApp::create_app(&*api_that_guard, &*api_owner_guard)?;
+                        let output_ok = crate::api::PgpApp::create_app(
+                            &*api_that_guard,
+                            &*api_owner_guard,
+                            api_name,
+                        )?;
                         Ok(output_ok)
                     })(),
                 )

@@ -105,13 +105,13 @@ pub trait CertDao {
     fn is_online(&self, fingerprint: &str) -> Result<Option<OnlyOnline>>;
 
     #[query(
-        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
+        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
         FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type "
     )]
     fn get_circles_join(&self) -> Result<Vec<CircleWithMembers>>;
 
     #[query(
-        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
+        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
         FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type
         WHERE parent_id = :parent AND parent_type = :parent_type
         AND member_id = :child AND member_type = :child_type"
@@ -141,7 +141,7 @@ pub trait CertDao {
                      WHERE NOT (member_id IN (SELECT value FROM json_each(reachable.path))
                      AND member_type  IN (SELECT value FROM json_each(reachable.type_path)))
                    )
-                    SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
+                    SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
                    FROM circles LEFT JOIN circle_members ON member_id=id
                    AND member_type=circle_type JOIN reachable on reachable.node = circles.id and reachable.node_type = circle_type
 "
@@ -166,7 +166,7 @@ pub trait CertDao {
                      WHERE NOT (member_id IN (SELECT value FROM json_each(reachable.path))
                      AND member_type IN (SELECT value FROM json_each(reachable.type_path)))
                    )
-                    SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
+                    SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
                    FROM circles JOIN reachable on reachable.node = circles.id and reachable.node_type = circle_type LEFT JOIN circle_members ON (member_id=id
                    AND member_type=circle_type)
 "
@@ -174,20 +174,20 @@ pub trait CertDao {
     fn get_circles_by_id(&self, id: &str, circle_type: &str) -> Result<Vec<CircleWithMembers>>;
 
     #[query(
-        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
+        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
         FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type WHERE parent_id IS NULL"
     )]
     fn get_circles_without_parent(&self) -> Result<Vec<CircleWithMembers>>;
 
     #[query(
-        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
+        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
         FROM circles LEFT JOIN circle_members ON parent_id=id AND parent_type=circle_type
         WHERE (id = :id AND circle_type = :ty)"
     )]
     fn get_circle_by_id(&self, id: &str, ty: &str) -> Result<Vec<CircleWithMembers>>;
 
     #[query(
-        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig
+        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
         FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type
         WHERE parent_id IS NULL"
     )]
@@ -264,6 +264,7 @@ pub struct CircleData {
     pub(crate) circle_type: String,
     pub(crate) author: Option<String>,
     pub(crate) sig: Option<Vec<u8>>,
+    pub(crate) name: Option<String>,
 }
 #[derive(FromRow, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[table("circle_members")]
@@ -293,6 +294,7 @@ pub struct CircleWithMembers {
     pub(crate) circle_type: String,
     author: Option<String>,
     pub(crate) sig: Option<Vec<u8>>,
+    pub(crate) name: Option<String>,
 }
 
 impl CircleWithMembers {

@@ -92,6 +92,7 @@ lazy_static! {
         PRAGMA foreign_keys = ON;
         CREATE TABLE circles (
             id TEXT NOT NULL,
+            name TEXT,
             circle_type TEXT NOT NULL,
             author TEXT,
             sig BLOB,

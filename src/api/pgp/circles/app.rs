@@ -6,6 +6,7 @@ use std::{
 use anyhow::anyhow;
 use flutter_rust_bridge::frb;
 use lazy_static::lazy_static;
+use openssl::sha::Sha256;
 use sequoia_openpgp::{
     parse::{stream::DetachedVerifierBuilder, Parse},
     serialize::stream::{Message, Signer},
@@ -154,6 +155,7 @@ lazy_static! {
 #[frb(opaque)]
 pub(crate) struct CircleAppInner {
     pub(crate) owner: UserHandle,
+    pub(crate) name: String,
     pub(crate) children: BTreeMap<CircleHandle, AppMember>,
     pub(crate) sig: Vec<u8>,
 }
@@ -188,12 +190,18 @@ impl Ord for CircleApp {
 impl CircleLike for CircleApp {
     #[frb(sync)]
     fn get_id(&self) -> Vec<u8> {
-        self.inner.owner.as_bytes().to_owned()
+        let mut out = Sha256::new();
+        out.update(self.inner.owner.as_bytes());
+        out.update(self.inner.name.as_bytes());
+        out.finish().to_vec()
     }
 
     #[frb(sync)]
     fn get_id_userhandle(&self) -> UserHandle {
-        self.inner.owner.clone()
+        let mut out = Sha256::new();
+        out.update(self.inner.owner.as_bytes());
+        out.update(self.inner.name.as_bytes());
+        UserHandle::RawBytes(out.finish().to_vec())
     }
 
     fn iter_members(&self, sink: StreamSink<CircleEntry>) {
@@ -272,29 +280,29 @@ impl CircleApp {
             circle_type: "app".to_owned(),
             author: Some(self.inner.owner.name()),
             sig: Some(self.inner.sig.clone()),
+            name: Some(self.inner.name.clone()),
         };
         entity.insert_on_conflict_custom(
             db,
             OnConflict::Update,
             vec!["id", "circle_type"],
-            vec!["author", "sig", "circle_type"],
+            vec!["author", "sig", "circle_type", "name"],
         )?;
 
         for CircleHandle { id, circle_type } in self.inner.children.keys() {
-            if let CircleType::User = circle_type {
-                let entity = CircleData {
-                    id: id.name(),
-                    circle_type: "user".to_owned(),
-                    author: None,
-                    sig: None,
-                };
-                entity.insert_on_conflict_custom(
-                    db,
-                    OnConflict::Ignore,
-                    vec!["id", "circle_type"],
-                    vec!["author", "sig", "circle_type"],
-                )?;
-            }
+            let entity = CircleData {
+                id: id.name(),
+                circle_type: circle_type.get_type_str().to_owned(),
+                author: None,
+                name: None,
+                sig: None,
+            };
+            entity.insert_on_conflict_custom(
+                db,
+                OnConflict::Ignore,
+                vec!["id", "circle_type"],
+                vec!["author", "sig", "circle_type", "name"],
+            )?;
         }
 
         for member in self.inner.children.values() {
@@ -361,6 +369,7 @@ impl CircleApp {
     pub(crate) fn new_empty(
         author: Option<UserHandle>,
         sig: Option<Vec<u8>>,
+        name: String,
         pgp: PgpApp,
     ) -> Result<Self> {
         let (owner, sig) = match (author, sig) {
@@ -372,6 +381,7 @@ impl CircleApp {
             inner: CircleAppInner {
                 owner,
                 children: BTreeMap::new(),
+                name,
                 sig,
             },
             pgp,
@@ -412,6 +422,7 @@ impl CircleApp {
 
             signer.write_all(&self.inner.owner.as_bytes())?;
             signer.write_all(&[])?;
+            signer.write_all(self.inner.name.as_bytes())?;
             signer.finalize()?;
         }
         self.inner.sig = out;
@@ -581,7 +592,7 @@ impl PgpApp {
         Ok(true)
     }
 
-    pub fn create_app(&self, owner: &UserHandle) -> anyhow::Result<CircleApp> {
+    pub fn create_app(&self, owner: &UserHandle, name: String) -> anyhow::Result<CircleApp> {
         let mut out = Vec::new();
         let children = BTreeMap::new();
         {
@@ -601,6 +612,7 @@ impl PgpApp {
                 owner: owner.clone(),
                 children,
                 sig: out,
+                name,
             },
             pgp: self.clone(),
         })
@@ -630,7 +642,7 @@ mod test {
 
         let author = key.cert.fingerprint;
 
-        let app = app.create_app(&author).unwrap();
+        let app = app.create_app(&author, "test".to_owned()).unwrap();
         assert_eq!(author.name(), app.inner.owner.name())
     }
 
@@ -645,7 +657,7 @@ mod test {
 
         let author = key.cert.fingerprint;
 
-        let a = app.create_app(&author).unwrap();
+        let a = app.create_app(&author, "test".to_owned()).unwrap();
         let res = app.verify_app(&a).unwrap();
         assert!(res);
     }
@@ -661,8 +673,8 @@ mod test {
 
         let author = key.cert.fingerprint;
 
-        let mut a = service.create_app(&author).unwrap();
-        let a2 = service.create_app(&author).unwrap();
+        let mut a = service.create_app(&author, "test".to_owned()).unwrap();
+        let a2 = service.create_app(&author, "test".to_owned()).unwrap();
         a.merge(&a2).unwrap();
         let res = service.verify_app(&a).unwrap();
         assert!(res);
@@ -681,8 +693,8 @@ mod test {
 
         let author = key.cert.fingerprint;
 
-        let mut a = service.create_app(&author).unwrap();
-        let mut a2 = service.create_app(&author).unwrap();
+        let mut a = service.create_app(&author, "test".to_owned()).unwrap();
+        let mut a2 = service.create_app(&author, "test".to_owned()).unwrap();
         a.merge_both(&mut a2).unwrap();
         let res = service.verify_app(&a).unwrap();
         assert!(res);
@@ -701,8 +713,8 @@ mod test {
 
         let author = key.cert.fingerprint;
 
-        let mut a = service.create_app(&author).unwrap();
-        let mut a2 = service.create_app(&author).unwrap();
+        let mut a = service.create_app(&author, "test".to_owned()).unwrap();
+        let mut a2 = service.create_app(&author, "test".to_owned()).unwrap();
         let circ = service.create_circle(vec![]).unwrap();
         a2.add_circle(&circ, MemberTag::Merge).unwrap();
         a.merge_both(&mut a2).unwrap();
@@ -725,7 +737,9 @@ mod test {
             .generate()
             .unwrap();
 
-        let mut app = service.create_app(&key.cert.fingerprint).unwrap();
+        let mut app = service
+            .create_app(&key.cert.fingerprint, "test".to_owned())
+            .unwrap();
         app.add_app(&app.clone(), MemberTag::Merge).unwrap();
         let app = CircleOr::App(RustAutoOpaque::new(app));
         app.to_db(&service.get_db()).unwrap();
@@ -759,9 +773,9 @@ mod test {
 
         let author = key.cert.fingerprint;
 
-        let mut a = service.create_app(&author).unwrap();
+        let mut a = service.create_app(&author, "test".to_owned()).unwrap();
         let circ = service.create_circle(vec![]).unwrap();
-        let mut a2 = service.create_app(&author).unwrap();
+        let mut a2 = service.create_app(&author, "test".to_owned()).unwrap();
         a2.add_circle(&circ, MemberTag::Delete).unwrap();
         a.merge_both(&mut a2).unwrap();
         let res = service.verify_app(&a).unwrap();

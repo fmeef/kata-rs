@@ -285,6 +285,7 @@ impl UserHandle {
             circle_type: "user".to_owned(),
             author: Some(self.name()),
             sig: None,
+            name: None,
         };
 
         data.insert_on_conflict_custom(

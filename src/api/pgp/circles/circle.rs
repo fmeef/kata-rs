@@ -302,6 +302,7 @@ impl Circle {
             circle_type: "circle".to_owned(),
             author: self.inner.author.as_ref().map(|v| v.author.name()),
             sig: self.inner.author.as_ref().map(|v| v.sig.clone()),
+            name: None,
         };
 
         entity.insert_on_conflict_custom(
@@ -318,6 +319,7 @@ impl Circle {
                     circle_type: "user".to_owned(),
                     author: None,
                     sig: None,
+                    name: None,
                 };
                 entity.insert_on_conflict_custom(
                     db,

@@ -457,8 +457,15 @@ impl PgpApp {
                     );
                 }
                 "app" => {
-                    let mut app =
-                        CircleApp::new_empty(item.get_author()?, item.sig.clone(), self.clone())?;
+                    let mut app = CircleApp::new_empty(
+                        item.get_author()?,
+                        item.sig.clone(),
+                        item.name
+                            .as_ref()
+                            .ok_or(InternalErr::InvalidRow)?
+                            .to_owned(),
+                        self.clone(),
+                    )?;
 
                     app.inner.children = self
                         .get_children_parent(members, actual, Some(n), start, false, visited, die)?
@@ -937,7 +944,9 @@ mod test {
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
         let u = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854037").unwrap();
 
-        let mut circle = app.create_app(&key.cert.fingerprint).unwrap();
+        let mut circle = app
+            .create_app(&key.cert.fingerprint, "test".to_owned())
+            .unwrap();
         circle.add_user(&v, MemberTag::Merge).unwrap();
         circle.add_user(&u, MemberTag::Merge).unwrap();
         let circle = CircleOr::App(RustAutoOpaque::new(circle));

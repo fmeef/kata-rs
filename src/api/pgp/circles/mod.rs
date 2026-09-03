@@ -1,5 +1,6 @@
 use anyhow::anyhow;
 use flutter_rust_bridge::frb;
+use sequoia_wot::store::Store;
 
 use crate::api::db::store::CertDao;
 use crate::api::pgp::PgpServiceTrait;
@@ -333,15 +334,34 @@ impl PgpApp {
 
         let res = self.get_children(&out, &members, parent, &None, all)?;
 
-        let res = res
-            .into_iter()
-            .map(|(_, v)| v)
-            .flat_map(|v| v.content.into_option())
-            .filter(|p| match p {
-                CircleOr::User(_) => users,
-                _ => true,
-            })
-            .collect();
+        let mut res = if users {
+            res.into_iter()
+                .map(|(_, v)| v)
+                .flat_map(|v| v.content.into_option())
+                .filter(|p| match p {
+                    CircleOr::User(_) => false,
+                    _ => true,
+                })
+                .chain(
+                    self.pgp
+                        .store
+                        .read()
+                        .iter_fingerprints()
+                        .map(|v| CircleOr::from_cert(UserHandle::from_fingerprint(v, None))),
+                )
+                .collect::<Vec<_>>()
+        } else {
+            res.into_iter()
+                .map(|(_, v)| v)
+                .flat_map(|v| v.content.into_option())
+                .filter(|p| match p {
+                    CircleOr::User(_) => false,
+                    _ => true,
+                })
+                .collect::<Vec<_>>()
+        };
+
+        res.sort();
 
         // log::debug!("get! {res:#?}");
         Ok(res)

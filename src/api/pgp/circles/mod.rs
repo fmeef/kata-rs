@@ -565,7 +565,7 @@ impl CircleOr {
     #[frb(sync)]
     pub fn id_hex(&self) -> String {
         match self {
-            Self::App(a) => a.blocking_read().inner.owner.name(),
+            Self::App(a) => a.blocking_read().id_hex(),
             Self::Circle(s) => s.blocking_read().inner.id.name(),
             Self::User(u) => u.blocking_read().name(),
         }

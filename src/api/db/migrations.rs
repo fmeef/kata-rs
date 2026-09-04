@@ -96,7 +96,8 @@ lazy_static! {
             circle_type TEXT NOT NULL,
             author TEXT,
             sig BLOB,
-            PRIMARY KEY(id, circle_type)
+            PRIMARY KEY(id, circle_type),
+            UNIQUE(id, circle_type, name)
         );
 
         CREATE TABLE circle_members (

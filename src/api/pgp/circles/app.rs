@@ -276,7 +276,7 @@ impl CircleLike for CircleApp {
 impl CircleApp {
     pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
         let entity = CircleData {
-            id: self.inner.owner.name(),
+            id: self.get_id_userhandle().name(),
             circle_type: "app".to_owned(),
             author: Some(self.inner.owner.name()),
             sig: Some(self.inner.sig.clone()),
@@ -285,7 +285,7 @@ impl CircleApp {
         entity.insert_on_conflict_custom(
             db,
             OnConflict::Update,
-            vec!["id", "circle_type"],
+            vec!["id", "circle_type", "name"],
             vec!["author", "sig", "circle_type", "name"],
         )?;
 
@@ -301,7 +301,7 @@ impl CircleApp {
                 db,
                 OnConflict::Ignore,
                 vec!["id", "circle_type"],
-                vec!["author", "sig", "circle_type", "name"],
+                vec![],
             )?;
         }
 
@@ -313,7 +313,7 @@ impl CircleApp {
                         member_id: m.id.name(),
                         deleted: Some(false),
                         parent_type: "app".to_owned(),
-                        parent_id: self.inner.owner.name(),
+                        parent_id: self.get_id_userhandle().name(),
                         member_type: m.circle_type.get_type_str().to_owned(),
                         tag: Some(member.tag.as_str().to_owned()),
                     };
@@ -331,7 +331,7 @@ impl CircleApp {
                         member_id: d.id.name(),
                         deleted: Some(true),
                         parent_type: "app".to_owned(),
-                        parent_id: self.inner.owner.name(),
+                        parent_id: self.get_id_userhandle().name(),
                         member_type: d.circle_type.get_type_str().to_owned(),
                         tag: Some("delete".to_owned()),
                     };
@@ -358,7 +358,7 @@ impl CircleApp {
 
     #[frb(sync)]
     pub fn id_hex(&self) -> String {
-        self.inner.owner.name()
+        self.get_id_userhandle().name()
     }
 
     // #[frb(sync)]
@@ -406,7 +406,11 @@ impl CircleApp {
     }
 
     fn to_read<'a>(&'a self) -> impl std::io::Read + Send + Sync + 'a {
-        self.inner.owner.as_bytes().chain(self.tag_reader())
+        self.inner
+            .owner
+            .as_bytes()
+            .chain(self.inner.name.as_bytes())
+            .chain(self.tag_reader())
     }
 
     pub fn resign(&mut self) -> anyhow::Result<()> {

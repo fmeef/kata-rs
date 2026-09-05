@@ -383,12 +383,12 @@ mod test {
         let private = test
             .pgp
             .db
-            .get_by_fingerprint(&k.cert.fingerprint.name())
+            .get_by_fingerprint(&k.cert.fingerprint.fingerprint())
             .unwrap();
 
         let new = private.merge(new.to_cert().unwrap().clone()).unwrap();
 
-        assert_eq!(new.fingerprint().to_hex(), k.cert.fingerprint.name());
+        assert_eq!(new.fingerprint().to_hex(), k.cert.fingerprint.fingerprint());
         assert!(new.is_tsk());
     }
 }

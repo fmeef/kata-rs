@@ -216,6 +216,11 @@ impl CircleLike for Circle {
     fn get_owner(&self) -> Option<UserHandle> {
         self.inner.author.as_ref().map(|v| v.author.clone())
     }
+
+    #[frb(sync)]
+    fn get_name(&self) -> String {
+        self.inner.id.fingerprint()
+    }
 }
 
 impl Circle {
@@ -289,7 +294,7 @@ impl CircleOr {
     pub fn is_member(&self, user: &CircleHandle) -> bool {
         match self {
             Self::Circle(c) => c.blocking_read().is_member(user),
-            Self::User(u) => *u.blocking_read().name() == user.id.name(),
+            Self::User(u) => *u.blocking_read().fingerprint() == user.id.fingerprint(),
             Self::App(u) => u.blocking_read().is_member(user),
         }
     }
@@ -298,9 +303,9 @@ impl CircleOr {
 impl Circle {
     pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
         let entity = CircleData {
-            id: self.inner.id.name(),
+            id: self.inner.id.fingerprint(),
             circle_type: "circle".to_owned(),
-            author: self.inner.author.as_ref().map(|v| v.author.name()),
+            author: self.inner.author.as_ref().map(|v| v.author.fingerprint()),
             sig: self.inner.author.as_ref().map(|v| v.sig.clone()),
             name: None,
         };
@@ -315,7 +320,7 @@ impl Circle {
         for CircleHandle { id, circle_type } in self.inner.members.iter() {
             if let CircleType::User = circle_type {
                 let entity = CircleData {
-                    id: id.name(),
+                    id: id.fingerprint(),
                     circle_type: "user".to_owned(),
                     author: None,
                     sig: None,
@@ -332,8 +337,8 @@ impl Circle {
         for CircleHandle { id, circle_type } in self.inner.members.iter() {
             let entity = CircleMembersData {
                 circle_member_id: None,
-                member_id: id.name(),
-                parent_id: self.inner.id.name(),
+                member_id: id.fingerprint(),
+                parent_id: self.inner.id.fingerprint(),
                 deleted: Some(false),
                 parent_type: "circle".to_owned(),
                 member_type: circle_type.get_type_str().to_owned(),
@@ -554,7 +559,10 @@ mod test {
         let author = key.cert.fingerprint;
 
         let circle = app.create_circle_signed(author.clone(), keys).unwrap();
-        assert_eq!(author.name(), circle.inner.author.unwrap().author.name())
+        assert_eq!(
+            author.fingerprint(),
+            circle.inner.author.unwrap().author.fingerprint()
+        )
     }
 
     #[test]

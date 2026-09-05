@@ -95,16 +95,16 @@ mod test {
             .unwrap();
 
         test.sign_with_trust_level(
-            &online.cert.fingerprint.name(),
-            &offline.cert.fingerprint.name(),
+            &online.cert.fingerprint.fingerprint(),
+            &offline.cert.fingerprint.fingerprint(),
             1,
             TrustLevel::Full,
         )
         .unwrap();
 
         test.sign_with_trust_level(
-            &offline.cert.fingerprint.name(),
-            &online.cert.fingerprint.name(),
+            &offline.cert.fingerprint.fingerprint(),
+            &online.cert.fingerprint.fingerprint(),
             1,
             TrustLevel::Full,
         )

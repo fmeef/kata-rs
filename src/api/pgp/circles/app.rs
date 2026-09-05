@@ -130,8 +130,8 @@ impl MaybeDeleted {
     #[frb(sync)]
     fn id_hex(&self) -> String {
         match self {
-            Self::Member(m) => m.id.name(),
-            Self::Deleted(m) => m.id.name(),
+            Self::Member(m) => m.id.fingerprint(),
+            Self::Deleted(m) => m.id.fingerprint(),
         }
     }
 }
@@ -271,14 +271,19 @@ impl CircleLike for CircleApp {
     fn get_owner(&self) -> Option<UserHandle> {
         Some(self.inner.owner.clone())
     }
+
+    #[frb(sync)]
+    fn get_name(&self) -> String {
+        self.inner.name.clone()
+    }
 }
 
 impl CircleApp {
     pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
         let entity = CircleData {
-            id: self.get_id_userhandle().name(),
+            id: self.get_id_userhandle().fingerprint(),
             circle_type: "app".to_owned(),
-            author: Some(self.inner.owner.name()),
+            author: Some(self.inner.owner.fingerprint()),
             sig: Some(self.inner.sig.clone()),
             name: Some(self.inner.name.clone()),
         };
@@ -291,7 +296,7 @@ impl CircleApp {
 
         for CircleHandle { id, circle_type } in self.inner.children.keys() {
             let entity = CircleData {
-                id: id.name(),
+                id: id.fingerprint(),
                 circle_type: circle_type.get_type_str().to_owned(),
                 author: None,
                 name: None,
@@ -310,10 +315,10 @@ impl CircleApp {
                 MaybeDeleted::Member(ref m) => {
                     let entity = CircleMembersData {
                         circle_member_id: None,
-                        member_id: m.id.name(),
+                        member_id: m.id.fingerprint(),
                         deleted: Some(false),
                         parent_type: "app".to_owned(),
-                        parent_id: self.get_id_userhandle().name(),
+                        parent_id: self.get_id_userhandle().fingerprint(),
                         member_type: m.circle_type.get_type_str().to_owned(),
                         tag: Some(member.tag.as_str().to_owned()),
                     };
@@ -328,10 +333,10 @@ impl CircleApp {
                 MaybeDeleted::Deleted(ref d) => {
                     let entity = CircleMembersData {
                         circle_member_id: None,
-                        member_id: d.id.name(),
+                        member_id: d.id.fingerprint(),
                         deleted: Some(true),
                         parent_type: "app".to_owned(),
-                        parent_id: self.get_id_userhandle().name(),
+                        parent_id: self.get_id_userhandle().fingerprint(),
                         member_type: d.circle_type.get_type_str().to_owned(),
                         tag: Some("delete".to_owned()),
                     };
@@ -349,7 +354,6 @@ impl CircleApp {
         Ok(())
     }
 
-    #[frb(sync)]
     pub fn update_tag(&mut self, id: &CircleHandle, tag: MemberTag) {
         if let Some(member) = self.inner.children.get_mut(id) {
             member.tag = tag;
@@ -358,7 +362,7 @@ impl CircleApp {
 
     #[frb(sync)]
     pub fn id_hex(&self) -> String {
-        self.get_id_userhandle().name()
+        self.get_id_userhandle().fingerprint()
     }
 
     // #[frb(sync)]
@@ -446,9 +450,9 @@ impl CircleApp {
             }
         } else {
             self.pgp.get_db().purge_circle_member(
-                &handle.id.name(),
+                &handle.id.fingerprint(),
                 handle.circle_type.get_type_str(),
-                &parent.id.name(),
+                &parent.id.fingerprint(),
                 parent.circle_type.get_type_str(),
             )?;
             self.inner.children.remove(handle);
@@ -511,6 +515,14 @@ impl CircleApp {
             },
         );
         self.resign()
+    }
+
+    pub fn add_circle_or(&mut self, circle: &CircleOr, tag: MemberTag) -> anyhow::Result<()> {
+        match circle {
+            CircleOr::App(ref app) => self.add_app(&app.blocking_read(), tag),
+            CircleOr::Circle(ref circle) => self.add_circle(&circle.blocking_read(), tag),
+            CircleOr::User(ref user) => self.add_user(&user.blocking_read(), tag),
+        }
     }
 
     pub fn merge_both(&mut self, other: &mut CircleApp) -> anyhow::Result<()> {
@@ -647,7 +659,7 @@ mod test {
         let author = key.cert.fingerprint;
 
         let app = app.create_app(&author, "test".to_owned()).unwrap();
-        assert_eq!(author.name(), app.inner.owner.name())
+        assert_eq!(author.fingerprint(), app.inner.owner.fingerprint())
     }
 
     #[test]

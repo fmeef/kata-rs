@@ -215,8 +215,8 @@ mod test {
         assert_eq!(owned.sigs.len(), 0);
 
         app.sign_with_trust_level(
-            &key1.cert.fingerprint.name(),
-            &key2.cert.fingerprint.name(),
+            &key1.cert.fingerprint.fingerprint(),
+            &key2.cert.fingerprint.fingerprint(),
             1,
             super::TrustLevel::Full,
         )
@@ -255,8 +255,8 @@ mod test {
             .unwrap();
 
         app.sign_with_trust_level(
-            &key1.cert.fingerprint.name(),
-            &key2.cert.fingerprint.name(),
+            &key1.cert.fingerprint.fingerprint(),
+            &key2.cert.fingerprint.fingerprint(),
             1,
             super::TrustLevel::Full,
         )
@@ -291,8 +291,8 @@ mod test {
         assert!(key2.has_private());
 
         app.sign_with_trust_level(
-            &key1.cert.fingerprint.name(),
-            &key2.cert.fingerprint.name(),
+            &key1.cert.fingerprint.fingerprint(),
+            &key2.cert.fingerprint.fingerprint(),
             1,
             super::TrustLevel::Full,
         )
@@ -314,7 +314,7 @@ mod test {
         let db_cert = app
             .pgp
             .db
-            .get_by_fingerprint(&key2.cert.fingerprint.name())
+            .get_by_fingerprint(&key2.cert.fingerprint.fingerprint())
             .unwrap();
 
         for key in app

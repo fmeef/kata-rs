@@ -61,7 +61,7 @@ pub enum UserHandle {
 impl std::fmt::Debug for UserHandle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("UserHandle(")?;
-        f.write_str(&self.name())?;
+        f.write_str(&self.fingerprint())?;
         f.write_str(")")
     }
 }
@@ -80,7 +80,7 @@ impl Hash for UserHandle {
 
 impl Ord for UserHandle {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.name().cmp(&other.name())
+        self.fingerprint().cmp(&other.fingerprint())
     }
 }
 
@@ -97,7 +97,7 @@ impl Serialize for UserHandle {
             Self::RawBytes(_) => "raw",
         };
         map.serialize_key(key)?;
-        map.serialize_value(&self.name())?;
+        map.serialize_value(&self.fingerprint())?;
 
         map.end()
     }
@@ -218,6 +218,11 @@ impl CircleLike for UserHandle {
     fn get_owner(&self) -> Option<UserHandle> {
         None
     }
+
+    #[frb(sync)]
+    fn get_name(&self) -> String {
+        self.fingerprint()
+    }
 }
 
 impl UserHandle {
@@ -265,7 +270,7 @@ impl UserHandle {
     }
 
     #[frb(sync)]
-    pub fn name(&self) -> String {
+    pub fn fingerprint(&self) -> String {
         match self {
             Self::KeyHandle(kh, _) => kh.to_hex(),
             Self::RawBytes(bytes) => hex::encode(bytes),
@@ -281,9 +286,9 @@ impl UserHandle {
 
     pub fn to_db(&self, db: &SqliteDb) -> anyhow::Result<()> {
         let data = CircleData {
-            id: self.name(),
+            id: self.fingerprint(),
             circle_type: "user".to_owned(),
-            author: Some(self.name()),
+            author: Some(self.fingerprint()),
             sig: None,
             name: None,
         };
@@ -572,6 +577,6 @@ mod test {
         let s = serde_json::to_string(&v).unwrap();
         let o: UserHandle = serde_json::from_str(&s).unwrap();
 
-        assert_eq!(v.name(), o.name())
+        assert_eq!(v.fingerprint(), o.fingerprint())
     }
 }

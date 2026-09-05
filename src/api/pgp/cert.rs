@@ -164,7 +164,7 @@ impl PgpCertWithIds {
 
     #[frb(sync)]
     pub fn id_hex(&self) -> String {
-        self.cert.fingerprint.name()
+        self.cert.fingerprint.fingerprint()
     }
 
     pub fn from_bytes_sig(bytes: Vec<u8>, store: &PgpApp) -> anyhow::Result<Self> {

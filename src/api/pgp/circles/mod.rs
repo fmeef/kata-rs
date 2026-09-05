@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use flutter_rust_bridge::frb;
-use sequoia_wot::store::Store;
+use sequoia_cert_store::Store;
 
 use crate::api::db::store::CertDao;
 use crate::api::pgp::PgpServiceTrait;
@@ -291,6 +291,15 @@ impl CircleLike for CircleOr {
             Self::User(u) => u.blocking_read().get_owner(),
         }
     }
+
+    #[frb(sync)]
+    fn get_name(&self) -> String {
+        match self {
+            Self::App(a) => a.blocking_read().get_name(),
+            Self::Circle(c) => c.blocking_read().get_name(),
+            Self::User(u) => u.blocking_read().get_name(),
+        }
+    }
 }
 
 impl Hash for CircleOr {
@@ -342,13 +351,12 @@ impl PgpApp {
                     CircleOr::User(_) => false,
                     _ => true,
                 })
-                .chain(
-                    self.pgp
-                        .store
-                        .read()
-                        .iter_fingerprints()
-                        .map(|v| CircleOr::from_cert(UserHandle::from_fingerprint(v, None))),
-                )
+                .chain(self.pgp.store.read().certs().map(|v| {
+                    CircleOr::from_cert(UserHandle::from_fingerprint(
+                        v.fingerprint(),
+                        v.userids().map(|v| v.to_string()).next(),
+                    ))
+                }))
                 .collect::<Vec<_>>()
         } else {
             res.into_iter()
@@ -421,7 +429,7 @@ impl PgpApp {
 
             log::debug!(
                 "not skipping parent={parent:?} child={} type={}",
-                UserHandle::RawBytes(item.get_id()?.to_owned()).name(),
+                UserHandle::RawBytes(item.get_id()?.to_owned()).fingerprint(),
                 item.circle_type
             );
 
@@ -460,8 +468,8 @@ impl PgpApp {
                     // circle.update_digest();
                     log::debug!(
                         "pushing circle id={} actual={} members={}",
-                        UserHandle::RawBytes(circle.get_id().to_owned()).name(),
-                        UserHandle::RawBytes(item.get_id()?.to_owned()).name(),
+                        UserHandle::RawBytes(circle.get_id().to_owned()).fingerprint(),
+                        UserHandle::RawBytes(item.get_id()?.to_owned()).fingerprint(),
                         circle.get_members().len()
                     );
 
@@ -566,8 +574,8 @@ impl CircleOr {
     pub fn id_hex(&self) -> String {
         match self {
             Self::App(a) => a.blocking_read().id_hex(),
-            Self::Circle(s) => s.blocking_read().inner.id.name(),
-            Self::User(u) => u.blocking_read().name(),
+            Self::Circle(s) => s.blocking_read().inner.id.fingerprint(),
+            Self::User(u) => u.blocking_read().fingerprint(),
         }
     }
 
@@ -667,6 +675,8 @@ pub trait CircleLike {
     fn handle(&self) -> CircleHandle;
     #[frb(sync)]
     fn get_owner(&self) -> Option<UserHandle>;
+    #[frb(sync)]
+    fn get_name(&self) -> String;
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -742,6 +752,11 @@ where
     #[frb(sync)]
     fn get_owner(&self) -> Option<UserHandle> {
         (*self).get_owner()
+    }
+
+    #[frb(sync)]
+    fn get_name(&self) -> String {
+        (*self).get_name()
     }
 }
 
@@ -859,7 +874,7 @@ impl PgpApp {
     pub fn get_circles_for_parent(&self, parent: &CircleHandle) -> Result<Vec<CircleOr>> {
         let v = self
             .get_db()
-            .get_circles_for_parent(&parent.id.name(), parent.circle_type.get_type_str())?;
+            .get_circles_for_parent(&parent.id.fingerprint(), parent.circle_type.get_type_str())?;
 
         self.circles_from_db(v, true, Some(parent.clone()), false)
     }
@@ -867,7 +882,7 @@ impl PgpApp {
     pub fn get_circle_by_id(&self, id: &CircleHandle) -> Result<Option<CircleOr>> {
         let v = self
             .get_db()
-            .get_circles_by_id(&id.id.name(), &id.circle_type.get_type_str())?;
+            .get_circles_by_id(&id.id.fingerprint(), &id.circle_type.get_type_str())?;
 
         log::debug!("v={v:#?}");
         log::debug!("id: {id:?} {}", id.circle_type.get_type_str());
@@ -907,7 +922,7 @@ mod test {
         let app = PgpApp::create(test_config("app")).unwrap();
 
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
-        let id = v.name();
+        let id = v.fingerprint();
         let user = CircleOr::User(RustAutoOpaque::new(v));
         user.to_db(&app.pgp.db).unwrap();
         let out = app.pgp.db.get_circle_by_id(&id, "user").unwrap();

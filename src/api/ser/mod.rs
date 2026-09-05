@@ -197,7 +197,7 @@ impl PgpApp {
         verifier.read_to_end(&mut out)?;
 
         let is_stub = if let Some(ref key) = key {
-            self.is_stub(&key.cert.fingerprint.name())?
+            self.is_stub(&key.cert.fingerprint.fingerprint())?
         } else {
             true
         };
@@ -316,13 +316,16 @@ mod test {
                     .store
                     .lookup_by_cert_fpr(&nk.cert.fingerprint.try_fingerprint().unwrap())
                     .unwrap();
-                assert_eq!(nk.fingerprint().to_hex(), key.cert.fingerprint.name());
+                assert_eq!(
+                    nk.fingerprint().to_hex(),
+                    key.cert.fingerprint.fingerprint()
+                );
                 let userids = nk.userids().next().unwrap();
                 let userid = userids.name().unwrap().unwrap();
                 assert_eq!(userid, "test");
             }
 
-            assert_eq!(res.fingerprints[0], key.cert.fingerprint.name());
+            assert_eq!(res.fingerprints[0], key.cert.fingerprint.fingerprint());
         }
     }
 
@@ -351,7 +354,7 @@ mod test {
 
             println!("{:?}", res.fingerprints);
 
-            assert_eq!(res.fingerprints[0], key.cert.fingerprint.name());
+            assert_eq!(res.fingerprints[0], key.cert.fingerprint.fingerprint());
         }
     }
 
@@ -379,9 +382,9 @@ mod test {
             .unwrap();
         let cert = cert.to_cert().unwrap();
         assert_ne!(strip, *cert);
-        let is_stub = app.is_stub(&key.cert.fingerprint.name()).unwrap();
+        let is_stub = app.is_stub(&key.cert.fingerprint.fingerprint()).unwrap();
         assert!(!is_stub);
-        let is_stub = app2.is_stub(&key.cert.fingerprint.name()).unwrap();
+        let is_stub = app2.is_stub(&key.cert.fingerprint.fingerprint()).unwrap();
         assert!(is_stub);
     }
 

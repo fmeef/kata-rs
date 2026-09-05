@@ -259,7 +259,7 @@ impl<'a> VisualKeyBuilder<'a> {
     pub fn apply_or_else(&self, data: &UserHandle) -> VisualKeyOr {
         self.apply(data)
             .map(VisualKeyOr::Gismu)
-            .unwrap_or_else(|_| VisualKeyOr::Name(self.0.read().unwrap().data.name()))
+            .unwrap_or_else(|_| VisualKeyOr::Name(self.0.read().unwrap().data.fingerprint()))
     }
 
     pub fn set_data(&'a self, data: &'a UserHandle) -> VisualKeyBuilder<'a> {
@@ -591,14 +591,15 @@ impl UserHandle {
 
     #[frb(sync)]
     pub fn composite_lujvo_or_else(&self, short: bool) -> String {
-        self.composite_lujvo(short).unwrap_or_else(|_| self.name())
+        self.composite_lujvo(short)
+            .unwrap_or_else(|_| self.fingerprint())
     }
 
     #[frb(sync)]
     pub fn separate_lujvo_or_else(&self) -> VisualKeyOr {
         self.separate_lujvo()
             .map(|v| VisualKeyOr::Gismu(v))
-            .unwrap_or_else(|_| VisualKeyOr::Name(self.name()))
+            .unwrap_or_else(|_| VisualKeyOr::Name(self.fingerprint()))
     }
 
     #[frb(sync)]

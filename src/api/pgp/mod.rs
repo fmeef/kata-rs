@@ -198,7 +198,6 @@ impl CircleLike for UserHandle {
         self.to_db(db)
     }
 
-    #[frb(sync)]
     fn get_members(&self) -> Vec<circles::CircleEntry> {
         vec![CircleEntry::from_circle_or(circles::CircleOr::User(
             RustAutoOpaque::new(self.clone()),

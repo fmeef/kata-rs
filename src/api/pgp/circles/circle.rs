@@ -174,7 +174,6 @@ impl CircleLike for Circle {
         self.to_db(db)
     }
 
-    #[frb(sync)]
     fn get_members(&self) -> Vec<CircleEntry> {
         self.inner
             .members

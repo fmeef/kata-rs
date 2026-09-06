@@ -257,7 +257,6 @@ impl CircleLike for CircleOr {
         }
     }
 
-    #[frb(sync)]
     fn get_members(&self) -> Vec<CircleEntry> {
         match self {
             Self::App(a) => a.blocking_read().get_members(),
@@ -660,7 +659,6 @@ pub trait CircleLike {
     fn iter_members(&self, sink: StreamSink<CircleEntry>);
     #[frb(sync)]
     fn get_member(&self, id: &CircleHandle) -> anyhow::Result<Option<CircleEntry>>;
-    #[frb(sync)]
     fn get_members(&self) -> Vec<CircleEntry>;
     fn verify(&self) -> anyhow::Result<bool>;
     #[frb(sync)]
@@ -735,7 +733,6 @@ where
         (*self).insert(db)
     }
 
-    #[frb(sync)]
     fn get_members(&self) -> Vec<CircleEntry> {
         (*self).get_members()
     }

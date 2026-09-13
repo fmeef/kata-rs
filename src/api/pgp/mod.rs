@@ -20,7 +20,7 @@ use crate::{
         },
         pgp::{
             cert::PgpCertWithIds,
-            circles::{CircleEntry, CircleHandle, CircleLike, CircleType},
+            circles::{CircleEntry, CircleHandle, CircleLike, CircleOr, CircleType},
             import::PgpImport,
             mut_store::MutStore,
         },
@@ -163,7 +163,7 @@ impl CircleLike for UserHandle {
         let res = if *id == test {
             Some(circles::CircleEntry {
                 id: id.clone(),
-                content: None,
+                content: Some(CircleOr::from_cert(self.clone())),
                 tag: None,
             })
         } else {
@@ -179,7 +179,7 @@ impl CircleLike for UserHandle {
                 id: self.clone(),
                 circle_type: CircleType::User,
             },
-            content: None,
+            content: Some(CircleOr::from_cert(self.clone())),
             tag: None,
         })
         .unwrap();

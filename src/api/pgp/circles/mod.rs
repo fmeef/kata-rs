@@ -877,11 +877,16 @@ impl PgpApp {
     }
 
     pub fn get_circle_by_id(&self, id: &CircleHandle) -> Result<Option<CircleOr>> {
+        if id.circle_type == CircleType::User {
+            let v = self.get_key_from_fingerprint(&id.id)?;
+            return Ok(Some(CircleOr::from_cert(v.cert.fingerprint)));
+        }
+
         let v = self
             .get_db()
             .get_circles_by_id(&id.id.fingerprint(), &id.circle_type.get_type_str())?;
 
-        log::debug!("v={v:#?}");
+        log::error!("v={v:#?}");
         log::debug!("id: {id:?} {}", id.circle_type.get_type_str());
 
         let out = self.circles_from_db(v, true, Some(id.clone()), false)?;

@@ -138,7 +138,9 @@ pub trait CertDao {
                      SELECT member_id, member_type, json_insert(reachable.path, '$[#]', member_id), json_insert(reachable.type_path, '$[#]', member_type)
                      FROM circle_members
                      JOIN reachable ON parent_id = reachable.node AND parent_type = node_type
-                     WHERE NOT (member_id IN (SELECT value FROM json_each(reachable.path))
+                     WHERE
+                     parent_type = node_type AND
+                     NOT (member_id IN (SELECT value FROM json_each(reachable.path))
                      AND member_type  IN (SELECT value FROM json_each(reachable.type_path)))
                    )
                     SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
@@ -163,7 +165,8 @@ pub trait CertDao {
                      SELECT member_id, member_type, json_insert(reachable.path, '$[#]', member_id), json_insert(reachable.type_path, '$[#]', member_type)
                      FROM circle_members
                      JOIN reachable ON parent_id = reachable.node AND parent_type = node_type
-                     WHERE NOT (member_id IN (SELECT value FROM json_each(reachable.path))
+                     WHERE parent_type = node_type AND
+                     NOT (member_id IN (SELECT value FROM json_each(reachable.path))
                      AND member_type IN (SELECT value FROM json_each(reachable.type_path)))
                    )
                     SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name

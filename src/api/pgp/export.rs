@@ -4,8 +4,11 @@ use sequoia_cert_store::{Store, StoreUpdate};
 use sequoia_openpgp::armor::{Kind, Writer};
 
 use crate::api::pgp::PgpServiceStore;
-#[cfg(not(feature = "flutter"))]
+
 use crate::api::pgp::{cert::MaybeCert, UserHandle};
+
+#[cfg(feature = "flutter")]
+use crate::frb_generated::RustAutoOpaque;
 
 impl<T> PgpServiceStore<T>
 where
@@ -26,7 +29,7 @@ where
                 cert: RustAutoOpaque::new(v),
             })
             .unwrap_or_else(|_| MaybeCert::Fingerprint {
-                fpr: RustAutoOpaque::new(v),
+                fpr: RustAutoOpaque::new(v.clone()),
             })
     }
 

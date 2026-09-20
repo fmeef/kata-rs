@@ -19,11 +19,11 @@ use crate::{
         },
         SqliteDb,
     },
-    error::{InternalErr, Result},
+    error::{AppResult, InternalErr},
 };
 
 #[cfg(feature = "flutter")]
-use frb_generated::{RustAutoOpaque, StreamSink};
+use crate::frb_generated::{RustAutoOpaque, StreamSink};
 
 #[cfg(not(feature = "flutter"))]
 pub use crate::circles::CircleOr;
@@ -118,7 +118,7 @@ impl MaybeDeletedFull {
 }
 
 impl CircleHandle {
-    pub(crate) fn get_bin(&self) -> Result<Vec<u8>> {
+    pub(crate) fn get_bin(&self) -> AppResult<Vec<u8>> {
         let mut res = self.id.as_bytes().to_owned();
 
         res.push(self.circle_type.get_type_u8());
@@ -130,7 +130,7 @@ impl CircleHandle {
         self.id.as_bytes()
     }
 
-    fn get_bytes(&self) -> Result<Vec<u8>> {
+    fn get_bytes(&self) -> AppResult<Vec<u8>> {
         match self.circle_type {
             CircleType::Circle => Ok(self.id.as_bytes().to_owned()),
             CircleType::App => Ok(self.id.as_bytes().to_owned()),
@@ -332,7 +332,7 @@ impl PgpApp {
                 cert: RustAutoOpaque::new(v),
             })
             .unwrap_or_else(|_| MaybeCert::Fingerprint {
-                fpr: RustAutoOpaque::new(v),
+                fpr: RustAutoOpaque::new(v.clone()),
             })
     }
 
@@ -349,7 +349,7 @@ impl PgpApp {
         users: bool,
         parent: Option<CircleHandle>,
         all: bool,
-    ) -> Result<Vec<CircleOr>> {
+    ) -> AppResult<Vec<CircleOr>> {
         let out = CircleOr::get_parent_cache(&members)?;
         let parent = match parent {
             Some(parent) => out
@@ -408,7 +408,7 @@ impl PgpApp {
         parent: Option<(String, UserHandle)>,
         start: &Option<CircleHandle>,
         all: bool,
-    ) -> Result<BTreeMap<CircleHandle, TagOr>> {
+    ) -> AppResult<BTreeMap<CircleHandle, TagOr>> {
         log::debug!("get_children cache={}", members.len());
         log::debug!("actual={actual:?}");
         let mut visited = BTreeSet::new();
@@ -424,7 +424,7 @@ impl PgpApp {
         all: bool,
         visited: &mut BTreeSet<(String, UserHandle)>,
         mut die: bool,
-    ) -> Result<BTreeMap<CircleHandle, TagOr>> {
+    ) -> AppResult<BTreeMap<CircleHandle, TagOr>> {
         // log::error!("get_children_parent {parent:?}");
 
         let mut out = BTreeMap::new();
@@ -645,7 +645,7 @@ impl CircleOr {
         }
     }
 
-    fn get_parent_cache(members: &Vec<CircleWithMembers>) -> Result<ParentCache> {
+    fn get_parent_cache(members: &Vec<CircleWithMembers>) -> AppResult<ParentCache> {
         let mut out = BTreeMap::new();
 
         for member in members {
@@ -959,7 +959,7 @@ impl CircleOr {
 }
 
 impl PgpApp {
-    pub fn get_circles_for_parent(&self, parent: &CircleHandle) -> Result<Vec<CircleOr>> {
+    pub fn get_circles_for_parent(&self, parent: &CircleHandle) -> AppResult<Vec<CircleOr>> {
         let v = self
             .get_db()
             .get_circles_for_parent(&parent.id.fingerprint(), parent.circle_type.get_type_str())?;
@@ -967,7 +967,7 @@ impl PgpApp {
         self.circles_from_db(v, true, Some(parent.clone()), false)
     }
 
-    pub fn get_circle_by_id(&self, id: &CircleHandle) -> Result<Option<CircleOr>> {
+    pub fn get_circle_by_id(&self, id: &CircleHandle) -> AppResult<Option<CircleOr>> {
         if id.circle_type == CircleType::User {
             let v = self.get_key_from_fingerprint(&id.id)?;
             return Ok(Some(CircleOr::from_cert(v.cert.fingerprint)));
@@ -985,7 +985,7 @@ impl PgpApp {
         Ok(out.into_iter().find(|p| p.handle() == *id))
     }
 
-    pub fn get_all_circle_ids(&self) -> Result<Vec<String>> {
+    pub fn get_all_circle_ids(&self) -> AppResult<Vec<String>> {
         Ok(self
             .get_db()
             .get_all_circle_ids()?

@@ -10,7 +10,7 @@ use sequoia_wot::store::CertStore;
 
 use crate::{
     api::{pgp::POLICY, SqliteDb},
-    error::Result,
+    error::AppResult,
 };
 pub(crate) struct MutStore<'c, T>
 where
@@ -399,7 +399,7 @@ where
 }
 
 impl<'a, 'c> WriteStore<'a, 'c, Pep> {
-    pub(crate) fn flush(&mut self) -> Result<()> {
+    pub(crate) fn flush(&mut self) -> AppResult<()> {
         Ok(())
     }
 }

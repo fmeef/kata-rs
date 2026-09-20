@@ -166,7 +166,7 @@ fn generate_from_row(st: &[ColumnField], name: &Ident) -> impl ToTokens {
         #[automatically_derived]
         #[flutter_rust_bridge::frb(ignore)]
         impl crate::api::db::entities::FromRow for #name {
-            fn from_row(row: &::rusqlite::Row) -> crate::error::Result<Self> {
+            fn from_row(row: &::rusqlite::Row) -> crate::error::AppResult<Self> {
                 let s = Self { #( #rows ),* };
                 Ok(s)
             }
@@ -485,9 +485,6 @@ pub fn dao(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
                 let r = match ret.segments.last() {
                     Some(PathSegment { ident, arguments }) => {
-                        if ident.to_string() != "Result" {
-                            panic!("needs to be a result")
-                        }
                         if let Type::Path(TypePath { path, .. }) =
                             get_type_from_arguments(arguments)
                         {

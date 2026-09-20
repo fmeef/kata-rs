@@ -1,6 +1,6 @@
 use latkerlo_jvotci::Jvonunfli;
 use std::ops::Range;
-pub(crate) type Result<T> = std::result::Result<T, InternalErr>;
+pub(crate) type AppResult<T> = std::result::Result<T, InternalErr>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum InternalErr {

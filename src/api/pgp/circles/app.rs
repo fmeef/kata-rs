@@ -30,11 +30,11 @@ use crate::{
         },
         PgpApp, PgpAppTrait, SqliteDb,
     },
-    error::Result,
+    error::AppResult,
 };
 
 #[cfg(feature = "flutter")]
-use frb_generated::StreamSink;
+use crate::frb_generated::StreamSink;
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
@@ -387,7 +387,7 @@ impl CircleApp {
         sig: Option<Vec<u8>>,
         name: String,
         pgp: PgpApp,
-    ) -> Result<Self> {
+    ) -> AppResult<Self> {
         let (owner, sig) = match (author, sig) {
             (Some(owner), Some(sig)) => (owner, sig),
             _ => (UserHandle::RawBytes(vec![]), vec![]),
@@ -658,7 +658,7 @@ mod test {
     };
 
     #[cfg(feature = "flutter")]
-    use frb_generated::RustAutoOpaque;
+    use crate::frb_generated::RustAutoOpaque;
 
     #[test]
     fn create_signed_app() {

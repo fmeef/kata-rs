@@ -32,7 +32,7 @@ use crate::{
 };
 
 #[cfg(feature = "flutter")]
-use frb_generated::{RustAutoOpaque, StreamSink};
+use crate::frb_generated::{RustAutoOpaque, StreamSink};
 
 #[cfg(test)]
 use crate::api::pgp::mut_store::ReadStore;
@@ -279,7 +279,7 @@ impl UserHandle {
         }
     }
 
-    fn from_raw_hex(hex: &str) -> crate::error::Result<Self> {
+    fn from_raw_hex(hex: &str) -> crate::error::AppResult<Self> {
         Ok(Self::RawBytes(hex::decode(hex)?))
     }
 

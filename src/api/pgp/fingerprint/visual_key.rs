@@ -9,7 +9,7 @@ use image::{imageops::resize, ImageFormat};
 use latkerlo_jvotci::{jvozba::get_lujvo_from_list, Settings};
 use lazy_static::lazy_static;
 
-use crate::error::Result;
+use crate::error::AppResult;
 use crate::{api::pgp::UserHandle, error::InternalErr};
 
 const COOL_RULES: [u8; 16] = [
@@ -57,7 +57,7 @@ fn is_overlapping(r: &Range<usize>, other: &Range<usize>) -> bool {
 pub struct VisualKeyBuilder<'a>(Arc<RwLock<VisualKeyBuilderInner<'a>>>);
 
 impl<'a> VisualKeyBuilderInner<'a> {
-    fn validate_overlap(&self) -> Result<()> {
+    fn validate_overlap(&self) -> AppResult<()> {
         if let Some(ref test) = self.emoji {
             if let Some(ref lujvo) = self.lujvo {
                 if is_overlapping(lujvo, test) {

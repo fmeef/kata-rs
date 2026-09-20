@@ -1,7 +1,7 @@
 use lazy_static::lazy_static;
 use rusqlite_migration::{Migrations, M};
 
-use crate::error::Result;
+use crate::error::AppResult;
 
 use super::connection::SqliteDb;
 
@@ -123,7 +123,7 @@ lazy_static! {
     ]);
 }
 
-pub fn run_migrations(conn: &SqliteDb) -> Result<()> {
+pub fn run_migrations(conn: &SqliteDb) -> AppResult<()> {
     let mut conn = conn.0.conn.lock().unwrap();
     conn.pragma_update_and_check(None, "journal_mode", &"WAL", |_| Ok(()))?;
     MIGRATIONS.to_latest(&mut conn)?;
@@ -131,7 +131,7 @@ pub fn run_migrations(conn: &SqliteDb) -> Result<()> {
     Ok(())
 }
 
-pub fn rollback(conn: &SqliteDb, version: usize) -> Result<()> {
+pub fn rollback(conn: &SqliteDb, version: usize) -> AppResult<()> {
     let mut conn = conn.0.conn.lock().unwrap();
     MIGRATIONS.to_version(&mut conn, version)?;
     Ok(())

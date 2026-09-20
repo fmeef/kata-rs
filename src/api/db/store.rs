@@ -12,103 +12,103 @@ use crate::api::pgp::cert::PgpCert;
 use crate::api::pgp::circles::app::MemberTag;
 use crate::api::pgp::circles::{CircleHandle, CircleOr, CircleType};
 use crate::api::pgp::UserHandle;
-use crate::error::{InternalErr, Result};
+use crate::error::{AppResult, InternalErr};
 use macros::{dao, query, FromRow};
 
 #[dao]
 pub trait CertDao {
     #[query("SELECT * FROM certs")]
-    fn all_certs(&self) -> Result<Vec<PgpDataCert>>;
+    fn all_certs(&self) -> AppResult<Vec<PgpDataCert>>;
 
     #[query("SELECT * FROM certs")]
-    fn all_owned_certs(&self) -> Result<Vec<PgpDataCert>>;
+    fn all_owned_certs(&self) -> AppResult<Vec<PgpDataCert>>;
 
     #[query(
         "SELECT * FROM certs INNER JOIN userids
         ON cert_fingerprint = fingerprint WHERE userid LIKE :userid"
     )]
-    fn search_owned_certs(&self, userid: &str) -> Result<Vec<PgpDataCert>>;
+    fn search_owned_certs(&self, userid: &str) -> AppResult<Vec<PgpDataCert>>;
 
     #[query("SELECT * FROM certs WHERE fingerprint = :fingerprint")]
-    fn get_by_fingerprint(&self, fingerprint: &str) -> Result<PgpDataCert>;
+    fn get_by_fingerprint(&self, fingerprint: &str) -> AppResult<PgpDataCert>;
 
     #[query("SELECT * FROM certs WHERE keyid = :key_id")]
-    fn get_by_id(&self, key_id: &str) -> Result<Vec<PgpDataCert>>;
+    fn get_by_id(&self, key_id: &str) -> AppResult<Vec<PgpDataCert>>;
 
     #[query(
         "SELECT * FROM certs INNER JOIN userids
         ON cert_fingerprint = fingerprint WHERE email = :email"
     )]
-    fn get_by_email(&self, email: &str) -> Result<Vec<PgpDataCert>>;
+    fn get_by_email(&self, email: &str) -> AppResult<Vec<PgpDataCert>>;
 
     #[query(
         "SELECT * FROM certs INNER JOIN userids
         ON cert_fingerprint = fingerprint WHERE userid = :userid"
     )]
-    fn get_by_userid(&self, userid: &str) -> Result<Vec<PgpDataCert>>;
+    fn get_by_userid(&self, userid: &str) -> AppResult<Vec<PgpDataCert>>;
 
     #[query(
         "SELECT * FROM certs INNER JOIN userids
         ON cert_fingerprint = fingerprint WHERE email LIKE FORMAT('%%%s%%', :email)"
     )]
-    fn grep_by_email(&self, email: &str) -> Result<Vec<PgpDataCert>>;
+    fn grep_by_email(&self, email: &str) -> AppResult<Vec<PgpDataCert>>;
 
     #[query(
         "SELECT * FROM certs INNER JOIN userids
         ON cert_fingerprint = fingerprint WHERE userid LIKE FORMAT('%%%s%%', :userid)"
     )]
-    fn grep_by_userid(&self, userid: &str) -> Result<Vec<PgpDataCert>>;
+    fn grep_by_userid(&self, userid: &str) -> AppResult<Vec<PgpDataCert>>;
 
     #[query(
         "SELECT * FROM certs INNER JOIN userids
         ON cert_fingerprint = fingerprint WHERE email LIKE FORMAT('%%%s', :email)"
     )]
-    fn grep_by_email_anchor_end(&self, email: &str) -> Result<Vec<PgpDataCert>>;
+    fn grep_by_email_anchor_end(&self, email: &str) -> AppResult<Vec<PgpDataCert>>;
 
     #[query(
         "SELECT * FROM certs INNER JOIN userids
         ON cert_fingerprint = fingerprint WHERE userid LIKE FORMAT('%%%s', :userid)"
     )]
-    fn grep_by_userid_anchor_end(&self, userid: &str) -> Result<Vec<PgpDataCert>>;
+    fn grep_by_userid_anchor_end(&self, userid: &str) -> AppResult<Vec<PgpDataCert>>;
 
     #[query(
         "SELECT * FROM certs INNER JOIN userids
         ON cert_fingerprint = fingerprint WHERE email LIKE FORMAT('%s%%', :email)"
     )]
-    fn grep_by_email_anchor_start(&self, email: &str) -> Result<Vec<PgpDataCert>>;
+    fn grep_by_email_anchor_start(&self, email: &str) -> AppResult<Vec<PgpDataCert>>;
 
     #[query(
         "SELECT * FROM certs INNER JOIN userids
         ON cert_fingerprint = fingerprint WHERE userid LIKE FORMAT('%s%%', :userid)"
     )]
-    fn grep_by_userid_anchor_start(&self, userid: &str) -> Result<Vec<PgpDataCert>>;
+    fn grep_by_userid_anchor_start(&self, userid: &str) -> AppResult<Vec<PgpDataCert>>;
 
     #[query(
         "SELECT * FROM certs INNER JOIN userids
         ON cert_fingerprint = fingerprint WHERE domain LIKE FORMAT('%%%s%%', :domain)"
     )]
-    fn get_by_domain(&self, domain: &str) -> Result<Vec<PgpDataCert>>;
+    fn get_by_domain(&self, domain: &str) -> AppResult<Vec<PgpDataCert>>;
 
     #[query("DELETE FROM certs WHERE fingerprint = :fingerprint")]
-    fn delete_by_fingerprint(&self, fingerprint: &str) -> Result<()>;
+    fn delete_by_fingerprint(&self, fingerprint: &str) -> AppResult<()>;
 
     #[query("SELECT fingerprint FROM certs WHERE role = :role")]
-    fn get_fingerprint_for_role(&self, role: &str) -> Result<Option<OnlyFingerprint>>;
+    fn get_fingerprint_for_role(&self, role: &str) -> AppResult<Option<OnlyFingerprint>>;
 
     #[query("UPDATE certs SET role = :role WHERE fingerprint = :fingerprint")]
-    fn update_role(&self, fingerprint: &str, role: &str) -> Result<()>;
+    fn update_role(&self, fingerprint: &str, role: &str) -> AppResult<()>;
 
     #[query("UPDATE certs SET role = NULL where role = :role")]
-    fn clear_role(&self, role: &str) -> Result<()>;
+    fn clear_role(&self, role: &str) -> AppResult<()>;
 
     #[query("SELECT online FROM certs WHERE fingerprint = :fingerprint")]
-    fn is_online(&self, fingerprint: &str) -> Result<Option<OnlyOnline>>;
+    fn is_online(&self, fingerprint: &str) -> AppResult<Option<OnlyOnline>>;
 
     #[query(
         "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
         FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type "
     )]
-    fn get_circles_join(&self) -> Result<Vec<CircleWithMembers>>;
+    fn get_circles_join(&self) -> AppResult<Vec<CircleWithMembers>>;
 
     #[query(
         "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
@@ -122,10 +122,10 @@ pub trait CertDao {
         parent_type: &str,
         child: &str,
         child_type: &str,
-    ) -> Result<Vec<CircleWithMembers>>;
+    ) -> AppResult<Vec<CircleWithMembers>>;
 
     #[query("SELECT id FROM circles")]
-    fn get_all_circle_ids(&self) -> Result<Vec<OnlyId>>;
+    fn get_all_circle_ids(&self) -> AppResult<Vec<OnlyId>>;
 
     #[query(
         "
@@ -152,7 +152,7 @@ pub trait CertDao {
         &self,
         parent: &str,
         parent_type: &str,
-    ) -> Result<Vec<CircleWithMembers>>;
+    ) -> AppResult<Vec<CircleWithMembers>>;
 
     #[query(
         "
@@ -174,46 +174,52 @@ pub trait CertDao {
                    AND member_type=circle_type)
 "
     )]
-    fn get_circles_by_id(&self, id: &str, circle_type: &str) -> Result<Vec<CircleWithMembers>>;
+    fn get_circles_by_id(&self, id: &str, circle_type: &str) -> AppResult<Vec<CircleWithMembers>>;
 
     #[query(
         "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
         FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type WHERE parent_id IS NULL"
     )]
-    fn get_circles_without_parent(&self) -> Result<Vec<CircleWithMembers>>;
+    fn get_circles_without_parent(&self) -> AppResult<Vec<CircleWithMembers>>;
 
     #[query(
         "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
         FROM circles LEFT JOIN circle_members ON parent_id=id AND parent_type=circle_type
         WHERE (id = :id AND circle_type = :ty)"
     )]
-    fn get_circle_by_id(&self, id: &str, ty: &str) -> Result<Vec<CircleWithMembers>>;
+    fn get_circle_by_id(&self, id: &str, ty: &str) -> AppResult<Vec<CircleWithMembers>>;
 
     #[query(
         "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
         FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type
         WHERE parent_id IS NULL"
     )]
-    fn get_circle_roots(&self) -> Result<Vec<CircleWithMembers>>;
+    fn get_circle_roots(&self) -> AppResult<Vec<CircleWithMembers>>;
 
     #[query("PRAGMA user_version")]
-    fn get_migration_version(&self) -> Result<usize>;
+    fn get_migration_version(&self) -> AppResult<usize>;
 
     #[query("UPDATE circle_members SET deleted = '1' WHERE member_id = :id AND member_type = :ty")]
-    fn delete_circle_member(&self, id: &str, ty: &str) -> Result<()>;
+    fn delete_circle_member(&self, id: &str, ty: &str) -> AppResult<()>;
 
     #[query("UPDATE circle_members SET tag = :tag WHERE member_id = :member")]
-    fn update_tag(&self, tag: &str, member: &str) -> Result<()>;
+    fn update_tag(&self, tag: &str, member: &str) -> AppResult<()>;
 
     #[query("DELETE FROM circles WHERE id = :id AND circle_type = :ty")]
-    fn delete_circle(&self, id: &str, ty: &str) -> Result<()>;
+    fn delete_circle(&self, id: &str, ty: &str) -> AppResult<()>;
 
     #[query("DELETE FROM circle_members WHERE member_id = :id AND member_type = :ty AND parent_id = :parent AND parent_type = :parent_ty")]
-    fn purge_circle_member(&self, id: &str, ty: &str, parent: &str, parent_ty: &str) -> Result<()>;
+    fn purge_circle_member(
+        &self,
+        id: &str,
+        ty: &str,
+        parent: &str,
+        parent_ty: &str,
+    ) -> AppResult<()>;
 }
 
 impl FromRow for usize {
-    fn from_row(row: &rusqlite::Row) -> Result<Self> {
+    fn from_row(row: &rusqlite::Row) -> AppResult<Self> {
         Ok(row.get(0)?)
     }
 }
@@ -301,7 +307,7 @@ pub struct CircleWithMembers {
 }
 
 impl CircleWithMembers {
-    fn get_bytes(&self, value: &str) -> Result<Vec<u8>> {
+    fn get_bytes(&self, value: &str) -> AppResult<Vec<u8>> {
         match self.circle_type.as_str() {
             "circle" => Ok(Vec::<u8>::from_hex(value)?),
             "app" => Ok(UserHandle::from_hex(value)?.into_bytes()),
@@ -310,7 +316,7 @@ impl CircleWithMembers {
         }
     }
 
-    fn get_userhandle(&self, value: &str) -> Result<UserHandle> {
+    fn get_userhandle(&self, value: &str) -> AppResult<UserHandle> {
         match self.circle_type.as_str() {
             "circle" => Ok(UserHandle::RawBytes(Vec::<u8>::from_hex(value)?)),
             "app" => Ok(UserHandle::from_hex(value)?),
@@ -319,7 +325,7 @@ impl CircleWithMembers {
         }
     }
 
-    pub fn get_tag(&self) -> Result<Option<MemberTag>> {
+    pub fn get_tag(&self) -> AppResult<Option<MemberTag>> {
         match self.tag.as_deref() {
             Some("delete") => Ok(Some(MemberTag::Delete)),
             Some("merge") => Ok(Some(MemberTag::Merge)),
@@ -329,35 +335,35 @@ impl CircleWithMembers {
         }
     }
 
-    pub fn get_author(&self) -> Result<Option<UserHandle>> {
+    pub fn get_author(&self) -> AppResult<Option<UserHandle>> {
         match self.author {
             Some(ref author) => Ok(Some(UserHandle::from_hex(author)?)),
             None => Ok(None),
         }
     }
 
-    pub fn get_member_id(&self) -> Result<Option<Vec<u8>>> {
+    pub fn get_member_id(&self) -> AppResult<Option<Vec<u8>>> {
         match self.member_id {
             Some(ref member) => Ok(Some(self.get_bytes(member)?)),
             None => Ok(None),
         }
     }
 
-    pub fn get_parent_id(&self) -> Result<Option<Vec<u8>>> {
+    pub fn get_parent_id(&self) -> AppResult<Option<Vec<u8>>> {
         match self.parent_id {
             Some(ref parent) => Ok(Some(self.get_bytes(parent)?)),
             None => Ok(None),
         }
     }
 
-    pub fn get_id_tuple(&self) -> Result<(String, UserHandle)> {
+    pub fn get_id_tuple(&self) -> AppResult<(String, UserHandle)> {
         Ok((
             self.circle_type.to_owned(),
             UserHandle::RawBytes(self.get_id()?),
         ))
     }
 
-    pub fn get_parent_tuple(&self) -> Result<Option<(String, UserHandle)>> {
+    pub fn get_parent_tuple(&self) -> AppResult<Option<(String, UserHandle)>> {
         let out = match (self.parent_type.as_ref(), self.parent_id.as_ref()) {
             (Some(ty), Some(parent)) => Ok(Some((
                 ty.to_owned(),
@@ -370,7 +376,7 @@ impl CircleWithMembers {
         out
     }
 
-    pub(crate) fn handle(&self) -> Result<CircleHandle> {
+    pub(crate) fn handle(&self) -> AppResult<CircleHandle> {
         let ty = match self.circle_type.as_str() {
             "circle" => CircleType::Circle,
             "user" => CircleType::User,
@@ -386,11 +392,11 @@ impl CircleWithMembers {
         Ok(handle)
     }
 
-    pub fn get_id(&self) -> Result<Vec<u8>> {
+    pub fn get_id(&self) -> AppResult<Vec<u8>> {
         self.get_bytes(&self.id)
     }
 
-    pub fn get_id_userhandle(&self) -> Result<UserHandle> {
+    pub fn get_id_userhandle(&self) -> AppResult<UserHandle> {
         self.get_userhandle(&self.id)
     }
 }
@@ -413,7 +419,7 @@ impl PgpDataCert {
         secret.merge_public(cert)
     }
 
-    pub(crate) fn as_tsk(cert: PgpCert, tsk: TSK) -> Result<Self> {
+    pub(crate) fn as_tsk(cert: PgpCert, tsk: TSK) -> AppResult<Self> {
         let data = tsk.export_to_vec()?;
         let out = Self {
             keyid: cert.keyid,

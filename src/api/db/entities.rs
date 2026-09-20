@@ -1,9 +1,10 @@
 use super::connection::SqliteDb;
-use crate::error::Result;
+use crate::error::AppResult;
 use chrono::NaiveDateTime;
 use fallible_iterator::FallibleIterator;
 use flutter_rust_bridge::frb;
-use macros::{dao, query, FromRow};
+use macros::query;
+use macros::{dao, FromRow};
 pub use rusqlite::types::Value;
 pub use rusqlite::vtab::array::Array;
 use rusqlite::{Row, Rows, ToSql};
@@ -27,7 +28,7 @@ pub trait FromRow: Sized {
         true
     }
     #[frb(ignore)]
-    fn from_row(row: &Row) -> Result<Self>;
+    fn from_row(row: &Row) -> AppResult<Self>;
     #[frb(ignore)]
     fn from_rows(rows: Rows) -> impl FallibleIterator<Item = Self> {
         rows.map(|thing| Ok(Self::from_row(thing)?))
@@ -52,17 +53,17 @@ pub struct NewsGroup {
 #[dao]
 pub trait TestDao {
     #[query("select * from newsgroup where uuid = :uuid")]
-    fn test(&self, uuid: &Uuid) -> Result<Vec<NewsGroup>>;
+    fn test(&self, uuid: &Uuid) -> AppResult<Vec<NewsGroup>>;
 
     #[query("select * from newsgroup")]
-    fn test_nullable(&self) -> Result<Option<NewsGroup>>;
+    fn test_nullable(&self) -> AppResult<Option<NewsGroup>>;
 
     #[query("select * from newsgroup")]
-    fn test_one(&self) -> Result<NewsGroup>;
+    fn test_one(&self) -> AppResult<NewsGroup>;
 }
 
 impl FromRow for NaiveDateTime {
-    fn from_row(row: &rusqlite::Row) -> Result<Self> {
+    fn from_row(row: &rusqlite::Row) -> AppResult<Self> {
         Ok(row.get(0)?)
     }
 }

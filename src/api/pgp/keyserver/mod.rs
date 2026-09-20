@@ -4,11 +4,11 @@ use sequoia_openpgp::{Cert, Packet};
 
 use crate::{
     api::{pgp::UserHandle, PgpApp},
-    error::Result,
+    error::AppResult,
 };
 
 impl PgpApp {
-    pub fn fill_from_keyserver(&self, fingerprint: &UserHandle, server: &str) -> Result<()> {
+    pub fn fill_from_keyserver(&self, fingerprint: &UserHandle, server: &str) -> AppResult<()> {
         let ks = KeyServer::new(server)?;
         if let Ok(key) = ks.lookup_by_cert_fpr(fingerprint.try_fingerprint()?) {
             self.pgp.store.update(key)?;
@@ -30,7 +30,11 @@ impl PgpApp {
         Ok(cert)
     }
 
-    pub async fn upload_to_keyserver(&self, fingerprint: &UserHandle, server: &str) -> Result<()> {
+    pub async fn upload_to_keyserver(
+        &self,
+        fingerprint: &UserHandle,
+        server: &str,
+    ) -> AppResult<()> {
         let ks = Upload::new(server)?;
         if let Ok(key) = self
             .pgp

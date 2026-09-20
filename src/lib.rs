@@ -8,7 +8,7 @@ pub(crate) mod circles;
 pub(crate) mod db_helpers;
 pub(crate) mod error;
 #[cfg(feature = "flutter")]
-mod frb_generated;
+pub(crate) mod frb_generated;
 pub(crate) mod pgp;
 
 lazy_static! {

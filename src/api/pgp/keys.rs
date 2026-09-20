@@ -35,7 +35,7 @@ use crate::{
 };
 
 #[cfg(feature = "flutter")]
-use frb_generated::{RustAutoOpaque, StreamSink};
+use crate::frb_generated::{RustAutoOpaque, StreamSink};
 
 use sequoia_openpgp::cert::amalgamation::key::ValidKeyAmalgamationIter;
 
@@ -315,7 +315,7 @@ impl PgpApp {
         &self,
         cert: &UserHandle,
         func: F,
-    ) -> crate::error::Result<KeyPair>
+    ) -> crate::error::AppResult<KeyPair>
     where
         for<'b> F: FnOnce(
             ValidKeyAmalgamationIter<'b, SecretParts, UnspecifiedRole>,

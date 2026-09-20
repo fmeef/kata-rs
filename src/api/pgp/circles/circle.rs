@@ -7,7 +7,7 @@ use crate::{
         pgp::circles::{CircleHandle, CircleType},
         SqliteDb,
     },
-    error::Result,
+    error::AppResult,
 };
 use anyhow::anyhow;
 use flutter_rust_bridge::frb;
@@ -21,7 +21,7 @@ use sha2::{Digest, Sha256};
 use std::{collections::BTreeSet, io::Write};
 
 #[cfg(feature = "flutter")]
-use frb_generated::{RustAutoOpaque, StreamSink};
+use crate::frb_generated::{RustAutoOpaque, StreamSink};
 
 use crate::api::{
     pgp::{
@@ -394,7 +394,7 @@ impl Circle {
         author: Option<UserHandle>,
         sig: Option<Vec<u8>>,
         app: PgpApp,
-    ) -> Result<Self> {
+    ) -> AppResult<Self> {
         let author = match (author, sig) {
             (Some(author), Some(sig)) => Some(CircleAuthor { sig, author }),
             _ => None,
@@ -410,7 +410,7 @@ impl Circle {
         Ok(res)
     }
 
-    fn members_reader<'a>(&'a self) -> Result<Vec<u8>> {
+    fn members_reader<'a>(&'a self) -> AppResult<Vec<u8>> {
         let mut v = Vec::with_capacity(self.inner.members.len() * 128);
         for (i, member) in self.inner.members.iter().enumerate() {
             v.extend_from_slice(&member.get_bin()?);
@@ -421,7 +421,7 @@ impl Circle {
         Ok(v)
     }
 
-    fn bytes_buf<'a>(&'a self) -> Result<(Vec<u8>, Option<&'a [u8]>)> {
+    fn bytes_buf<'a>(&'a self) -> AppResult<(Vec<u8>, Option<&'a [u8]>)> {
         // let mut size = self.inner.id.as_bytes().len()
         //     + self
         //         .members

@@ -10,7 +10,7 @@ use crate::api::{
 };
 
 #[cfg(feature = "flutter")]
-use frb_generated::RustAutoOpaque;
+use crate::frb_generated::RustAutoOpaque;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 #[frb(opaque)]

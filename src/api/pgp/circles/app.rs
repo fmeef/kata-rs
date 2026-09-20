@@ -31,8 +31,10 @@ use crate::{
         PgpApp, PgpAppTrait, SqliteDb,
     },
     error::Result,
-    frb_generated::StreamSink,
 };
+
+#[cfg(feature = "flutter")]
+use frb_generated::StreamSink;
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
@@ -204,6 +206,7 @@ impl CircleLike for CircleApp {
         UserHandle::RawBytes(out.finish().to_vec())
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_members(&self, sink: StreamSink<CircleEntry>) {
         for (id, member) in self.inner.children.iter() {
             if let Ok(Some(v)) = self.pgp.get_circle_by_id(id) {
@@ -351,6 +354,16 @@ impl CircleApp {
             }
         }
         Ok(())
+    }
+
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn blocking_read(&self) -> &'_ Self {
+        self
+    }
+
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn blocking_write(&mut self) -> &'_ mut Self {
+        self
     }
 
     pub fn update_tag(&mut self, id: &CircleHandle, tag: MemberTag) {
@@ -563,7 +576,7 @@ impl CircleApp {
                                 self.pgp.get_circle_by_id(ours)?,
                                 self.pgp.get_circle_by_id(theirs)?,
                             ) {
-                                (Some(CircleOr::App(ours)), Some(CircleOr::App(theirs))) => {
+                                (Some(CircleOr::App(mut ours)), Some(CircleOr::App(theirs))) => {
                                     ours.blocking_write().merge(&theirs.blocking_read())?
                                 }
                                 _ => (),
@@ -636,16 +649,16 @@ impl PgpApp {
 
 #[cfg(test)]
 mod test {
-    use crate::{
-        api::{
-            pgp::{
-                circles::{app::MemberTag, CircleLike, CircleOr},
-                test_config,
-            },
-            PgpApp, PgpAppTrait,
+    use crate::api::{
+        pgp::{
+            circles::{app::MemberTag, CircleLike, CircleOr},
+            test_config,
         },
-        frb_generated::RustAutoOpaque,
+        PgpApp, PgpAppTrait,
     };
+
+    #[cfg(feature = "flutter")]
+    use frb_generated::RustAutoOpaque;
 
     #[test]
     fn create_signed_app() {
@@ -756,7 +769,7 @@ mod test {
             .create_app(&key.cert.fingerprint, "test".to_owned())
             .unwrap();
         app.add_app(&app.clone(), MemberTag::Merge).unwrap();
-        let app = CircleOr::App(RustAutoOpaque::new(app));
+        let app = CircleOr::from_app(app);
         app.to_db(&service.get_db()).unwrap();
 
         let _ = app.get_members();

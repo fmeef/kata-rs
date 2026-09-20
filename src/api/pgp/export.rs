@@ -4,6 +4,8 @@ use sequoia_cert_store::{Store, StoreUpdate};
 use sequoia_openpgp::armor::{Kind, Writer};
 
 use crate::api::pgp::PgpServiceStore;
+#[cfg(not(feature = "flutter"))]
+use crate::api::pgp::{cert::MaybeCert, UserHandle};
 
 impl<T> PgpServiceStore<T>
 where
@@ -15,6 +17,24 @@ where
             cert.export(&mut file)?;
         }
         Ok(())
+    }
+
+    #[cfg(feature = "flutter")]
+    pub(crate) fn maybe_cert_from_fingerprint(&self, v: &UserHandle) -> MaybeCert {
+        self.get_stub_from_fingerprint(&v)
+            .map(|v| MaybeCert::Full {
+                cert: RustAutoOpaque::new(v),
+            })
+            .unwrap_or_else(|_| MaybeCert::Fingerprint {
+                fpr: RustAutoOpaque::new(v),
+            })
+    }
+
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn maybe_cert_from_fingerprint(&self, v: &UserHandle) -> MaybeCert {
+        self.get_stub_from_fingerprint(&v)
+            .map(|v| MaybeCert::Full { cert: v })
+            .unwrap_or_else(|_| MaybeCert::Fingerprint { fpr: v.clone() })
     }
 
     pub fn export_bytes(&self) -> anyhow::Result<Vec<u8>> {

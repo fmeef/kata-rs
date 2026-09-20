@@ -8,7 +8,6 @@ use crate::{
         SqliteDb,
     },
     error::Result,
-    frb_generated::RustAutoOpaque,
 };
 use anyhow::anyhow;
 use flutter_rust_bridge::frb;
@@ -21,16 +20,16 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{collections::BTreeSet, io::Write};
 
-use crate::{
-    api::{
-        pgp::{
-            circles::{CircleEntry, CircleLike, CircleOr},
-            sign::PgpAppVerifier,
-            UserHandle, POLICY,
-        },
-        PgpApp,
+#[cfg(feature = "flutter")]
+use frb_generated::{RustAutoOpaque, StreamSink};
+
+use crate::api::{
+    pgp::{
+        circles::{CircleEntry, CircleLike, CircleOr},
+        sign::PgpAppVerifier,
+        UserHandle, POLICY,
     },
-    frb_generated::StreamSink,
+    PgpApp,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
@@ -139,6 +138,7 @@ impl CircleLike for Circle {
         self.inner.id.clone()
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_members(&self, sink: StreamSink<CircleEntry>) {
         for member in self.inner.members.iter() {
             if let Ok(Some(circle)) = self.app.get_circle_by_id(&member) {
@@ -227,6 +227,16 @@ impl Circle {
         self.inner.members.contains(user)
     }
 
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn blocking_read(&self) -> &'_ Self {
+        self
+    }
+
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn blocking_write(&mut self) -> &'_ mut Self {
+        self
+    }
+
     // #[frb(sync)]
     // pub fn get_members(&self) -> NonOpaqueCircle {
     //     match self.inner.author {
@@ -285,9 +295,15 @@ impl Circle {
 }
 
 impl CircleOr {
+    #[cfg(feature = "flutter")]
     #[frb(sync)]
     pub fn from_cert(user_handle: UserHandle) -> CircleOr {
         CircleOr::User(RustAutoOpaque::new(user_handle))
+    }
+
+    #[cfg(not(feature = "flutter"))]
+    pub fn from_cert(user_handle: UserHandle) -> CircleOr {
+        CircleOr::User(user_handle)
     }
 
     pub fn is_member(&self, user: &CircleHandle) -> bool {
@@ -532,23 +548,20 @@ impl PgpApp {
 
 #[cfg(test)]
 mod test {
-    use crate::{
-        api::{
-            pgp::{
-                circles::{circle::CircleOr, CircleHandle, CircleType},
-                test_config, UserHandle,
-            },
-            PgpApp, PgpAppTrait,
+    use crate::api::{
+        pgp::{
+            circles::{circle::CircleOr, CircleHandle, CircleType},
+            test_config, UserHandle,
         },
-        frb_generated::RustAutoOpaque,
+        PgpApp, PgpAppTrait,
     };
 
     #[test]
     fn create_signed_circle() {
         let app = PgpApp::create(test_config("app")).unwrap();
-        let keys = vec![CircleOr::User(RustAutoOpaque::new(
+        let keys = vec![CircleOr::from_user(
             UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap(),
-        ))];
+        )];
 
         let key = app
             .generate_key("test@example.com".to_owned())
@@ -567,9 +580,9 @@ mod test {
     #[test]
     fn verify_signed_circle() {
         let app = PgpApp::create(test_config("app")).unwrap();
-        let keys = vec![CircleOr::User(RustAutoOpaque::new(
+        let keys = vec![CircleOr::from_user(
             UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap(),
-        ))];
+        )];
         let key = app
             .generate_key("test@example.com".to_owned())
             .generate()
@@ -585,9 +598,9 @@ mod test {
     #[test]
     fn verify_membership() {
         let app = PgpApp::create(test_config("app")).unwrap();
-        let keys = vec![CircleOr::User(RustAutoOpaque::new(
+        let keys = vec![CircleOr::from_user(
             UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap(),
-        ))];
+        )];
 
         let circle = app.create_circle(keys).unwrap();
 

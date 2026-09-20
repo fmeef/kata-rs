@@ -297,6 +297,7 @@ impl PgpServiceTrait for PgpAppTest {
         self.pgp.get_stub_from_fingerprint(fingerprint)
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_certs(
         &self,
         sink: crate::frb_generated::StreamSink<pgp::cert::PgpCertWithIds>,
@@ -304,6 +305,7 @@ impl PgpServiceTrait for PgpAppTest {
         self.pgp.iter_certs(sink)
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_certs_search(
         &self,
         sink: crate::frb_generated::StreamSink<pgp::cert::PgpCertWithIds>,
@@ -312,6 +314,7 @@ impl PgpServiceTrait for PgpAppTest {
         self.pgp.iter_certs_search(sink, pattern)
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_certs_search_keyid(
         &self,
         sink: crate::frb_generated::StreamSink<pgp::cert::PgpCertWithIds>,
@@ -320,6 +323,7 @@ impl PgpServiceTrait for PgpAppTest {
         self.pgp.iter_certs_search_keyid(sink, pattern)
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_fingerprints(
         &self,
         sink: crate::frb_generated::StreamSink<String>,
@@ -355,6 +359,7 @@ impl PgpServiceTrait for PgpApp {
         self.pgp.import_certs(import)
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_certs(
         &self,
         sink: crate::frb_generated::StreamSink<pgp::cert::PgpCertWithIds>,
@@ -362,6 +367,7 @@ impl PgpServiceTrait for PgpApp {
         self.pgp.iter_certs(sink)
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_certs_search(
         &self,
         sink: crate::frb_generated::StreamSink<pgp::cert::PgpCertWithIds>,
@@ -370,6 +376,7 @@ impl PgpServiceTrait for PgpApp {
         self.pgp.iter_certs_search(sink, pattern)
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_certs_search_keyid(
         &self,
         sink: crate::frb_generated::StreamSink<pgp::cert::PgpCertWithIds>,
@@ -378,6 +385,7 @@ impl PgpServiceTrait for PgpApp {
         self.pgp.iter_certs_search_keyid(sink, pattern)
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_fingerprints(
         &self,
         sink: crate::frb_generated::StreamSink<String>,

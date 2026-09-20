@@ -32,8 +32,10 @@ use crate::{
         PgpApp, PgpAppTrait,
     },
     error::InternalErr,
-    frb_generated::{RustAutoOpaque, StreamSink},
 };
+
+#[cfg(feature = "flutter")]
+use frb_generated::{RustAutoOpaque, StreamSink};
 
 use sequoia_openpgp::cert::amalgamation::key::ValidKeyAmalgamationIter;
 
@@ -150,7 +152,7 @@ impl GenerateCert {
 
 impl<T> PgpServiceStore<T>
 where
-    T: Send + Sync + sequoia_cert_store::Store<'static> + StoreUpdate<'static>,
+    T: Send + Sync + sequoia_cert_store::Store<'static> + StoreUpdate<'static> + 'static,
 {
     pub(crate) fn get_api_cert(&self, cert: &Cert) -> anyhow::Result<PgpCertWithIds> {
         let fingerprint = cert.fingerprint().to_hex();
@@ -180,15 +182,7 @@ where
             })
             .filter_map(|v| {
                 UserHandle::from_hex(&v)
-                    .map(|v| {
-                        self.get_stub_from_fingerprint(&v)
-                            .map(|v| MaybeCert::Full {
-                                cert: RustAutoOpaque::new(v),
-                            })
-                            .unwrap_or_else(|_| MaybeCert::Fingerprint {
-                                fpr: RustAutoOpaque::new(v),
-                            })
-                    })
+                    .map(|v| self.maybe_cert_from_fingerprint(&v))
                     .ok()
             })
             .collect(),
@@ -199,15 +193,7 @@ where
                 .map(|v| v.to_hex())
                 .filter_map(|v| {
                     UserHandle::from_hex(&v)
-                        .map(|v| {
-                            self.get_stub_from_fingerprint(&v)
-                                .map(|v| MaybeCert::Full {
-                                    cert: RustAutoOpaque::new(v),
-                                })
-                                .unwrap_or_else(|_| MaybeCert::Fingerprint {
-                                    fpr: RustAutoOpaque::new(v),
-                                })
-                        })
+                        .map(|v| self.maybe_cert_from_fingerprint(&v))
                         .ok()
                 })
                 .collect(),
@@ -235,6 +221,7 @@ where
         })
     }
 
+    #[cfg(feature = "flutter")]
     pub fn iter_certs(&self, sink: StreamSink<PgpCertWithIds>) -> anyhow::Result<()> {
         for key in self.store.read().certs() {
             match key.to_cert().map(|k| self.get_api_cert(k)).flatten() {
@@ -275,6 +262,7 @@ where
         }
     }
 
+    #[cfg(feature = "flutter")]
     pub fn iter_fingerprints(&self, sink: StreamSink<String>) -> anyhow::Result<()> {
         for key in self.store.read().certs() {
             sink.add(key.fingerprint().to_hex())
@@ -283,6 +271,7 @@ where
         Ok(())
     }
 
+    #[cfg(feature = "flutter")]
     pub fn iter_certs_search(
         &self,
         sink: StreamSink<PgpCertWithIds>,
@@ -299,6 +288,7 @@ where
         Ok(())
     }
 
+    #[cfg(feature = "flutter")]
     pub fn iter_certs_search_keyid(
         &self,
         sink: StreamSink<PgpCertWithIds>,

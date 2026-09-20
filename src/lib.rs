@@ -3,8 +3,11 @@
 
 use lazy_static::lazy_static;
 pub mod api;
+#[cfg(not(feature = "flutter"))]
+pub(crate) mod circles;
 pub(crate) mod db_helpers;
 pub(crate) mod error;
+#[cfg(feature = "flutter")]
 mod frb_generated;
 pub(crate) mod pgp;
 

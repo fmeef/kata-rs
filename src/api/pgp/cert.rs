@@ -4,13 +4,13 @@ use sequoia_cert_store::LazyCert;
 use sequoia_openpgp::{parse::Parse, Cert};
 use sequoia_wot::{store::Store, Depth};
 
-use crate::{
-    api::{
-        pgp::{PgpServiceTrait, UserHandle},
-        PgpApp,
-    },
-    frb_generated::RustAutoOpaque,
+use crate::api::{
+    pgp::{PgpServiceTrait, UserHandle},
+    PgpApp,
 };
+
+#[cfg(feature = "flutter")]
+use frb_generated::RustAutoOpaque;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 #[frb(opaque)]
@@ -38,6 +38,7 @@ pub struct PgpCertWithIds {
     pub certifications: Vec<MaybeCert>,
 }
 
+#[cfg(feature = "flutter")]
 #[derive(Debug, Clone)]
 #[frb(non_opaque)]
 pub enum MaybeCert {
@@ -49,8 +50,16 @@ pub enum MaybeCert {
     },
 }
 
+#[cfg(not(feature = "flutter"))]
+#[derive(Debug, Clone)]
+pub enum MaybeCert {
+    Full { cert: PgpCertWithIds },
+    Fingerprint { fpr: UserHandle },
+}
+
 impl MaybeCert {
     #[frb(sync)]
+    #[cfg(feature = "flutter")]
     pub fn from_cert(cert: &PgpCertWithIds) -> MaybeCert {
         MaybeCert::Full {
             cert: RustAutoOpaque::new(cert.clone()),
@@ -157,6 +166,16 @@ impl PgpCertWithIds {
         })
     }
 
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn blocking_read(&self) -> &'_ Self {
+        self
+    }
+
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn blocking_write(&mut self) -> &'_ mut Self {
+        self
+    }
+
     #[frb(sync)]
     pub fn copy(&self) -> PgpCertWithIds {
         self.clone()
@@ -194,16 +213,7 @@ impl PgpCertWithIds {
                 })
                 .filter_map(|v| {
                     UserHandle::from_hex(&v)
-                        .map(|v| {
-                            store
-                                .get_stub_from_fingerprint(&v)
-                                .map(|v| MaybeCert::Full {
-                                    cert: RustAutoOpaque::new(v),
-                                })
-                                .unwrap_or_else(|_| MaybeCert::Fingerprint {
-                                    fpr: RustAutoOpaque::new(v),
-                                })
-                        })
+                        .map(|v| store.maybe_cert_from_fingerprint(&v))
                         .ok()
                 })
                 .collect(),
@@ -214,16 +224,7 @@ impl PgpCertWithIds {
                 .map(|v| v.to_hex())
                 .filter_map(|v| {
                     UserHandle::from_hex(&v)
-                        .map(|v| {
-                            store
-                                .get_stub_from_fingerprint(&v)
-                                .map(|v| MaybeCert::Full {
-                                    cert: RustAutoOpaque::new(v),
-                                })
-                                .unwrap_or_else(|_| MaybeCert::Fingerprint {
-                                    fpr: RustAutoOpaque::new(v),
-                                })
-                        })
+                        .map(|v| store.maybe_cert_from_fingerprint(&v))
                         .ok()
                 })
                 .collect(),

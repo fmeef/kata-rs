@@ -1,8 +1,10 @@
 use anyhow::anyhow;
 use flutter_rust_bridge::frb;
 use sequoia_cert_store::Store;
+use sequoia_openpgp::Fingerprint;
 
 use crate::api::db::store::CertDao;
+use crate::api::pgp::cert::MaybeCert;
 use crate::api::pgp::PgpServiceTrait;
 use crate::api::{PgpApp, PgpAppTrait};
 use crate::{
@@ -18,8 +20,13 @@ use crate::{
         SqliteDb,
     },
     error::{InternalErr, Result},
-    frb_generated::{RustAutoOpaque, StreamSink},
 };
+
+#[cfg(feature = "flutter")]
+use frb_generated::{RustAutoOpaque, StreamSink};
+
+#[cfg(not(feature = "flutter"))]
+pub use crate::circles::CircleOr;
 
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
@@ -140,6 +147,7 @@ enum CircleOrRef<'a> {
     App(&'a CircleApp),
 }
 
+#[cfg(feature = "flutter")]
 #[derive(Debug, Clone)]
 #[frb(non_opaque)]
 pub enum CircleOr {
@@ -241,6 +249,7 @@ impl CircleLike for CircleOr {
         self.to_db(db)
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_members(&self, sink: StreamSink<CircleEntry>) {
         match self {
             Self::App(a) => a.blocking_read().iter_members(sink),
@@ -316,6 +325,24 @@ struct TagOr {
 pub type ParentCache<'a> = BTreeMap<(String, UserHandle), &'a CircleWithMembers>;
 
 impl PgpApp {
+    #[cfg(feature = "flutter")]
+    pub(crate) fn maybe_cert_from_fingerprint(&self, v: &UserHandle) -> MaybeCert {
+        self.get_stub_from_fingerprint(&v)
+            .map(|v| MaybeCert::Full {
+                cert: RustAutoOpaque::new(v),
+            })
+            .unwrap_or_else(|_| MaybeCert::Fingerprint {
+                fpr: RustAutoOpaque::new(v),
+            })
+    }
+
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn maybe_cert_from_fingerprint(&self, v: &UserHandle) -> MaybeCert {
+        self.get_stub_from_fingerprint(&v)
+            .map(|v| MaybeCert::Full { cert: v })
+            .unwrap_or_else(|_| MaybeCert::Fingerprint { fpr: v.clone() })
+    }
+
     pub fn circles_from_db(
         &self,
         members: Vec<CircleWithMembers>,
@@ -445,7 +472,7 @@ impl PgpApp {
             // log::debug!("get_children_parent {item:?}");
             match item.circle_type.as_ref() {
                 "user" => {
-                    let handle = CircleOr::User(RustAutoOpaque::new(handle));
+                    let handle = CircleOr::from_user(handle);
                     out.insert(
                         handle.handle(),
                         TagOr {
@@ -473,7 +500,7 @@ impl PgpApp {
                     );
 
                     circle.validate()?;
-                    let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
+                    let circle = CircleOr::from_circle(circle);
 
                     out.insert(
                         circle.handle(),
@@ -518,7 +545,7 @@ impl PgpApp {
                         log::debug!("app with members {:?}", app.inner.children);
                         MaybeDeletedFull::Deleted(item.handle()?)
                     } else {
-                        MaybeDeletedFull::Member(CircleOr::App(RustAutoOpaque::new(app)))
+                        MaybeDeletedFull::Member(CircleOr::from_app(app))
                     };
 
                     out.insert(
@@ -541,10 +568,17 @@ impl PgpApp {
 }
 
 impl CircleOr {
+    #[cfg(feature = "flutter")]
     pub(crate) fn empty() -> Self {
         Self::User(RustAutoOpaque::new(UserHandle::RawBytes(vec![])))
     }
 
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn empty() -> Self {
+        Self::from_user(UserHandle::RawBytes(vec![]))
+    }
+
+    #[cfg(feature = "flutter")]
     pub fn add(&self, circle: &CircleOr, tag: MemberTag, db: &PgpApp) -> anyhow::Result<()> {
         match self {
             CircleOr::Circle(c) => {
@@ -555,6 +589,31 @@ impl CircleOr {
             }
             CircleOr::App(a) => {
                 let mut inner = a.blocking_write();
+
+                match circle {
+                    CircleOr::Circle(c) => inner.add_circle(&c.blocking_read(), tag)?,
+                    CircleOr::App(a) => inner.add_app(&a.blocking_read(), tag)?,
+                    CircleOr::User(u) => inner.add_user(&u.blocking_read(), tag)?,
+                };
+                inner.to_db(&db.get_db())?;
+            }
+            CircleOr::User(_) => (),
+        }
+
+        Ok(())
+    }
+
+    #[cfg(not(feature = "flutter"))]
+    pub fn add(&mut self, circle: &CircleOr, tag: MemberTag, db: &PgpApp) -> anyhow::Result<()> {
+        match self {
+            CircleOr::Circle(ref mut c) => {
+                let inner = c.blocking_write();
+                inner.inner.members.insert(circle.handle());
+                inner.update_digest()?;
+                inner.to_db(&db.get_db())?;
+            }
+            CircleOr::App(ref mut a) => {
+                let inner = a.blocking_write();
 
                 match circle {
                     CircleOr::Circle(c) => inner.add_circle(&c.blocking_read(), tag)?,
@@ -656,6 +715,7 @@ impl CircleType {
 }
 
 pub trait CircleLike {
+    #[cfg(feature = "flutter")]
     fn iter_members(&self, sink: StreamSink<CircleEntry>);
     #[frb(sync)]
     fn get_member(&self, id: &CircleHandle) -> anyhow::Result<Option<CircleEntry>>;
@@ -716,6 +776,7 @@ where
         (*self).get_member(id)
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_members(&self, sink: StreamSink<CircleEntry>) {
         (*self).iter_members(sink);
     }
@@ -858,6 +919,36 @@ impl CircleOr {
         self
     }
 
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn from_user(user: UserHandle) -> Self {
+        Self::User(user)
+    }
+
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn from_circle(circle: Circle) -> Self {
+        Self::Circle(circle)
+    }
+
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn from_app(app: CircleApp) -> Self {
+        Self::App(app)
+    }
+
+    #[cfg(feature = "flutter")]
+    pub(crate) fn from_user(user: UserHandle) -> Self {
+        Self::User(RustAutoOpaque::new(user))
+    }
+
+    #[cfg(feature = "flutter")]
+    pub(crate) fn from_circle(circle: Circle) -> Self {
+        Self::Circle(RustAutoOpaque::new(circle))
+    }
+
+    #[cfg(feature = "flutter")]
+    pub(crate) fn from_app(app: CircleApp) -> Self {
+        Self::App(RustAutoOpaque::new(app))
+    }
+
     pub(crate) fn as_bytes(&self) -> Vec<u8> {
         match self {
             Self::Circle(v) => v.blocking_read().inner.id.as_bytes().to_owned(),
@@ -907,16 +998,13 @@ impl PgpApp {
 #[cfg(test)]
 mod test {
     use crate::api::pgp::circles::CircleLike;
-    use crate::{
-        api::{
-            db::store::CertDao,
-            pgp::{
-                circles::{app::MemberTag, CircleOr},
-                test_config, UserHandle,
-            },
-            PgpApp, PgpAppTrait,
+    use crate::api::{
+        db::store::CertDao,
+        pgp::{
+            circles::{app::MemberTag, CircleOr},
+            test_config, UserHandle,
         },
-        frb_generated::RustAutoOpaque,
+        PgpApp, PgpAppTrait,
     };
 
     #[test]
@@ -925,7 +1013,7 @@ mod test {
 
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
         let id = v.fingerprint();
-        let user = CircleOr::User(RustAutoOpaque::new(v));
+        let user = CircleOr::from_user(v);
         user.to_db(&app.pgp.db).unwrap();
         let out = app.pgp.db.get_circle_by_id(&id, "user").unwrap();
         assert!(!out.is_empty());
@@ -939,7 +1027,7 @@ mod test {
         let app = PgpApp::create(test_config("app")).unwrap();
 
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
-        let user = CircleOr::User(RustAutoOpaque::new(v));
+        let user = CircleOr::from_user(v);
         user.to_db(&app.pgp.db).unwrap();
         let out = app.pgp.db.get_circle_roots().unwrap();
         assert!(!out.is_empty());
@@ -953,10 +1041,10 @@ mod test {
         let app = PgpApp::create(test_config("app")).unwrap();
 
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
-        let user = CircleOr::User(RustAutoOpaque::new(v));
+        let user = CircleOr::from_user(v);
         user.to_db(&app.pgp.db).unwrap();
         let circle = app.create_circle(vec![user]).unwrap();
-        let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
+        let circle = CircleOr::from_circle(circle);
         circle.to_db(&app.pgp.db).unwrap();
 
         let out = app.pgp.db.get_circles_join().unwrap();
@@ -986,7 +1074,7 @@ mod test {
             .unwrap();
         circle.add_user(&v, MemberTag::Merge).unwrap();
         circle.add_user(&u, MemberTag::Merge).unwrap();
-        let circle = CircleOr::App(RustAutoOpaque::new(circle));
+        let circle = CircleOr::from_app(circle);
 
         circle.to_db(&app.pgp.db).unwrap();
 
@@ -1007,28 +1095,28 @@ mod test {
         let app = PgpApp::create(test_config("app")).unwrap();
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
         let u = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854037").unwrap();
-        let v = CircleOr::User(RustAutoOpaque::new(v.clone()));
-        let u = CircleOr::User(RustAutoOpaque::new(u.clone()));
+        let v = CircleOr::from_user(v.clone());
+        let u = CircleOr::from_user(u.clone());
         u.to_db(&app.pgp.db).unwrap();
         v.to_db(&app.pgp.db).unwrap();
         let childcircle = app.create_circle(vec![]).unwrap();
 
-        let childcircle = CircleOr::Circle(RustAutoOpaque::new(childcircle));
+        let childcircle = CircleOr::from_circle(childcircle);
 
         let circle = app.create_circle(vec![childcircle.clone()]).unwrap();
-        let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
+        let circle = CircleOr::from_circle(circle);
 
         let singledecoy = app.create_circle(vec![]).unwrap();
-        let singledecoy = CircleOr::Circle(RustAutoOpaque::new(singledecoy));
+        let singledecoy = CircleOr::from_circle(singledecoy);
 
         let parent = app
             .create_circle(vec![circle.clone(), singledecoy.clone()])
             .unwrap();
         let decoy = app.create_circle(vec![v, u]).unwrap();
 
-        let decoy = CircleOr::Circle(RustAutoOpaque::new(decoy));
+        let decoy = CircleOr::from_circle(decoy);
 
-        let parent = CircleOr::Circle(RustAutoOpaque::new(parent));
+        let parent = CircleOr::from_circle(parent);
 
         singledecoy.to_db(&app.pgp.db).unwrap();
         circle.to_db(&app.pgp.db).unwrap();
@@ -1065,17 +1153,17 @@ mod test {
         let app = PgpApp::create(test_config("app")).unwrap();
 
         let v = UserHandle::from_hex("9FCF6558AC4927F1E7A43D80317375B449854036").unwrap();
-        let v = CircleOr::User(RustAutoOpaque::new(v.clone()));
+        let v = CircleOr::from_user(v.clone());
         v.to_db(&app.pgp.db).unwrap();
         let dummy = app.create_circle(vec![v]).unwrap();
-        let dummy = CircleOr::Circle(RustAutoOpaque::new(dummy));
+        let dummy = CircleOr::from_circle(dummy);
 
         let circle = app.create_circle(vec![dummy.clone()]).unwrap();
-        let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
+        let circle = CircleOr::from_circle(circle);
 
         let parent = app.create_circle(vec![circle.clone()]).unwrap();
 
-        let parent = CircleOr::Circle(RustAutoOpaque::new(parent));
+        let parent = CircleOr::from_circle(parent);
         dummy.to_db(&app.pgp.db).unwrap();
         circle.to_db(&app.pgp.db).unwrap();
         parent.to_db(&app.pgp.db).unwrap();
@@ -1096,14 +1184,14 @@ mod test {
         let app = PgpApp::create(test_config("app")).unwrap();
 
         let dummy = app.create_circle(vec![]).unwrap();
-        let dummy = CircleOr::Circle(RustAutoOpaque::new(dummy));
+        let mut dummy = CircleOr::from_circle(dummy);
 
         let circle = app.create_circle(vec![dummy.clone()]).unwrap();
-        let circle = CircleOr::Circle(RustAutoOpaque::new(circle));
+        let circle = CircleOr::from_circle(circle);
 
         let parent = app.create_circle(vec![circle.clone()]).unwrap();
 
-        let parent = CircleOr::Circle(RustAutoOpaque::new(parent));
+        let parent = CircleOr::from_circle(parent);
 
         dummy.to_db(&app.pgp.db).unwrap();
         circle.to_db(&app.pgp.db).unwrap();

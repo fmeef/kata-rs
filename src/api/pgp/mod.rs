@@ -9,6 +9,8 @@ use sequoia_openpgp::{policy::StandardPolicy, Fingerprint, KeyHandle};
 use serde::de::Error;
 use std::{hash::Hash, str::FromStr, sync::Arc};
 
+#[cfg(not(feature = "flutter"))]
+use crate::api::pgp::cert::MaybeCert;
 #[cfg(test)]
 use crate::api::Config;
 use crate::{
@@ -27,8 +29,10 @@ use crate::{
         SqliteDb,
     },
     error::InternalErr,
-    frb_generated::{RustAutoOpaque, StreamSink},
 };
+
+#[cfg(feature = "flutter")]
+use frb_generated::{RustAutoOpaque, StreamSink};
 
 #[cfg(test)]
 use crate::api::pgp::mut_store::ReadStore;
@@ -173,6 +177,7 @@ impl CircleLike for UserHandle {
         Ok(res)
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_members(&self, sink: StreamSink<circles::CircleEntry>) {
         sink.add(circles::CircleEntry {
             id: CircleHandle {
@@ -199,8 +204,8 @@ impl CircleLike for UserHandle {
     }
 
     fn get_members(&self) -> Vec<circles::CircleEntry> {
-        vec![CircleEntry::from_circle_or(circles::CircleOr::User(
-            RustAutoOpaque::new(self.clone()),
+        vec![CircleEntry::from_circle_or(circles::CircleOr::from_user(
+            self.clone(),
         ))]
     }
 
@@ -225,6 +230,16 @@ impl CircleLike for UserHandle {
 }
 
 impl UserHandle {
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn blocking_read(&self) -> &'_ Self {
+        self
+    }
+
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn blocking_write(&mut self) -> &'_ mut Self {
+        self
+    }
+
     #[frb(sync)]
     pub fn from_hex(hex: &str) -> anyhow::Result<Self> {
         match KeyHandle::from_str(hex) {
@@ -341,6 +356,7 @@ pub trait PgpServiceTrait {
     fn import_certs(&self, import: &dyn PgpImport) -> anyhow::Result<()>;
     fn export_file(&self, file: &str) -> anyhow::Result<()>;
     fn export_armor(&self) -> anyhow::Result<String>;
+    #[cfg(feature = "flutter")]
     fn iter_certs(&self, sink: StreamSink<PgpCertWithIds>) -> anyhow::Result<()>;
     fn get_key_from_fingerprint(&self, fingerprint: &UserHandle) -> anyhow::Result<PgpCertWithIds>;
     fn get_key_or(&self, fingerprint: &UserHandle) -> Option<PgpCertWithIds> {
@@ -348,12 +364,15 @@ pub trait PgpServiceTrait {
     }
     fn get_stub_from_fingerprint(&self, fingerprint: &UserHandle)
         -> anyhow::Result<PgpCertWithIds>;
+    #[cfg(feature = "flutter")]
     fn iter_fingerprints(&self, sink: StreamSink<String>) -> anyhow::Result<()>;
+    #[cfg(feature = "flutter")]
     fn iter_certs_search(
         &self,
         sink: StreamSink<PgpCertWithIds>,
         pattern: &str,
     ) -> anyhow::Result<()>;
+    #[cfg(feature = "flutter")]
     fn iter_certs_search_keyid(
         &self,
         sink: StreamSink<PgpCertWithIds>,
@@ -459,10 +478,12 @@ impl PgpServiceTrait for PgpServiceTest {
         self.import_certs(import)
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_certs(&self, sink: StreamSink<PgpCertWithIds>) -> anyhow::Result<()> {
         self.iter_certs(sink)
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_certs_search(
         &self,
         sink: StreamSink<PgpCertWithIds>,
@@ -471,6 +492,7 @@ impl PgpServiceTrait for PgpServiceTest {
         self.iter_certs_search(sink, pattern)
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_certs_search_keyid(
         &self,
         sink: StreamSink<PgpCertWithIds>,
@@ -479,6 +501,7 @@ impl PgpServiceTrait for PgpServiceTest {
         self.iter_certs_search_keyid(sink, pattern)
     }
 
+    #[cfg(feature = "flutter")]
     fn iter_fingerprints(&self, sink: StreamSink<String>) -> anyhow::Result<()> {
         self.iter_fingerprints(sink)
     }

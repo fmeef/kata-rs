@@ -6,6 +6,7 @@ use std::{
 use flutter_rust_bridge::{frb, BaseAsyncRuntime, DartFnFuture};
 use rusqlite::Connection;
 
+#[cfg(feature = "flutter")]
 use crate::frb_generated::FLUTTER_RUST_BRIDGE_HANDLER;
 
 use super::entities::NewsGroup;
@@ -74,6 +75,7 @@ impl Watcher {
         }))
     }
 
+    #[cfg(feature = "flutter")]
     #[frb(sync)]
     pub fn watch(
         &self,
@@ -152,6 +154,7 @@ impl SqliteDb {
         w
     }
 
+    #[cfg(feature = "flutter")]
     pub fn fire_watcher(&self, table: &str) {
         for watcher in self.0.watchers.read().unwrap().values().cloned() {
             for (tb, cb) in watcher.read().unwrap().iter() {
@@ -165,6 +168,7 @@ impl SqliteDb {
         }
     }
 
+    #[cfg(feature = "flutter")]
     pub(crate) fn fire_watchers(&self) {
         for watcher in self.0.watchers.read().unwrap().values().cloned() {
             for watcher in watcher.read().unwrap().values().cloned() {
@@ -174,6 +178,12 @@ impl SqliteDb {
             }
         }
     }
+
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn fire_watchers(&self) {}
+
+    #[cfg(not(feature = "flutter"))]
+    pub(crate) fn fire_watcher(&self, table: &str) {}
 
     fn setup_watchers(&self) {
         let s = self.clone();

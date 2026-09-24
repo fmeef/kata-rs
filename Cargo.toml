@@ -1,79 +1,104 @@
-[package]
-name = "rust_lib_kata"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+resolver = "3"
+members = [
+    "rust_lib_kata",
+    "automicon",
+    "kata_server",
+]
 
-[lib]
-crate-type = ["cdylib", "staticlib", "lib"]
 
+[workspace.package]
+rust-version = "1.98.1"
 
-[dependencies]
-anyhow = { version = "1.0.98", features = ["backtrace"] }
-fallible-iterator = "0.3.0"
-flutter_rust_bridge = { version = "=2.14.0-beta.2", features = ["uuid", "chrono"] }
-rusqlite = { version = "0.32.1", features = [
-    "wasm32-wasi-vfs",
-    "uuid",
-    "chrono",
-    "bundled-full",
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(osslconf, values("OPENSSL_NO_BF"))',
+    'cfg(osslconf, values("OPENSSL_NO_CAMELLIA"))',
+    'cfg(osslconf, values("OPENSSL_NO_CAST"))',
+    'cfg(osslconf, values("OPENSSL_NO_IDEA"))',
+    'cfg(osslconf, values("OPENSSL_NO_OCB"))',
+    'cfg(osslconf, values("OPENSSL_NO_DES"))',
 ] }
-thiserror = "2.0.12"
-uuid = { version = "1.17.0", features = ["v4"] }
-macros = { path = "./macros" }
-base64 = "0.22.1"
-rusqlite_migration = "1.3.1"
-lazy_static = "1.5.0"
-chrono = "0.4.41"
-convert_case = "0.6.0"
-futures = "0.3.31"
-tokio = { version = "1.46.1", features = ["test-util"] }
-env_logger = "0.11.8"
-log = "0.4.27"
-qrcode = "0.14.1"
-image_hasher = "3.0.0"
-#sequoia-net = { path = "./sequoia/net" }
-#sequoia-openpgp = { version = "2.0.0", features = ["crypto-rust"] }
-rqrr = "0.10.0"
-serde = { version = "1.0.219", features = ["derive"] }
-openssl = { version = "0.10.73", features = ["vendored"] }
-sequoia-openpgp = { version = "2", default-features = false, features = [
-    "crypto-botan",
-    "compression-bzip2",
-    "compression-deflate"
-] }
-bzip2 = { version = "0.5.2", features = [ "static" ] }
-#libz-sys = { version = "*", features = [ "cmake", "zlib-ng" ] }
-openpgp-cert-d = { path = "./pgp-cert-d/openpgp-cert-d" }
-buffered-reader = { path = "./sequoia/buffered-reader" }
-#sequoia-autocrypt = { path = "./sequoia/autocrypt" }
-#sequoia-ipc = { path = "./sequoia/ipc" }
-botan = { version = "*", features = [] }
-#botan-sys = { path ="./botan-rs/botan-sys", features = []}
-#botan-src = { path ="./botan-rs/botan-src", features = []}
-#nettle = { version = "*", features = ["vendored"]}
-sequoia-wot = { path = "./sequoia-wot/lib" }
-sequoia-cert-store = { version = "0.7", path = "./sequoia-cert-store" }
-zeroize = { version = "1.8.1", features = ["aarch64", "derive", "zeroize_derive"] }
-serde_json = "1.0.145"
-flate2 = "1.1.5"
-rmp-serde = "1.3.0"
-sequoia-net = "0.30.0"
-confusables = "0.1.0"
-latkerlo-jvotci = "2.6.2601"
-automicon = { path = "./automicon" }
-image = "0.25.10"
-hex = "0.4.3"
-sha2 = "0.11.0"
-serde_repr = "0.1.20"
-reqwest = { version = "0.13.4", features = ["blocking", "native-tls"] }
 
-[build-dependencies]
-prost-build = "0.13.5"
+[profile.release]
+debug = true
 
-[dev-dependencies]
-tempfile = "3.23.0"
 
-[features]
-default = []
-flutter_gen = ["flutter"]
-flutter = []
+
+[workspace.lints.clippy]
+# default clippy lint levels matching the common-ci environment:
+# https://gitlab.com/sequoia-pgp/common-ci/-/blob/main/templates/precheck.yml
+suspicious = { level = "deny", priority = -1 }
+style = { level = "allow", priority = -1 }
+complexity = { level = "allow", priority = -1 }
+
+# The Rust Crypto crates are *very* slow when compiled without any
+# optimizations.  Turn on some optimizations.
+[profile.dev.package.aes]
+opt-level = 2
+[profile.dev.package.aes-gcm]
+opt-level = 2
+[profile.dev.package.argon2]
+opt-level = 2
+[profile.dev.package.blake2]
+opt-level = 2
+[profile.dev.package.block-padding]
+opt-level = 2
+[profile.dev.package.blowfish]
+opt-level = 2
+[profile.dev.package.camellia]
+opt-level = 2
+[profile.dev.package.cast5]
+opt-level = 2
+[profile.dev.package.cipher]
+opt-level = 2
+[profile.dev.package.cfb-mode]
+opt-level = 2
+[profile.dev.package.cx448]
+opt-level = 2
+[profile.dev.package.des]
+opt-level = 2
+[profile.dev.package.digest]
+opt-level = 2
+[profile.dev.package.dsa]
+opt-level = 2
+[profile.dev.package.eax]
+opt-level = 2
+[profile.dev.package.ecb]
+opt-level = 2
+[profile.dev.package.ecdsa]
+opt-level = 2
+[profile.dev.package.ed25519]
+opt-level = 2
+[profile.dev.package.ed25519-dalek]
+opt-level = 2
+[profile.dev.package.idea]
+opt-level = 2
+[profile.dev.package.keccak]
+opt-level = 2
+[profile.dev.package.md-5]
+opt-level = 2
+[profile.dev.package.num-bigint-dig]
+opt-level = 2
+[profile.dev.package.num-integer]
+opt-level = 2
+[profile.dev.package.ocb3]
+opt-level = 2
+[profile.dev.package.p256]
+opt-level = 2
+[profile.dev.package.p384]
+opt-level = 2
+[profile.dev.package.p521]
+opt-level = 2
+[profile.dev.package.ripemd]
+opt-level = 2
+[profile.dev.package.rsa]
+opt-level = 2
+[profile.dev.package.sha2]
+opt-level = 2
+[profile.dev.package.sha3]
+opt-level = 2
+[profile.dev.package.twofish]
+opt-level = 2
+[profile.dev.package.x25519-dalek]
+opt-level = 2

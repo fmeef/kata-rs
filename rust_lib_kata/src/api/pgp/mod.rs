@@ -225,7 +225,10 @@ impl CircleLike for UserHandle {
 
     #[frb(sync)]
     fn get_name(&self) -> String {
-        self.fingerprint()
+        match self {
+            Self::KeyHandle(_, ref v) => v.clone().unwrap_or_else(|| self.fingerprint()),
+            Self::RawBytes(_) => self.fingerprint(),
+        }
     }
 }
 
@@ -305,13 +308,14 @@ impl UserHandle {
             author: Some(self.fingerprint()),
             sig: None,
             name: None,
+            idx: Some(self.get_name()),
         };
 
         data.insert_on_conflict_custom(
             db,
             OnConflict::Update,
             vec!["id", "circle_type"],
-            vec!["circle_type", "author", "sig"],
+            vec!["circle_type", "author", "sig", "idx"],
         )?;
 
         Ok(())

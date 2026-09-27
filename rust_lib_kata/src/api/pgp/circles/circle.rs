@@ -323,13 +323,17 @@ impl Circle {
             author: self.inner.author.as_ref().map(|v| v.author.fingerprint()),
             sig: self.inner.author.as_ref().map(|v| v.sig.clone()),
             name: None,
+            idx: Some(format!(
+                "{:?}",
+                self.inner.author.as_ref().map(|v| v.author.get_name())
+            )),
         };
 
         entity.insert_on_conflict_custom(
             db,
             OnConflict::Update,
             vec!["id", "circle_type"],
-            vec!["author", "sig", "circle_type"],
+            vec!["author", "sig", "circle_type", "idx"],
         )?;
 
         for CircleHandle { id, circle_type } in self.inner.members.iter() {
@@ -340,12 +344,13 @@ impl Circle {
                     author: None,
                     sig: None,
                     name: None,
+                    idx: None,
                 };
                 entity.insert_on_conflict_custom(
                     db,
                     OnConflict::Ignore,
                     vec!["id", "circle_type"],
-                    vec!["author", "sig", "circle_type"],
+                    vec!["author", "sig", "circle_type", "idx"],
                 )?;
             }
         }

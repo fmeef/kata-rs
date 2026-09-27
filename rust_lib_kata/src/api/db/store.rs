@@ -111,17 +111,45 @@ pub trait CertDao {
     fn get_circles_join(&self) -> AppResult<Vec<CircleWithMembers>>;
 
     #[query(
-        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
+        "SELECT id AS node, circle_type AS node_type
         FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type
-        WHERE name LIKE FORMAT('%%%s%%', :query)
-        OR
-        (FORMAT('%%%s%%', :query) IN (SELECT name FROM circles WHERE id = member_id))
+        WHERE idx IS NULL"
+    )]
+    fn get_circles_missing_idx(&self) -> AppResult<Vec<OnlyIdType>>;
+
+    #[query(
+        "
+        WITH RECURSIVE
+                   reachable(node, node_type, path, type_path) AS (
+                   SELECT id, circle_type, json_array(id), json_array(circle_type)
+                   FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type
+                   WHERE idx LIKE FORMAT('%%%s%%', :query)
+                   OR
+                   (FORMAT('%%%s%%', :query) IN (SELECT idx FROM circles WHERE id = member_id))
+                     UNION ALL
+                     SELECT member_id, member_type, json_insert(reachable.path, '$[#]', member_id), json_insert(reachable.type_path, '$[#]', member_type)
+                     FROM circle_members
+                     JOIN reachable ON parent_id = reachable.node AND parent_type = node_type
+                     WHERE
+                     parent_type = node_type AND
+                     NOT (member_id IN (SELECT value FROM json_each(reachable.path))
+                     AND member_type  IN (SELECT value FROM json_each(reachable.type_path)))
+                   )
+                    SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
+                   FROM circles LEFT JOIN circle_members ON member_id=id
+                   AND member_type=circle_type JOIN reachable on reachable.node = circles.id and reachable.node_type = circle_type
     "
     )]
     fn get_circles_join_search(&self, query: &str) -> AppResult<Vec<CircleWithMembers>>;
 
+    #[query("UPDATE circles SET idx = :idx WHERE circle_type = :circle_type AND id = :id")]
+    fn set_idx(&self, id: &str, circle_type: &str, idx: &str) -> anyhow::Result<()>;
+
+    #[query("UPDATE circles SET idx = (SELECT FORMAT('%s %s', name, author) WHERE circle_type = :circle_type AND id = :id) WHERE circle_type = :circle_type AND id = :id")]
+    fn set_idx_app(&self, id: &str, circle_type: &str) -> anyhow::Result<()>;
+
     #[query(
-        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
+        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name, idx
         FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type
         WHERE parent_id = :parent AND parent_type = :parent_type
         AND member_id = :child AND member_type = :child_type"
@@ -340,6 +368,7 @@ pub struct CircleData {
     pub(crate) author: Option<String>,
     pub(crate) sig: Option<Vec<u8>>,
     pub(crate) name: Option<String>,
+    pub(crate) idx: Option<String>,
 }
 #[derive(FromRow, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[table("circle_members")]
@@ -568,5 +597,21 @@ mod test {
         let db = SqliteDb::from_conn(db);
         run_migrations(&db).unwrap();
         db.get_all_missing_ids().unwrap();
+    }
+
+    #[test]
+    fn get_all_missing_idx() {
+        let db = rusqlite::Connection::open_in_memory().unwrap();
+        let db = SqliteDb::from_conn(db);
+        run_migrations(&db).unwrap();
+        db.get_circles_missing_idx().unwrap();
+    }
+
+    #[test]
+    fn set_idx_app() {
+        let db = rusqlite::Connection::open_in_memory().unwrap();
+        let db = SqliteDb::from_conn(db);
+        run_migrations(&db).unwrap();
+        db.set_idx_app("", "").unwrap();
     }
 }

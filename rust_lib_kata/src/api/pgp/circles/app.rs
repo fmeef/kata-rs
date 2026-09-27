@@ -288,12 +288,17 @@ impl CircleApp {
             author: Some(self.inner.owner.fingerprint()),
             sig: Some(self.inner.sig.clone()),
             name: Some(self.inner.name.clone()),
+            idx: Some(format!(
+                "{} {}",
+                self.inner.name,
+                self.inner.owner.get_name()
+            )),
         };
         entity.insert_on_conflict_custom(
             db,
             OnConflict::Update,
             vec!["id", "circle_type", "name"],
-            vec!["author", "sig", "circle_type", "name"],
+            vec!["author", "sig", "circle_type", "name", "idx"],
         )?;
 
         for CircleHandle { id, circle_type } in self.inner.children.keys() {
@@ -303,6 +308,7 @@ impl CircleApp {
                 author: None,
                 name: None,
                 sig: None,
+                idx: None,
             };
             entity.insert_on_conflict_custom(
                 db,

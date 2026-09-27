@@ -377,6 +377,37 @@ impl PgpApp {
         Ok(())
     }
 
+    pub fn reindex(&self) -> anyhow::Result<()> {
+        let ids = self.get_db().get_circles_missing_idx()?;
+
+        for OnlyIdType { node, node_type } in ids {
+            match CircleType::from_str(&node_type)? {
+                CircleType::User => {
+                    let handle = UserHandle::from_hex(&node)?;
+                    log::error!("reindex cert: {handle:?}");
+                    match self.get_key_from_fingerprint(&handle) {
+                        Ok(cert) => {
+                            let circle = CircleOr::from_user(cert.cert.fingerprint);
+                            circle.to_db(&self.get_db())?;
+                        }
+                        Err(err) => log::error!("reindex failed {err}"),
+                    }
+                }
+                CircleType::App => {
+                    self.get_db().set_idx_app(&node, &node_type)?;
+                }
+                ty => {}
+            }
+        }
+        Ok(())
+    }
+
+    pub fn get_circles_join_search(&self, query: &str) -> anyhow::Result<Vec<CircleWithMembers>> {
+        let out = self.get_db().get_circles_join_search(query)?;
+
+        Ok(out)
+    }
+
     pub fn circles_from_db(
         &self,
         members: Vec<CircleWithMembers>,

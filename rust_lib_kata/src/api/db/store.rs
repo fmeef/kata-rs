@@ -113,6 +113,16 @@ pub trait CertDao {
     #[query(
         "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
         FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type
+        WHERE name LIKE FORMAT('%%%s%%', :query)
+        OR
+        (FORMAT('%%%s%%', :query) IN (SELECT name FROM circles WHERE id = member_id))
+    "
+    )]
+    fn get_circles_join_search(&self, query: &str) -> AppResult<Vec<CircleWithMembers>>;
+
+    #[query(
+        "SELECT id, member_id, parent_id, parent_type, tag, deleted, circle_type, author, sig, name
+        FROM circles LEFT JOIN circle_members ON member_id=id AND member_type=circle_type
         WHERE parent_id = :parent AND parent_type = :parent_type
         AND member_id = :child AND member_type = :child_type"
     )]
@@ -153,6 +163,55 @@ pub trait CertDao {
         parent: &str,
         parent_type: &str,
     ) -> AppResult<Vec<CircleWithMembers>>;
+
+    #[query(
+        "
+        WITH RECURSIVE
+                   reachable(node, node_type, path, type_path) AS (
+                   SELECT parent_id, parent_type, json_array(parent_id), json_array(parent_type)
+                   FROM circle_members WHERE parent_id = :parent
+                   AND parent_type = :parent_type
+                     UNION ALL
+                     SELECT member_id, member_type, json_insert(reachable.path, '$[#]', member_id), json_insert(reachable.type_path, '$[#]', member_type)
+                     FROM circle_members
+                     JOIN reachable ON parent_id = reachable.node AND parent_type = node_type
+                     WHERE
+                     parent_type = node_type AND
+                     NOT (member_id IN (SELECT value FROM json_each(reachable.path))
+                     AND member_type  IN (SELECT value FROM json_each(reachable.type_path)))
+                   )
+                    SELECT node, node_type FROM reachable WHERE (SELECT COUNT(*) FROM circles WHERE circles.id = reachable.node AND circles.circle_type = reachable.node_type) == '0'
+"
+    )]
+    fn get_missing_ids_for_parent(
+        &self,
+        parent: &str,
+        parent_type: &str,
+    ) -> AppResult<Vec<OnlyIdType>>;
+
+    #[query(
+        "
+        WITH RECURSIVE
+                   reachable(node, node_type, path, type_path) AS (
+                   SELECT parent_id, parent_type, json_array(parent_id), json_array(parent_type)
+                   FROM circle_members WHERE parent_id IS NULL
+                   AND parent_type IS NULL
+                     UNION ALL
+                     SELECT member_id, member_type, json_insert(reachable.path, '$[#]', member_id), json_insert(reachable.type_path, '$[#]', member_type)
+                     FROM circle_members
+                     JOIN reachable ON parent_id = reachable.node AND parent_type = node_type
+                     WHERE
+                     parent_type = node_type AND
+                     NOT (member_id IN (SELECT value FROM json_each(reachable.path))
+                     AND member_type  IN (SELECT value FROM json_each(reachable.type_path)))
+                   )
+                    SELECT node, node_type FROM reachable LEFT JOIN circles ON circles.id = node AND circles.circle_type = node_type
+                    WHERE (SELECT COUNT(*) FROM circles WHERE circles.id = reachable.node AND circles.circle_type = reachable.node_type) == '0'
+                    OR circles.name IS NULL
+                    OR circles.name = ''
+"
+    )]
+    fn get_all_missing_ids(&self) -> AppResult<Vec<OnlyIdType>>;
 
     #[query(
         "
@@ -237,13 +296,20 @@ pub struct OnlyFingerprint {
     pub fingerprint: String,
 }
 
+#[derive(Debug, Clone, FromRow)]
+pub struct OnlyIdType {
+    #[primary]
+    pub node: String,
+    pub node_type: String,
+}
+
 #[derive(Clone, FromRow)]
 pub struct OnlyId {
     #[primary]
     pub id: String,
 }
 
-#[derive(Clone, FromRow)]
+#[derive(Debug, Clone, FromRow)]
 pub struct OnlyOnline {
     #[primary]
     pub online: bool,
@@ -472,10 +538,35 @@ mod test {
     }
 
     #[test]
+    fn get_all_circles_search() {
+        let db = rusqlite::Connection::open_in_memory().unwrap();
+        let db = SqliteDb::from_conn(db);
+        run_migrations(&db).unwrap();
+
+        db.get_circles_join_search("test").unwrap();
+    }
+
+    #[test]
     fn get_all_circles_parent() {
         let db = rusqlite::Connection::open_in_memory().unwrap();
         let db = SqliteDb::from_conn(db);
         run_migrations(&db).unwrap();
         db.get_circles_for_parent("", "").unwrap();
+    }
+
+    #[test]
+    fn get_missing_id() {
+        let db = rusqlite::Connection::open_in_memory().unwrap();
+        let db = SqliteDb::from_conn(db);
+        run_migrations(&db).unwrap();
+        db.get_missing_ids_for_parent("", "").unwrap();
+    }
+
+    #[test]
+    fn get_all_missing_id() {
+        let db = rusqlite::Connection::open_in_memory().unwrap();
+        let db = SqliteDb::from_conn(db);
+        run_migrations(&db).unwrap();
+        db.get_all_missing_ids().unwrap();
     }
 }

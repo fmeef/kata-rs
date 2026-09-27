@@ -23,7 +23,16 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 [profile.release]
 debug = true
 
+[workspace.dependencies]
+sequoia-openpgp = { version = "*", default-features = false, features = [
+    "crypto-botan",
+    "compression-bzip2",
+    "compression-deflate"
+] }
+openpgp-cert-d = { path = "./libs/pgp-cert-d/openpgp-cert-d" }
+buffered-reader = { path = "./libs/sequoia/buffered-reader" }
 
+sequoia-cert-store = { version = "0.7", no-default-features=true, path = "./libs/sequoia-cert-store" }
 
 [workspace.lints.clippy]
 # default clippy lint levels matching the common-ci environment:

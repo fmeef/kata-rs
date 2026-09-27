@@ -553,8 +553,9 @@ pub fn test_keystore(namespace: &str) -> String {
 
     use uuid::Uuid;
 
-    let out = std::env!("OUT_DIR");
-    let mut out = PathBuf::from_str(out).unwrap();
+    let out = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+
+    let mut out = PathBuf::from_str(&format!("{out}/tmp")).unwrap();
 
     let uuid = Uuid::new_v4();
     out.push(format!("test_keystore{uuid}"));

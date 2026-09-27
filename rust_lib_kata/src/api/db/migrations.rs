@@ -119,7 +119,15 @@ lazy_static! {
             DROP TABLE circles;
             DROP TABLE circle_members;
             "#
-        )
+        ),
+        M::up(r#"
+            ALTER TABLE circles ADD COLUMN idx TEXT;
+            CREATE INDEX idx_index ON circles(idx);
+            "#)
+        .down(r#"
+                DROP INDEX idx_index;
+                ALTER TABLE circles DROP COLUMN idx;
+                "#)
     ]);
 }
 

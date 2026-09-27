@@ -3,7 +3,7 @@ use flutter_rust_bridge::frb;
 use sequoia_cert_store::Store;
 use sequoia_openpgp::Fingerprint;
 
-use crate::api::db::store::CertDao;
+use crate::api::db::store::{CertDao, OnlyIdType};
 use crate::api::pgp::cert::MaybeCert;
 use crate::api::pgp::PgpServiceTrait;
 use crate::api::{PgpApp, PgpAppTrait};
@@ -341,6 +341,40 @@ impl PgpApp {
         self.get_stub_from_fingerprint(&v)
             .map(|v| MaybeCert::Full { cert: v })
             .unwrap_or_else(|_| MaybeCert::Fingerprint { fpr: v.clone() })
+    }
+
+    pub fn fill_missing_cards(&self, parent: CircleHandle) -> anyhow::Result<()> {
+        let ids = self.get_db().get_missing_ids_for_parent(
+            &parent.id.fingerprint(),
+            parent.circle_type.get_type_str(),
+        )?;
+
+        log::error!("missing ids: {ids:?}");
+
+        for OnlyIdType { node, node_type } in ids {
+            let node_type = CircleType::from_str(&node_type)?;
+            if let CircleType::User = node_type {
+                let card = CircleOr::from_cert(UserHandle::from_raw_hex(&node)?);
+                card.to_db(&self.get_db())?;
+            }
+        }
+        Ok(())
+    }
+
+    pub fn fill_all_missing_cards(&self) -> anyhow::Result<()> {
+        let ids = self.get_db().get_all_missing_ids()?;
+
+        log::error!("missing ids: {ids:?}");
+
+        for OnlyIdType { node, node_type } in ids {
+            let node_type = CircleType::from_str(&node_type)?;
+            if let CircleType::User = node_type {
+                let card = CircleOr::from_cert(UserHandle::from_raw_hex(&node)?);
+                card.to_db(&self.get_db())?;
+            }
+        }
+
+        Ok(())
     }
 
     pub fn circles_from_db(

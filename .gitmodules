@@ -2,16 +2,16 @@
 	path = botan-rs
 	url = https://github.com/randombit/botan-rs.git
 [submodule "sequoia-cert-store"]
-	path = sequoia-cert-store
+	path = libs/sequoia-cert-store
 	url = https://gitlab.com/fmeef/sequoia-cert-store
 [submodule "sequoia-wot"]
-	path = sequoia-wot
+	path = libs/sequoia-wot
 	url = https://gitlab.com/fmeef/sequoia-wot.git
 [submodule "sequoia"]
-	path = sequoia
+	path = libs/sequoia
 	url = https://gitlab.com/sequoia-pgp/sequoia
 [submodule "pgp-cert-d"]
-	path = pgp-cert-d
+	path = libs/pgp-cert-d
 	url = https://gitlab.com/sequoia-pgp/pgp-cert-d.git
 [submodule "automicon"]
 	path = automicon

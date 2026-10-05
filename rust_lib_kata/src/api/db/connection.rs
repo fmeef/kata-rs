@@ -169,7 +169,7 @@ impl SqliteDb {
     }
 
     #[cfg(feature = "flutter")]
-    pub(crate) fn fire_watchers(&self) {
+    pub fn fire_watchers(&self) {
         for watcher in self.0.watchers.read().unwrap().values().cloned() {
             for watcher in watcher.read().unwrap().values().cloned() {
                 FLUTTER_RUST_BRIDGE_HANDLER
